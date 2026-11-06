@@ -31,7 +31,7 @@ momentsales.ai is an agentic commerce assistant that finds what people want to b
 Two research modes:
 
 1. **Seasonal demand research** — for a chosen country in North America, Europe or Australia, detect the current and upcoming season (weather season plus retail moments such as Black Friday, Christmas, back-to-school, summer holidays) and find the products in highest demand.
-2. **Audience behaviour research** — from social data the seller is entitled to use (their own brand accounts, opted-in customers, public trend data), infer which products an audience is likely to buy.
+2. **Audience behaviour research (later roadmap; the MVP uses a simple "describe your audience" form inside seasonal research)** — from social data the seller is entitled to use (their own brand accounts, opted-in customers, public trend data), infer which products an audience is likely to buy.
 
 Goals for the prototype:
 
@@ -41,35 +41,55 @@ Goals for the prototype:
 - **momentsales.ai is sold as a subscription SaaS:** any seller can self-serve sign up, start a free trial, pick a plan (Starter, Growth, Pro) and pay monthly or annually through Stripe Billing (FR-10).
 - The architecture supports a later mobile app (React Native/Expo) on the same API with no backend rewrite.
 
+### Target customer, promise and launch scope
+
+- **Target customer:** UK side-hustlers and small online shops who want to run a seasonal product line without holding stock. Not experienced Amazon sellers or large brands.
+- **Promise (one line, used on the landing page and in onboarding):** *Find what's about to sell, launch a shop in a weekend, and keep books your accountant will accept.*
+- **Edge over existing tools:** early and local. momentsales.ai recommends products whose demand is *rising* (not already peaking), 6–10 weeks before a retail moment, that a supplier can deliver inside the UK in 2–7 days, with a profit forecast, a marketing kit and audit-ready books in one place.
+- **Launch scope (MVP):** UK only, seasonal research only, one live dropship supplier with UK stock (a second adapter built and switchable), the native storefront with Stripe, SaaS billing and the ledger. Everything else is on the **Later roadmap** (see *Implementation constraints, deliverables and build phases*).
+- **Validate before building much:** publish a landing page with the promise and a waitlist in week 1; build on as planned, but use sign-up rate and interviews to confirm the target customer.
+
+Success measures to track from launch (targets to validate, not commitments):
+
+- Share of trialists who make a **first sale within the 14-day trial**.
+- **Hit rate:** share of recommended products that make at least one sale within 30 days of listing.
+- Monthly subscriber churn, trial-to-paid conversion and the share of annual plans.
+- Seller dispute rate (kept under Stripe's thresholds) and average delivery time.
+
 Recommendation to adopt (selling channel): build a **native storefront with Stripe Checkout as the default**, and add **Shopify as an optional connector**. The native store keeps the prototype simple, keeps all sales data in one ledger and makes momentsales.ai sellable as a standalone SaaS. Shopify sync serves sellers who already have a Shopify store. Both channels publish from the same internal product listing.
 
 ## Scope and priorities
 
-Priority uses MoSCoW. The prototype (MVP) is every **Must**; **Should** items follow in the same release if time allows.
+The first release is a **UK-first MVP**. Items marked **MVP** are built in Phases 0–5; items marked **Later** go on the Later roadmap and are only started once paying customers ask for them.
 
-| Area | Item | Priority |
+| Area | Item | Release |
 | --- | --- | --- |
-| Research | Seasonal demand mode for US, CA, UK, IE, DE, FR, ES, IT, NL, AU | Must |
-| Research | Audience mode using seller-owned accounts and public trend data | Must |
-| Research | Audience mode using opted-in customer social logins | Should |
-| Report | Top 10 report (web view + PDF export) with links, image, sizes, delivery, best price, evidence | Must |
-| Listings | Convert any of the Top 10 into editable product listings | Must |
-| Selling | Native storefront + Stripe Checkout | Must |
-| Selling | Shopify connector (publish products, pull orders) | Should |
-| Selling | Other channels (eBay, Etsy, TikTok Shop) via manual CSV import | Could |
-| Payments | Stripe connect, automatic sales count, refunds sync | Must |
-| Ledger | /touch, /spend, receipts upload with OCR, audit export | Must |
-| SaaS | Plans, free trial, Stripe Billing subscriptions, Customer Portal, plan limits | Must |
-| SaaS | Usage metering, dunning, public pricing page and marketing site | Must |
-| SaaS | Platform admin console with tenant list and MRR/churn metrics | Must |
-| SaaS | Add-on research-run packs, coupons | Should |
-| SaaS | Referral/affiliate programme, white-label custom domains | Could |
-| Fulfilment | Supplier/dropship order placement automation | Could (manual in MVP) |
-| Platform | Web app, responsive to mobile browsers | Must |
-| Platform | Native mobile app | Won't (this release) |
-| Ops | Scheduled re-research and price/stock refresh | Should |
+| Research | Seasonal demand mode for the **UK** | MVP |
+| Research | Rising-demand and competition scores, season calendar with "act by" dates (FR-12) | MVP |
+| Research | "Describe your audience" form (age, interests, budget, style) feeding the Season and Scoring agents | MVP |
+| Research | Hit-rate tracking and shared market-data cache (FR-12) | MVP |
+| Research | More countries: US, AU, then EU (needs FR-14 EU rules) | Later |
+| Research | Full audience research from owned/consented social accounts (Phase L1) | Later |
+| Report | Top 10 report with supplier, profit forecast, competition and compliance flags; PDF/CSV | MVP |
+| Growth | Marketing kit per product, ad spend and true profit per product (FR-13) | MVP |
+| Growth | Launch checklist with a first-sale goal (FR-13) | MVP |
+| Growth | Ad-account connectors; Google free listings and Pinterest catalogue sync | Later |
+| Listings | Convert Top 10 products into editable listings | MVP |
+| Selling | Native storefront + Stripe Checkout | MVP |
+| Selling | Shopify connector; CSV import from other channels | Later |
+| Fulfilment | Dropshipping: one live UK-stock supplier, second adapter built and switchable (FR-11, FR-15) | MVP |
+| Fulfilment | Own stock via 3PL; print on demand | Later |
+| Payments | Stripe Connect, automatic sales count, refunds sync | MVP |
+| Ledger | /touch, /spend, receipts with OCR, audit export | MVP |
+| SaaS | Plans incl. Lite tier, trial, Stripe Billing, Customer Portal, limits, metering, dunning, pause, cancel survey (FR-10) | MVP |
+| SaaS | Weekly "what's coming next" email; pricing page and marketing site; admin console | MVP |
+| SaaS | Referral programme, white-label domains | Later |
+| Trust | Dispute-rate monitor, proactive shopper notifications, acceptable-use enforcement (FR-14) | MVP |
+| Compliance | Per-product UK compliance check; onboarding compliance checklist gating the storefront (FR-14) | MVP |
+| Platform | Web app, responsive to mobile browsers | MVP |
+| Platform | Native mobile app | Later |
 
-Out of scope for the prototype: automated purchasing from suppliers, multi-currency payouts beyond Stripe defaults, tax filing, and any scraping of private social profiles.
+Out of scope for the MVP: everything marked *Later* above, multi-currency payouts beyond Stripe defaults, tax filing on behalf of sellers, and any scraping of private social profiles. The code must still be built so that countries, channels and fulfilment types can be switched on with feature flags and adapters, without rewrites.
 
 ## User roles and permissions
 
@@ -94,7 +114,7 @@ Business rules:
 
 ## User journeys and workflows
 
-**J1 — Sign-up, trial and onboarding (Owner).** Visit the marketing site → pricing page → *Start free trial* → sign up with email or Google → Stripe Checkout captures card for a 14-day trial → create workspace (name, base country, currency, business details) → optional `/stripe connect` → optional Shopify connect → land on dashboard with a guided checklist and a trial countdown.
+**J1 — Sign-up, trial and onboarding (Owner).** Visit the marketing site → pricing page → *Start free trial* → sign up with email or Google → Stripe Checkout captures card for a 14-day trial → create workspace (name, base country, currency, business details) → optional `/stripe connect` → Shopify connect once that Later feature ships → complete the compliance checklist (FR-14) → land on dashboard with the launch checklist and first-sale goal (FR-13) and a trial countdown.
 
 **J2 — Seasonal research (Analyst/Admin).**
 
@@ -103,7 +123,7 @@ Business rules:
 3. User clicks *Run research*; a live progress panel shows each agent's step, sources consulted and spend so far.
 4. Report opens with the Top 10; user can re-rank, pin, exclude or ask the agent "why this product?".
 
-**J3 — Audience research (Analyst/Admin).**
+**J3 — Audience research (Analyst/Admin) — Later roadmap; in the MVP, J2 includes the optional "describe your audience" form.**
 
 1. Choose *Audience behaviour*, then a data source: connected brand accounts, an uploaded customer list with consent flags, or public hashtag/topic trends.
 2. System confirms the lawful basis for each source and blocks any source without it.
@@ -111,7 +131,7 @@ Business rules:
 
 **J4 — Report to listing (Admin).** Select products from the Top 10 → *Create listings* → AI drafts title, description, SEO tags, images, variants (sizes/colours), cost price, suggested sell price and margin → user edits and approves → publish to native store, Shopify, or both. Every edit to an AI draft is logged as /touch.
 
-**J5 — Sell and get paid (Shopper → Owner).** Shopper buys on storefront → Stripe Checkout → webhook records the sale, fee and net in the ledger → sales counter updates → Owner fulfils (manually orders from supplier in MVP) → logs the supplier purchase as /spend with receipt.
+**J5 — Sell and get paid (Shopper → Owner).** Shopper buys on storefront → Stripe Checkout → webhook records the sale, fee and net in the ledger → sales counter updates → app drafts the dropship supplier order → Admin approves (logged as /touch) → supplier ships direct to the shopper and returns a tracking number → shopper gets a tracking email; the supplier cost is posted as a /spend with the supplier invoice as receipt (FR-11).
 
 **J6 — Bookkeeping (Admin/Accountant).** Use the command bar or forms for `/spend`, `/touch` and receipt upload → review the ledger → monthly close → export audit pack (CSV + PDF + receipts ZIP).
 
@@ -120,6 +140,10 @@ Business rules:
 **J8 — Subscription management (Owner).** Billing page shows plan, renewal date, usage bars (runs, listings, seats) and invoices → *Manage billing* opens the Stripe Customer Portal to upgrade, downgrade, change card or cancel → hitting a plan limit anywhere shows an upgrade prompt → buying a research-run pack goes through Stripe Checkout. Failed payments show a banner and email until resolved.
 
 **J9 — Platform administration (Platform admin).** Admin console → tenants list with plan, status, usage and MRR → open a tenant to extend a trial, apply a coupon or change feature flags (each action logged) → edit plan limits and prices in the `plans` table → watch SaaS metrics (MRR, churn, trial conversion).
+
+**J10 — Market a product and track true profit (Admin).** Open a listing → *Marketing kit* → generate ad copy, video scripts and post captions → edit and copy into the ad platform → log ad spend with `/spend ads` linked to the listing, or upload the ad platform's CSV export → the listing's P&L shows profit after ad spend; the launch checklist ticks off "first marketing post".
+
+**J11 — Stay ahead of the season (Owner/Analyst).** Home shows the season calendar with "act by" dates → the weekly "what's coming next" email lists rising opportunities → one click starts a research run pre-filled for that moment.
 
 ## Functional requirements and business rules
 
@@ -150,23 +174,25 @@ Rules:
 ### FR-2 Season detection
 
 - Seasons are derived from country + hemisphere + date (e.g. Australia's summer is Dec–Feb) and a retail-moments table (Black Friday, Cyber Monday, Christmas, Boxing Day, Easter, Mother's Day per country, back-to-school, Prime Day, Singles' Day, summer holidays).
-- Look-ahead window default 6 weeks so sellers can stock before demand peaks; configurable 2–12 weeks.
+- Look-ahead window default 8 weeks (6–10 recommended) so sellers can list and market before demand peaks; configurable 2–12 weeks.
 - The user can override the detected season.
 
 ### FR-3 Product scoring
 
 Demand score 0–100, weights stored in config and editable by Owner:
 
-- Search/social trend momentum (30%)
-- Marketplace sales rank and review velocity (30%)
-- Seasonal fit for the window (15%)
-- Estimated margin after fees and shipping (15%)
-- Supply reliability and delivery speed (10%)
-- Compliance agent can veto any product regardless of score.
+- Rising demand: search/social growth rate over the last 2–4 weeks (25%)
+- Low competition (inverse of the FR-12 competition score) (15%)
+- Marketplace sales rank and review velocity (15%)
+- Seasonal fit for the window, incl. the "act by" date (15%)
+- Forecast profit per sale from supplier cost, supplier shipping, Stripe fees and estimated ad cost (20%)
+- Supplier reliability and UK delivery speed (10%)
+- Fit with the optional "describe your audience" inputs adjusts the score by up to ±10 points.
+- Compliance agent can veto any product regardless of score; products with no supplier or arriving too late are flagged (FR-11).
 
 ### FR-4 Top 10 report
 
-For each product: rank, name, snapshot image, demand score with a one-line "why", category, price range and **best price** with platform, links to 2–5 platforms where it can be bought, available sizes/variants, estimated delivery date to the seller's country, rating and review count, estimated margin, season/segment fit, risk flags, and data freshness. Report-level: run parameters, season summary, methodology note, sources list, total run cost. Export to PDF and CSV; shareable read-only link.
+For each product: rank, name, snapshot image, demand score with a one-line "why", category, price range and **best price** with platform, links to 2–5 platforms where it can be bought, available sizes/variants, matched dropship supplier with unit cost, shipping cost, warehouse country and delivery time to the shopper's region, rating and review count, profit forecast (FR-13), growth rate and competition score (FR-12), compliance flags (FR-14), season/segment fit, risk flags, and data freshness. Report-level: run parameters, season summary, methodology note, sources list, total run cost. Export to PDF and CSV; shareable read-only link.
 
 ### FR-5 Listings and storefront
 
@@ -247,6 +273,83 @@ Business rules:
 - **Platform admin console:** tenants list with plan, status, MRR, trial end, usage vs limits; ability to extend a trial or apply a coupon (logged as /touch); SaaS metrics: MRR, ARR, active subscribers, trial-to-paid conversion, churn, ARPA.
 - **Public marketing site:** home, pricing (from the `plans` table), features, FAQ, SaaS terms of service, privacy policy, DPA for business customers, sign-up. Server-rendered for SEO.
 
+Pricing and retention additions (from the business-model review):
+
+- **Lite tier** (placeholder £12/month): 3 research runs, 10 live listings, 1 seat, Fulfilment queue, no marketing kit generation beyond 3 per month. Also **pay-per-report**: a single research run for £9 without a subscription (Stripe Checkout `mode=payment`).
+- **Annual push:** annual plans shown first on the pricing page with the saving in £; annual plans get 2 extra research runs per month.
+- **Until Later-roadmap features ship,** Growth and Pro differ by limits, marketing-kit volume, auto-approve of supplier orders and support, not by audience research or Shopify (those columns in the plan table activate when built).
+- **Pause instead of cancel:** Owner can pause for 1–3 months (via Stripe subscription pause); storefront paused, data kept, research disabled.
+- **Cancel survey:** a short reason list (no sales, too expensive, missing feature, seasonal break, other + text) shown before cancelling; answers stored and shown in the admin console; offer pause or a one-month discount depending on the reason.
+- **Weekly "what's coming next" email:** top 3 rising opportunities for the seller's country and upcoming "act by" dates from the shared cache; sent to active, paused and recently cancelled users who opted in.
+
+### FR-11 Fulfilment and suppliers
+
+The default fulfilment model is **dropshipping**: the shopper pays the seller, momentsales.ai sends the order to a dropship supplier, and the supplier ships direct to the shopper. Marketplace links (Amazon, eBay, Shein, Google Shopping) are **demand evidence only**; products are never bought from them to resell. **Own stock via a 3PL** (ShipBob, Amazon Multi-Channel Fulfilment) and **print on demand** (Printful, Printify) are optional fulfilment adapters for later.
+
+Supplier matching (new **Supplier agent** in the FR-1 pipeline, runs after the Marketplace agent):
+
+- For each candidate product, search connected supplier catalogues (CJ Dropshipping, Spocket, Zendrop, AliExpress via DSers; via official APIs only) for a matching item, using title, image similarity (embeddings) and attributes.
+- Prefer suppliers with a warehouse in the shopper's region (UK, EU, US, AU). Record per match: supplier, product URL, unit cost, shipping cost to each region, delivery time range, warehouse country, stock, variants/sizes, supplier rating, returns policy.
+- **No supplier match → the product is flagged "no supplier" and cannot be converted to a listing** until the seller adds a supplier manually.
+- **Season fit:** if the supplier's maximum delivery time ends after the season or retail-moment window, the product is ranked down and flagged "arrives too late".
+- Margin in FR-3 scoring is computed from supplier unit cost + supplier shipping + Stripe fees, not from retail prices.
+
+Order flow:
+
+1. Shopper pays (Stripe Checkout) → order recorded (FR-6).
+2. App drafts the supplier order (items, variant, shopper address, shipping method) and shows it in the **Fulfilment queue**.
+3. Admin approves (one-click, or bulk) → logged as /touch. An optional per-workspace **auto-approve** setting skips this step only for orders under a set value from a supplier with at least 20 successful orders; every auto-approval is still logged.
+4. Supplier order placed via the supplier adapter; supplier cost posted to the ledger as a /spend with the supplier invoice attached as the receipt.
+5. Tracking number and carrier synced back (webhook or polling every 2 h) → shopper emailed a tracking link; order status: `paid → sent_to_supplier → shipped → delivered` (or `exception`).
+6. Stuck orders (no tracking after the supplier's handling time + 2 days) raise an alert in the dashboard.
+
+Business rules:
+
+- **Delivery promise:** the storefront shows an estimated delivery date range from the matched supplier's real shipping time to the shopper's region, never a guessed date.
+- **Stock and price sync:** supplier stock and cost refresh at least daily for published listings; out of stock → listing auto-paused; cost rise that breaks the minimum margin floor (FR-5) → listing flagged for repricing.
+- **Returns:** shopper requests a return from the order page within the legal window (14 days UK/EU); the app shows the supplier's return address/rules; refunds go through Stripe and post a reversing ledger entry. Supplier credits are logged when received.
+- **Packaging:** prefer suppliers offering unbranded or custom-branded packaging; the seller's business name appears on the packing slip where the supplier supports it.
+- **Sample orders:** sellers can place a sample order to themselves before publishing; logged as /spend.
+- **Plan limits:** the Fulfilment queue is available on all plans; auto-approve and multiple suppliers per product are Growth and Pro features.
+
+### FR-12 Demand intelligence
+
+Goal: recommend products *before* the crowd, and prove the recommendations work.
+
+- **Rising, not peak:** the Trend agent computes a **growth rate** (search and social interest over the last 2–4 weeks vs the previous 4–8) and a **peak flag** (interest already at or near its seasonal high). Rising products score higher; peaked products are shown with a "crowded" badge.
+- **Competition score (0–100, lower is better):** derived from number of marketplace listings, number of sellers, visible ad density for the product keyword (via the SERP provider), and price spread. Shown in the report.
+- **Season calendar:** Home shows the next three UK retail moments with an **"act by" date** = moment date − (supplier delivery max + 21 days of selling time). Default look-ahead 8 weeks (6–10 recommended).
+- **"Describe your audience" form (MVP):** optional fields (age range, gender focus, interests, budget band, style) passed to the Season, Trend and Scoring agents as preferences; no personal data collected.
+- **Hit-rate tracking:** for every recommended product that becomes a listing, record a `RecommendationOutcome` at 7, 30 and 60 days (views, orders, revenue, returns, disputes). Use aggregated outcomes (across all workspaces, anonymised) to recalibrate scoring weights monthly; show hit rate on the marketing site once there is enough data.
+- **Shared market-data cache:** non-personal market data (trends, marketplace ranks, supplier catalogues, prices) is cached per country + category + week and reused across workspaces to cut cost and latency. A seller's own data (listings, sales, audience inputs, outcomes before aggregation) is never shared.
+
+### FR-13 Growth toolkit: marketing kit, ad spend and first sale
+
+Goal: help sellers get traffic and a first sale, so they stay subscribed.
+
+- **Marketing kit per product** (Listing agent, generated on request and editable): 3 ad headlines and 3 primary texts, 2 short-video scripts (hook, 3 scenes, call to action, under 30 s), 5 social post captions with hashtags, a suggested target audience (interests, age band), suggested starting daily budget, and lifestyle mock-up images clearly labelled as AI-generated. No fake reviews, testimonials or invented claims.
+- **Profit forecast per product** (in the report and listing): sell price − supplier cost − supplier shipping − Stripe fees − estimated ad cost per sale (from category benchmarks, labelled as an estimate) = forecast profit per sale, plus break-even ad cost.
+- **Ad spend and true profit:** `/spend` gains category `ads` with a required `listing` link; per-product P&L = revenue − refunds − supplier cost − fees − ad spend. Ad-account connectors (Meta, TikTok, Google) are *Later*; MVP uses manual entry and CSV upload of ad-platform exports.
+- **Launch checklist with first-sale goal** (onboarding and Home): business details → compliance checklist (FR-14) → first research run → first listing → sample order → first marketing post → first sale. Progress bar; nudges by email at day 2, 5 and 9 of the trial.
+- **Free traffic channels (Later):** Google Merchant Center free listings and Pinterest catalogue sync via feeds generated from published listings; check each platform's current programme and terms before building.
+
+### FR-14 Trust, risk and compliance
+
+Goal: keep sellers, shoppers, momentsales.ai's Stripe platform account and the law on side. *Rules below must be confirmed with a UK accountant/lawyer before launch; they are product requirements, not legal advice.*
+
+- **Seller onboarding compliance checklist (gates the storefront):** legal/trading name and address, VAT status (registered number or a confirmation the seller has taken advice), returns policy (14-day cancellation), contact email, acceptance of the acceptable-use policy. The storefront cannot go live until complete.
+- **Per-product compliance check (Compliance agent, UK for MVP):** flags product categories that need UKCA/CE marking or safety documents (electricals, toys, cosmetics, PPE, products for children), restricted or prohibited items, trademark/counterfeit risk, and unsupported health claims. If the supplier cannot supply required documents, the product is blocked from listing. Flags and decisions are stored with the product.
+- **Import VAT awareness:** for goods shipped from outside the UK to UK consumers, show a notice in the report and listing that the seller may need to charge and account for UK VAT on low-value imports, and prefer UK-warehouse suppliers. EU sales stay *Later* until IOSS and EU product-safety ("EU responsible person") handling are built.
+- **Proactive shopper notifications:** order confirmation with the supplier-based delivery range; shipped email with tracking; automatic delay email if tracking shows no movement for 3 days; delivered email asking for feedback. This reduces "item not received" disputes.
+- **Dispute and refund monitor:** per-seller dispute rate and refund rate over 30 and 90 days on Home and in the admin console. Warn the seller at 0.5% dispute rate; at 0.75% pause new checkouts until the Platform admin reviews (thresholds configurable; set below Stripe's published limits after checking current Stripe guidance).
+- **Acceptable-use policy enforcement:** no counterfeit, prohibited, unsafe or misleadingly described goods; the Compliance agent blocks, the Platform admin can suspend repeat offenders; every action logged.
+
+### FR-15 Provider redundancy
+
+- Every critical category has **at least two adapters**: market data (two SERP/data providers), dropship suppliers (two suppliers with UK stock), email, OCR. In the MVP one is live and the second is built, tested against fixtures and switchable by configuration (`PROVIDER_<CATEGORY>=…`).
+- Automatic failover for read-only data providers when the primary errors or exceeds its rate limit; manual switch for suppliers (orders are not failed over automatically).
+- Track cost per research run by provider in the admin console so prices and plan limits can be adjusted.
+
 ## UI/UX and accessibility
 
 The dashboard should feel calm and fast: one primary action per screen, plain language, and visible agent progress so the user always knows what the AI is doing and what it costs.
@@ -258,14 +361,22 @@ Screens (left nav):
 3. **Reports** — Top 10 as cards and table toggle; product drawer with all fields, evidence, source links and "ask why" chat.
 4. **Listings** — kanban by state (Draft, Approved, Published, Paused), editor with AI-suggest buttons, channel toggles (Native / Shopify).
 5. **Store** — storefront theme (logo, colours), domain, policies, preview.
-6. **Sales & Orders** — orders table, refunds, channel filter, fulfilment status.
+6. **Sales & Orders** — orders table, Fulfilment queue (approve supplier orders singly or in bulk), tracking, stuck-order alerts, returns, refunds, channel filter.
 7. **Ledger** — tabs for Spends, Touches, Receipts, Sales, P\&L; filters; export button.
 8. **Integrations** — Stripe, Shopify, data providers, social accounts, with health status.
 9. **Billing** (Owner) — current plan, renewal date, usage bars for runs/listings/seats, invoices, *Manage billing* (Stripe Customer Portal), *Buy run pack*, plan comparison with upgrade buttons.
 10. **Settings** — workspace, team and roles, scoring weights, cost caps, notifications, data retention.
 11. **Admin console** (Platform admin only, separate route) — tenants, plans and prices, trials and coupons, SaaS metrics.
 
-Locked features (e.g. Audience research on Starter) stay visible with a lock icon and a one-line upgrade explanation, never hidden.
+Locked features (e.g. features above a seller's plan) stay visible with a lock icon and a one-line upgrade explanation, never hidden. Later-roadmap features are hidden behind feature flags until built.
+
+MVP screen additions from the business-model review:
+
+- **Home:** launch checklist with first-sale progress, season calendar with "act by" dates, risk panel (dispute and refund rate) when above warning level.
+- **Reports:** growth rate, competition score, profit forecast and compliance flags on every product card.
+- **Listings:** a *Marketing kit* tab and a per-product P&L tab (revenue, costs, ad spend, profit).
+- **Settings → Compliance:** onboarding checklist status and the acceptable-use policy.
+- **Billing:** pause subscription, cancel survey, pay-per-report purchase.
 
 Global: command bar (`/` or Ctrl/⌘+K) supporting the FR-7 commands with autocomplete; toast confirmations; empty states that explain the next step; dark and light themes.
 
@@ -312,7 +423,8 @@ flowchart TB
   subgraph External["External, via adapters + mocks"]
     LLM[Claude API]
     SERP[Search and Google Trends]
-    MKT[Amazon, eBay, suppliers]
+    MKT[Amazon, eBay - demand data]
+    SUP[Dropship suppliers]
     SOC[Social APIs - consented]
     STR[Stripe Connect + Billing]
     SHP[Shopify - optional]
@@ -328,6 +440,8 @@ flowchart TB
   WRK <--> SERP
   WRK <--> MKT
   WRK <--> SOC
+  API <--> SUP
+  WRK <--> SUP
 ```
 
 The API talks to Stripe and Shopify (calls out, webhooks in); agent workers call the research providers; both share Postgres, Redis and object storage.
@@ -393,6 +507,34 @@ SaaS billing entities (FR-10):
 
 SaaS invoices (what sellers pay momentsales.ai) are kept separate from each seller's own ledger (FR-7), so a seller's P&L shows their subscription as a /spend only if they log it.
 
+Fulfilment entities (FR-11):
+
+| Entity | Key fields |
+| --- | --- |
+| Supplier | workspace\_id (null for platform-wide catalogues), provider (cj, spocket, zendrop, dsers, printful, manual), name, warehouse\_countries, rating, returns\_policy, successful\_orders, integration\_id |
+| SupplierProduct | supplier\_id, product\_id, external\_id, url, variants, unit\_cost, currency, stock, shipping options per region (cost, min/max days), fetched\_at |
+| FulfilmentOrder | order\_id, supplier\_id, status (draft, approved, sent\_to\_supplier, shipped, delivered, exception, cancelled), approved\_by, auto\_approved, supplier\_order\_ref, cost, spend\_id |
+| Shipment | fulfilment\_order\_id, carrier, tracking\_number, tracking\_url, status, shipped\_at, delivered\_at, last\_checked\_at |
+| ReturnRequest | order\_id, items, reason, status, supplier\_rma, refund\_id, created\_at |
+
+Growth, trust and data entities (FR-12 to FR-15):
+
+| Entity | Key fields |
+| --- | --- |
+| AudienceProfile | workspace\_id, age\_range, gender\_focus, interests, budget\_band, style (no personal data) |
+| SeasonMoment | country, name, date, category hints; computed act\_by per workspace |
+| MarketDataCache | country, category, week, provider, data\_type, payload, fetched\_at (shared, non-personal) |
+| ProductSignals | product\_id, country, growth\_rate, peak\_flag, competition\_score, computed\_at |
+| RecommendationOutcome | report\_item\_id, listing\_id, day (7/30/60), views, orders, revenue, returns, disputes |
+| MarketingKit | listing\_id, ad\_headlines, primary\_texts, video\_scripts, captions, audience\_suggestion, budget\_suggestion, images, edited\_by |
+| ComplianceCheck | product\_id or workspace\_id, scope (product/onboarding), country, flags, required\_docs, supplier\_docs\_provided, decision, decided\_by |
+| SellerRiskMetric | workspace\_id, period (30/90 days), orders, disputes, refunds, dispute\_rate, refund\_rate, status (ok/warn/paused) |
+| ShopperNotification | order\_id, type (confirmation, shipped, delay, delivered), sent\_at, channel |
+| CancelSurvey / SubscriptionPause | workspace\_id, reason, text, offer\_made, outcome; pause start/end |
+| ProviderConfig | category, primary, secondary, mode (mock/live), failover (auto/manual) |
+
+Ad spend reuses `Spend` (category `ads`, required `listing_id`); `Spend` gains an optional `source` (manual, csv\_import).
+
 Storage: receipts and images in object storage, private bucket, server-side encryption, access via 5-minute signed URLs. Secrets in a secrets manager, never in the database in plain text.
 
 ## API contracts and external integrations
@@ -432,6 +574,31 @@ SaaS billing endpoints:
 
 Any limited endpoint returns `402` with `{"type":"plan_limit_reached","limit":"research_runs","used":10,"allowed":10,"upgrade_url":"…"}` when the plan limit is hit.
 
+Fulfilment endpoints:
+
+| Method + path | Purpose |
+| --- | --- |
+| `GET /suppliers` · `POST /suppliers` (manual) · `POST /integrations/{provider}/connect` | Supplier accounts and catalogues |
+| `GET /products/{id}/supplier-matches` · `POST /listings/{id}/supplier` | View matches, pick or change the supplier for a listing |
+| `GET /fulfilment/queue` · `POST /fulfilment/{id}/approve` · `POST /fulfilment/approve-bulk` | Review and approve supplier orders |
+| `GET /orders/{id}/tracking` (also public via a signed shopper link) | Tracking status |
+| `POST /orders/{id}/returns` · `PATCH /returns/{id}` | Returns |
+| `POST /webhooks/suppliers/{provider}` | Supplier order and tracking updates (signed where supported) |
+
+Growth, trust and compliance endpoints:
+
+| Method + path | Purpose |
+| --- | --- |
+| `GET /season-calendar` | Upcoming moments with act-by dates |
+| `PUT /audience-profile` | Save "describe your audience" inputs |
+| `POST /listings/{id}/marketing-kit` · `PATCH /marketing-kits/{id}` | Generate and edit a marketing kit |
+| `GET /listings/{id}/pnl` · `POST /spends/import-csv` | Per-product profit; ad-platform CSV import |
+| `GET /onboarding/checklist` · `PATCH /onboarding/checklist` | Launch and compliance checklist |
+| `GET /products/{id}/compliance` · `POST /compliance/{id}/decision` | Compliance flags and decisions |
+| `GET /risk/metrics` · `GET /admin/risk` | Dispute/refund monitor |
+| `POST /billing/pause` · `POST /billing/cancel-survey` · `POST /billing/report-checkout` | Pause, cancel survey, pay-per-report |
+| `GET /admin/hit-rate` · `GET /admin/providers` · `PATCH /admin/providers/{category}` | Hit rate; provider switch and cost per run |
+
 External integrations (each behind an adapter with a mock):
 
 | Purpose | Provider options | Notes |
@@ -441,7 +608,7 @@ External integrations (each behind an adapter with a mock):
 | Amazon data | Amazon's official affiliate product API (check current program and eligibility) or a licensed provider (Keepa, Rainforest-type) | No direct scraping |
 | eBay | eBay Browse API | Official |
 | Shein, Temu, others | Licensed data provider or manual links only | No scraping |
-| Suppliers | CJ Dropshipping API, AliExpress affiliate/dropship APIs | Sizes, stock, shipping times |
+| Suppliers | Dropship: CJ Dropshipping, Spocket, Zendrop, AliExpress via DSers (official APIs). Later: Printful/Printify (print on demand), ShipBob or Amazon MCF (own stock) | Cost, stock, variants, warehouse location, shipping times, order placement, tracking |
 | Weather/season | Open-Meteo or similar; public-holiday API (e.g. Nager.Date) | Free tiers available |
 | Social | Meta Graph API (owned IG/FB business accounts), YouTube Data API, TikTok official APIs where access granted | Seller-owned or consented data only |
 | Payments | Stripe Connect (seller sales), Stripe Billing + Customer Portal (SaaS subscriptions), Checkout, Webhooks, Stripe Tax | Test mode by default |
@@ -450,6 +617,8 @@ External integrations (each behind an adapter with a mock):
 | OCR | Cloud OCR or Claude vision | Receipts |
 
 Before coding any adapter, read that provider's current official docs and record the exact endpoints, rate limits and terms in `docs/integrations/<provider>.md`.
+
+Redundancy (FR-15): integrate two providers per critical category from the start (one live, one switchable). Later-roadmap integrations: Meta/TikTok/Google ad accounts (read spend), Google Merchant Center and Pinterest catalogue feeds, ShipBob/Amazon MCF, Printful/Printify.
 
 ## Security, privacy and compliance
 
@@ -477,6 +646,13 @@ SaaS obligations:
 - SaaS terms of service must cover acceptable use (no counterfeit or prohibited goods), plan limits, refunds, cancellation and data export on exit.
 - UK/EU consumer rules on subscriptions: clear price and renewal terms before payment, easy online cancellation, trial-ending reminder before the first charge.
 - Tenant isolation is a release blocker: automated tests must prove no workspace can read another's data, files, usage or invoices.
+
+Seller tax and product compliance (UK MVP; FR-14; confirm with an accountant/lawyer before launch):
+
+- Gate the storefront behind the onboarding compliance checklist.
+- Block products that need UKCA/CE marking or safety documents the supplier cannot provide.
+- Show the low-value import VAT notice for overseas-shipped goods and prefer UK-warehouse suppliers.
+- Keep EU sales switched off until IOSS and the EU responsible-person requirement are handled.
 
 Application security (OWASP ASVS L2):
 
@@ -543,6 +719,28 @@ SaaS acceptance criteria:
 - [ ] **AC-18 Admin console:** Platform admin sees all tenants with plan, status and usage, can extend a trial (logged), and MRR matches the sum of active subscriptions.
 - [ ] **AC-19 Isolation:** automated tests confirm a user in workspace A cannot read workspace B's reports, listings, ledger, receipts, usage or invoices.
 
+Fulfilment acceptance criteria:
+
+- [ ] **AC-20 Supplier match:** every Top 10 item shows a matched supplier with unit cost, shipping cost, warehouse country and delivery range, or a "no supplier" flag; a "no supplier" item cannot be converted to a listing.
+- [ ] **AC-21 Arrives too late:** a product whose supplier delivery ends after the season window is flagged and ranked below otherwise equal products.
+- [ ] **AC-22 Dropship order:** a test purchase creates a draft supplier order in the Fulfilment queue; approving it logs a /touch, sends it to the mock supplier, posts the cost as a /spend with a receipt, and a mock tracking number reaches the order and the shopper email.
+- [ ] **AC-23 Stock and cost sync:** a supplier stock-out pauses the listing; a cost rise that breaks the margin floor flags it for repricing.
+- [ ] **AC-24 Return:** a shopper return request within 14 days shows supplier return rules; the Stripe refund posts a reversing ledger entry.
+
+Growth, trust and MVP-scope acceptance criteria:
+
+- [ ] **AC-25 Rising vs crowded:** every report item shows a growth rate and competition score; a product at its seasonal peak shows the "crowded" badge and ranks below an otherwise equal rising product.
+- [ ] **AC-26 Season calendar:** Home lists the next three UK retail moments with act-by dates that move when the supplier delivery time changes.
+- [ ] **AC-27 Profit forecast and marketing kit:** each report item shows forecast profit per sale and break-even ad cost; generating a marketing kit returns all listed parts, labels AI images, and contains no reviews or testimonials.
+- [ ] **AC-28 True profit:** a `/spend ads` entry or CSV import linked to a listing reduces that listing's profit in its P&L and in the period P&L.
+- [ ] **AC-29 Compliance gate:** the storefront cannot be published until the onboarding checklist is complete; a toy or electrical product without supplier safety documents cannot be listed.
+- [ ] **AC-30 Shopper notifications:** a test order sends confirmation, shipped and delivered emails; a mock shipment with no movement for 3 days sends a delay email.
+- [ ] **AC-31 Dispute monitor:** a seller crossing the warning threshold sees a warning; crossing the pause threshold blocks new checkouts until a Platform admin clears it (logged).
+- [ ] **AC-32 Retention tools:** pause works through Stripe and resumes on the set date; the cancel survey is required before cancelling and appears in the admin console; the weekly email reaches opted-in users with three opportunities.
+- [ ] **AC-33 Hit rate:** a listing created from a report records outcomes at 7, 30 and 60 days (simulated clock in tests), and the admin hit-rate view aggregates them.
+- [ ] **AC-34 Provider switch:** changing `PROVIDER_MARKET_DATA` and `PROVIDER_SUPPLIER` to the secondary adapter passes the same research and fulfilment tests; a primary data-provider error fails over automatically.
+- [ ] **AC-35 UK-first scope:** only the UK is selectable; Later-roadmap features are hidden behind feature flags; AC-4 (consent gate) and AC-11 (Shopify) are deferred to the Later roadmap.
+
 ## Deployment and operations
 
 - **Environments:** local (docker compose, mocks), staging (Stripe test mode, Shopify dev store, live data providers on low quotas), production.
@@ -562,11 +760,11 @@ Constraints:
 - No paid service is required to run locally; every adapter has a mock and a `PROVIDER_MODE=mock|live` switch.
 - Stripe (Connect and Billing) and Shopify always in test/dev mode until the Platform admin flips a production flag. Stripe Products and Prices are created by a seed script from the plans table, never by hand.
 - Agents never take irreversible actions (publish, charge, email customers, spend) without a human approval recorded as /touch.
-- Ask before adding any dependency with a non-permissive licence.
+- Ask before adding any dependency with a non-permissive licence. UK only at launch: other countries, channels and fulfilment types sit behind feature flags and adapters. Do not start Later-roadmap work without explicit approval.
 
 Deliverables:
 
-- [ ] Working web app (dashboard + storefront) and API meeting AC-1 to AC-19
+- [ ] Working web app (dashboard + storefront) and API meeting AC-1 to AC-35 (except AC-4 and AC-11, which belong to the Later roadmap)
 - [ ] `README.md` with setup in ≤ 5 commands, `.env.example`, seed script with demo workspace and sample report
 - [ ] OpenAPI spec, generated TS client, ERD (Mermaid) in `docs/`
 - [ ] ADRs, integration notes per provider, runbooks, DPIA template, privacy policy and terms templates
@@ -575,20 +773,31 @@ Deliverables:
 
 Build phases (each ends with tests green and a demo):
 
-1. **Phase 0 — Foundations:** repo, docker compose, auth, multi-tenant workspaces, roles, RLS with isolation tests, CI, design system shell, command bar skeleton.
-2. **Phase 1 — Ledger and payments:** Stripe Connect onboarding, Checkout, webhooks, orders, sales counters, /spend, /touch, /receipt with OCR, P&L, audit export. (Built first because it is the money backbone.)
-3. **Phase 1B — SaaS subscriptions and billing:** plans table and seed script, Stripe Billing, free trial, Customer Portal, EntitlementService and plan limits, usage metering, dunning, run packs, Billing page, public pricing page.
-4. **Phase 2 — Seasonal research:** season engine, agent orchestrator, trend/marketplace adapters (mock then live), scoring, compliance, Top 10 report + PDF; research runs counted against plan limits.
-5. **Phase 3 — Listings and storefront:** listing drafts, editor, pricing rules, native storefront, publish flow; live listings counted against plan limits.
-6. **Phase 4 — Audience research:** consent model, social adapters, segmenting, audience reports (Growth and Pro only).
-7. **Phase 5 — Shopify connector and external sales import** (Growth and Pro only).
-8. **Phase 6 — Marketing site and admin console:** home, features, FAQ, terms, privacy, DPA; Platform admin console with tenants, trials, coupons and SaaS metrics.
-9. **Phase 7 — Hardening:** performance, security scan, accessibility audit, observability, staging deploy, launch checklist.
+**MVP (UK launch):**
+
+1. **Phase 0 — Foundations:** repo, docker compose, auth, multi-tenant workspaces, roles, RLS with isolation tests, CI, feature flags, provider config (FR-15), design system shell, command bar skeleton. *Before coding:* publish a landing page with the promise and a waitlist.
+2. **Phase 1 — Ledger and payments:** Stripe Connect onboarding, Checkout, webhooks, orders, sales counters, /spend (incl. `ads` + CSV import), /touch, /receipt with OCR, P&L incl. per-product P&L, audit export.
+3. **Phase 1B — SaaS subscriptions and billing:** plans table incl. Lite and pay-per-report, Stripe Billing, free trial, Customer Portal, EntitlementService and plan limits, usage metering, dunning, pause, cancel survey, run packs, Billing page, public pricing page.
+4. **Phase 2 — Seasonal research (UK), demand intelligence and supplier matching:** season engine and calendar, agent orchestrator, trend/marketplace adapters (two providers), growth rate and competition score, "describe your audience" form, Supplier agent with two supplier adapters, scoring (FR-3), Compliance agent with UK product checks, profit forecast, shared market-data cache, Top 10 report + PDF; runs counted against plan limits.
+5. **Phase 3 — Listings, storefront, fulfilment and growth toolkit:** listing editor and pricing, native storefront with supplier-based delivery dates, onboarding compliance gate, Fulfilment queue, supplier orders, tracking, stock/cost sync, returns, shopper notifications, dispute monitor, marketing kit, launch checklist with first-sale goal, hit-rate recording.
+6. **Phase 4 — Marketing site, admin console and retention:** home, features, FAQ, terms, privacy, DPA, acceptable-use policy; admin console with tenants, trials, coupons, SaaS metrics, risk, hit rate and provider costs; weekly "what's coming next" email.
+7. **Phase 5 — Hardening and UK launch:** performance, security scan, accessibility audit, observability, staging then production deploy, launch checklist.
+
+**Later roadmap** (start only when paying customers ask for it, in roughly this order):
+
+- **L1 Audience research** from owned/consented social accounts (FR-1 Audience agent, J3, AC-4).
+- **L2 Shopify connector** and CSV import from other channels (AC-11).
+- **L3 More countries:** US and Australia, then EU once IOSS VAT and EU responsible-person handling are built.
+- **L4 Traffic integrations:** ad-account connectors (Meta, TikTok, Google) and Google free listings / Pinterest catalogue sync.
+- **L5 Fulfilment options:** own stock via 3PL (ShipBob, Amazon MCF) and print on demand.
+- **L6 Native mobile app** (React Native/Expo) on the same API.
+- **L7 Referral programme and white-label custom domains.**
 
 Open questions to confirm with the product owner before Phase 2:
 
-- Which data providers and budgets are approved (SERP, Amazon data, supplier APIs)?
-- Will sellers fulfil via dropshipping suppliers, own stock, or both?
-- Final plan prices, limits and trial length (FR-10 values are placeholders).
+- Confirm the target customer (UK side-hustlers and small online shops) after landing-page and interview feedback.
+- Which two market-data providers and two UK-stock dropship suppliers to integrate first, and their budgets?
+- Final plan prices, limits, trial length and pay-per-report price (FR-10 values are placeholders).
+- Dispute and refund warning/pause thresholds, checked against Stripe's current guidance.
 - Platform fee on Stripe Connect sales: keep at 0%, or charge a percentage on some plans?
-- Which legal entity and country momentsales.ai bills from (sets VAT registration and Stripe account country)?
+- Which legal entity momentsales.ai bills from (UK company assumed; sets VAT registration and Stripe account country)?
