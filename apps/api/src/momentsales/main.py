@@ -18,8 +18,11 @@ from momentsales.core.redis import get_redis
 from momentsales.modules import devtools
 from momentsales.modules.auth.router import router as auth_router
 from momentsales.modules.flags.router import router as flags_router
+from momentsales.modules.ledger.router import router as ledger_router
 from momentsales.modules.providers.registry import ProviderRegistry
 from momentsales.modules.providers.router import router as providers_router
+from momentsales.modules.receipts.router import files_router
+from momentsales.modules.receipts.router import router as receipts_router
 from momentsales.modules.waitlist.router import router as waitlist_router
 from momentsales.modules.workspaces.router import router as workspaces_router
 
@@ -31,6 +34,9 @@ ROUTERS: tuple[APIRouter, ...] = (
     workspaces_router,
     flags_router,
     providers_router,
+    ledger_router,
+    receipts_router,
+    files_router,
 )
 log = get_logger(__name__)
 

@@ -44,6 +44,10 @@ class Action(StrEnum):
     INTEGRATIONS_PAYMENTS_MANAGE = "integrations.payments.manage"
     BILLING_MANAGE = "billing.manage"
     BILLING_USAGE_READ = "billing.usage.read"
+    # Phase 1
+    CHECKOUT_TEST = "checkout.test"
+    SALES_RECORD = "sales.record"
+    TOUCHES_WRITE = "touches.write"
 
 
 PERMISSIONS: dict[Action, frozenset[Role]] = {
@@ -71,6 +75,9 @@ PERMISSIONS: dict[Action, frozenset[Role]] = {
     Action.INTEGRATIONS_PAYMENTS_MANAGE: frozenset({OW}),
     Action.BILLING_MANAGE: frozenset({OW}),
     Action.BILLING_USAGE_READ: frozenset({OW, AD}),
+    Action.CHECKOUT_TEST: frozenset({OW, AD}),
+    Action.SALES_RECORD: frozenset({OW, AD}),
+    Action.TOUCHES_WRITE: frozenset({OW, AD}),
 }
 
 assert set(PERMISSIONS) == set(Action), "every action needs a role set"

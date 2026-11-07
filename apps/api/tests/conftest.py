@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import os
 import sys
+import tempfile
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
@@ -53,6 +54,8 @@ os.environ.update(
         "COOKIE_SECURE": "false",
         "WEB_BASE_URL": "http://test",
         "LOG_LEVEL": "warning",
+        "JOBS_MODE": "inline",
+        "STORAGE_LOCAL_PATH": tempfile.mkdtemp(prefix="momentsales-test-storage-"),
     }
 )
 
