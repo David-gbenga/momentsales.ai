@@ -1,0 +1,70 @@
+# Local stack: docker compose up  (PROVIDER_MODE=mock, no paid keys needed)
+name: momentsales
+
+x-app-env: &app-env
+  DATABASE_URL: postgresql+psycopg://app_rw:${APP_RW_PASSWORD}@postgres:5432/momentsales
+  MIGRATION_DATABASE_URL: postgresql+psycopg://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/momentsales
+  REDIS_URL: redis://redis:6379/0
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_OWNER_PASSWORD: ${APP_OWNER_PASSWORD}
+      APP_RW_PASSWORD: ${APP_RW_PASSWORD}
+    ports: ["${POSTGRES_PORT:-5432}:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/docker/postgres/10-roles.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d momentsales"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports: ["${REDIS_PORT:-6379}:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: { context: ., dockerfile: infra/docker/api.Dockerfile }
+    env_file: .env
+    environment: *app-env
+    command: sh -c "alembic -c apps/api/alembic.ini upgrade head && uvicorn momentsales.main:app --host 0.0.0.0 --port 8000 --proxy-headers"
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  worker:
+    build: { context: ., dockerfile: infra/docker/worker.Dockerfile }
+    env_file: .env
+    environment: *app-env
+    command: celery -A momentsales_worker.celery_app worker --beat --loglevel=INFO --concurrency=2
+    depends_on:
+      api: { condition: service_healthy }
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/web.Dockerfile
+      args:
+        API_INTERNAL_URL: http://api:8000
+        NEXT_PUBLIC_PROVIDER_MODE: ${NEXT_PUBLIC_PROVIDER_MODE:-mock}
+    ports: ["3000:3000"]
+    depends_on:
+      api: { condition: service_healthy }
+
+volumes:
+  pgdata:
