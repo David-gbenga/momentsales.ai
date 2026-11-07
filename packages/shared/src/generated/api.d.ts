@@ -253,6 +253,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/exports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Exports */
+        get: operations["list_exports_api_v1_exports_get"];
+        put?: never;
+        /** Request Export */
+        post: operations["request_export_api_v1_exports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exports/{export_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Export
+         * @description Status, and 5-minute download links once the pack is ready.
+         */
+        get: operations["get_export_api_v1_exports__export_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/flags": {
         parameters: {
             query?: never;
@@ -281,6 +319,40 @@ export interface paths {
         get: operations["health_api_v1_health_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/{import_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Import */
+        get: operations["get_import_api_v1_imports__import_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/{import_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Import */
+        post: operations["confirm_import_api_v1_imports__import_id__confirm_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -626,6 +698,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sales/import-csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Sales
+         * @description Upload sales made on another channel (J7) and get a column-mapping preview.
+         */
+        post: operations["preview_sales_api_v1_sales_import_csv_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sales/summary": {
         parameters: {
             query?: never;
@@ -655,6 +747,26 @@ export interface paths {
         put?: never;
         /** Create Spend */
         post: operations["create_spend_api_v1_spends_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spends/import-csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview Spends
+         * @description Upload a spends CSV (e.g. an ad platform's export) and get a column-mapping preview.
+         */
+        post: operations["preview_spends_api_v1_spends_import_csv_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -884,10 +996,35 @@ export interface components {
              */
             status: "check_your_email";
         };
+        /** Body_preview_sales_api_v1_sales_import_csv_post */
+        Body_preview_sales_api_v1_sales_import_csv_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_preview_spends_api_v1_spends_import_csv_post */
+        Body_preview_spends_api_v1_spends_import_csv_post: {
+            /** File */
+            file: string;
+        };
         /** Body_upload_receipt_api_v1_receipts_post */
         Body_upload_receipt_api_v1_receipts_post: {
             /** File */
             file: string;
+        };
+        /** ConfirmIn */
+        ConfirmIn: {
+            /**
+             * @default {
+             *       "channel": "CSV import",
+             *       "currency": "GBP",
+             *       "payment_method": "card"
+             *     }
+             */
+            defaults: components["schemas"]["DefaultsIn"];
+            /** Mapping */
+            mapping: {
+                [key: string]: string;
+            };
         };
         /** ConnectOut */
         ConnectOut: {
@@ -910,6 +1047,85 @@ export interface components {
             /** Name */
             name: string;
         };
+        /** DefaultsIn */
+        DefaultsIn: {
+            category?: components["schemas"]["SpendCategory"] | null;
+            /**
+             * Channel
+             * @default CSV import
+             */
+            channel: string;
+            /**
+             * Currency
+             * @default GBP
+             */
+            currency: string;
+            /**
+             * Payment Method
+             * @default card
+             */
+            payment_method: string;
+            /** Product Key */
+            product_key?: string | null;
+            /** Vendor */
+            vendor?: string | null;
+        };
+        /** ExportFileOut */
+        ExportFileOut: {
+            /** Bytes */
+            bytes: number;
+            /** Name */
+            name: string;
+            /** Sha256 */
+            sha256: string;
+            /** Url */
+            url?: string | null;
+        };
+        /** ExportIn */
+        ExportIn: {
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+        };
+        /** ExportOut */
+        ExportOut: {
+            /** Audit Chain Ok */
+            audit_chain_ok: boolean | null;
+            /** Completed At */
+            completed_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Files */
+            files?: components["schemas"]["ExportFileOut"][];
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Period End
+             * Format: date
+             */
+            period_end: string;
+            /**
+             * Period Start
+             * Format: date
+             */
+            period_start: string;
+            status: components["schemas"]["JobStatus"];
+        };
         /** FlagsOut */
         FlagsOut: {
             /** Flags */
@@ -921,6 +1137,34 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * ImportKind
+         * @enum {string}
+         */
+        ImportKind: "spends" | "sales";
+        /** ImportOut */
+        ImportOut: {
+            /** Errors */
+            errors: {
+                [key: string]: unknown;
+            }[];
+            /** Filename */
+            filename: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            kind: components["schemas"]["ImportKind"];
+            /** Rows Imported */
+            rows_imported: number;
+            /** Rows Skipped */
+            rows_skipped: number;
+            /** Rows Total */
+            rows_total: number;
+            /** Status */
+            status: string;
         };
         /** InvitationIn */
         InvitationIn: {
@@ -952,6 +1196,11 @@ export interface components {
             id: string;
             role: components["schemas"]["Role"];
         };
+        /**
+         * JobStatus
+         * @enum {string}
+         */
+        JobStatus: "pending" | "running" | "completed" | "failed";
         /** LedgerEntryOut */
         LedgerEntryOut: {
             /** Amount Minor */
@@ -1211,6 +1460,33 @@ export interface components {
              */
             start: string;
             total: components["schemas"]["PnlLineOut"];
+        };
+        /** PreviewOut */
+        PreviewOut: {
+            /** Fields */
+            fields: string[];
+            /** Filename */
+            filename: string;
+            /** Headers */
+            headers: string[];
+            /**
+             * Import Id
+             * Format: uuid
+             */
+            import_id: string;
+            kind: components["schemas"]["ImportKind"];
+            /** Required */
+            required: string[];
+            /** Rows Total */
+            rows_total: number;
+            /** Sample */
+            sample: {
+                [key: string]: string;
+            }[];
+            /** Suggested Mapping */
+            suggested_mapping: {
+                [key: string]: string;
+            };
         };
         /** ProviderOut */
         ProviderOut: {
@@ -2188,6 +2464,108 @@ export interface operations {
             };
         };
     };
+    list_exports_api_v1_exports_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_export_api_v1_exports_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_export_api_v1_exports__export_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                export_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     effective_flags_api_v1_flags_get: {
         parameters: {
             query?: never;
@@ -2238,6 +2616,78 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    get_import_api_v1_imports__import_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                import_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_import_api_v1_imports__import_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                import_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConfirmIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2974,6 +3424,42 @@ export interface operations {
             };
         };
     };
+    preview_sales_api_v1_sales_import_csv_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_preview_sales_api_v1_sales_import_csv_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     sales_summary_api_v1_sales_summary_get: {
         parameters: {
             query?: {
@@ -3071,6 +3557,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SpendOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    preview_spends_api_v1_spends_import_csv_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_preview_spends_api_v1_spends_import_csv_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreviewOut"];
                 };
             };
             /** @description Validation Error */

@@ -17,7 +17,9 @@ from momentsales.core.logging import configure_logging, get_logger
 from momentsales.core.redis import get_redis
 from momentsales.modules import devtools
 from momentsales.modules.auth.router import router as auth_router
+from momentsales.modules.exports.router import router as exports_router
 from momentsales.modules.flags.router import router as flags_router
+from momentsales.modules.imports.router import router as imports_router
 from momentsales.modules.ledger.router import router as ledger_router
 from momentsales.modules.payments.router import router as payments_router
 from momentsales.modules.payments.router import webhooks_router
@@ -41,6 +43,8 @@ ROUTERS: tuple[APIRouter, ...] = (
     files_router,
     payments_router,
     webhooks_router,
+    imports_router,
+    exports_router,
 )
 log = get_logger(__name__)
 
