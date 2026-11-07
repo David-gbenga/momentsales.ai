@@ -74,6 +74,9 @@ REVOKE UPDATE, DELETE, TRUNCATE ON {t} FROM app_rw;""")
 # can read its own matched events.
 EXTRA_SQL = """
 CREATE POLICY integrations_platform_select ON integrations FOR SELECT USING (app_is_platform());
+-- receipts: the OCR sweeper finds stuck receipts across workspaces (ids only, then it
+-- switches to the receipt's own workspace context to process it).
+CREATE POLICY receipts_platform_select ON receipts FOR SELECT USING (app_is_platform());
 
 ALTER TABLE webhook_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE webhook_events FORCE ROW LEVEL SECURITY;

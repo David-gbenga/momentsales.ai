@@ -1,7 +1,7 @@
-"""Celery application (ADR-0005). Phase 0 ships only a heartbeat task.
+"""Celery application (ADR-0005).
 
-Research agents (Phase 2) and scheduled jobs (trial reminders, weekly email) are
-added here in their phases.
+`momentsales.run_job` runs the API package's job handlers (webhook processing, receipt OCR,
+audit exports); Beat runs the heartbeat and the stuck-work sweeper every minute.
 """
 
 from __future__ import annotations
@@ -23,6 +23,8 @@ app.conf.update(
     broker_connection_retry_on_startup=True,
     beat_schedule={
         "heartbeat": {"task": "momentsales_worker.tasks.heartbeat.heartbeat", "schedule": 60.0},
+        "sweep": {"task": "momentsales_worker.tasks.jobs.sweep", "schedule": 60.0},
     },
 )
 app.autodiscover_tasks(["momentsales_worker.tasks"], related_name="heartbeat")
+app.autodiscover_tasks(["momentsales_worker.tasks"], related_name="jobs")

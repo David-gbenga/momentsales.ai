@@ -211,6 +211,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/checkout/test-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Test Checkout
+         * @description Test mode only: a real Checkout Session (on the seller's account) for free-text items,
+         *     so the checkout -> webhook -> order -> ledger pipeline can be exercised before the
+         *     storefront exists (Phase 3 reuses it).
+         */
+        post: operations["create_test_checkout_api_v1_checkout_test_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/countries": {
         parameters: {
             query?: never;
@@ -259,6 +281,60 @@ export interface paths {
         get: operations["health_api_v1_health_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/stripe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stripe Status */
+        get: operations["stripe_status_api_v1_integrations_stripe_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/stripe/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stripe Connect
+         * @description `/stripe connect` (Owner only): returns a single-use Stripe onboarding link.
+         */
+        post: operations["stripe_connect_api_v1_integrations_stripe_connect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/stripe/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stripe Refresh */
+        post: operations["stripe_refresh_api_v1_integrations_stripe_refresh_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -317,6 +393,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Ledger */
+        get: operations["list_ledger_api_v1_ledger_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/members": {
         parameters: {
             query?: never;
@@ -352,6 +445,40 @@ export interface paths {
         patch: operations["change_member_role_api_v1_members__membership_id__patch"];
         trace?: never;
     };
+    "/api/v1/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Orders */
+        get: operations["list_orders_api_v1_orders_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{order_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Order */
+        get: operations["get_order_api_v1_orders__order_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/permissions": {
         parameters: {
             query?: never;
@@ -372,6 +499,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/pnl": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Pnl */
+        get: operations["get_pnl_api_v1_pnl_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/product-keys": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Product Keys
+         * @description Keys already used, for autocomplete (ADR-0013).
+         */
+        get: operations["product_keys_api_v1_product_keys_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ready": {
         parameters: {
             query?: never;
@@ -383,6 +547,166 @@ export interface paths {
         get: operations["ready_api_v1_ready_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Receipts */
+        get: operations["list_receipts_api_v1_receipts_get"];
+        put?: never;
+        /** Upload Receipt */
+        post: operations["upload_receipt_api_v1_receipts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/{receipt_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Receipt */
+        get: operations["get_receipt_api_v1_receipts__receipt_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/receipts/{receipt_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Receipt
+         * @description The human check (FR-7): saves the confirmed values as a spend, or attaches the
+         *     receipt to an existing spend. Either way the spend's 'missing receipt' flag clears.
+         */
+        post: operations["confirm_receipt_api_v1_receipts__receipt_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Sale */
+        post: operations["record_sale_api_v1_sales_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sales/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales Summary */
+        get: operations["sales_summary_api_v1_sales_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Spends */
+        get: operations["list_spends_api_v1_spends_get"];
+        put?: never;
+        /** Create Spend */
+        post: operations["create_spend_api_v1_spends_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spends/{spend_id}/receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link Receipt */
+        post: operations["link_receipt_api_v1_spends__spend_id__receipt_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/spends/{spend_id}/void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Void Spend */
+        post: operations["void_spend_api_v1_spends__spend_id__void_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/touches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Touches */
+        get: operations["list_touches_api_v1_touches_get"];
+        put?: never;
+        /** Create Touch */
+        post: operations["create_touch_api_v1_touches_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -457,6 +781,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/webhooks/stripe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stripe Webhook
+         * @description Platform-account events ("Your account" endpoint).
+         */
+        post: operations["stripe_webhook_api_v1_webhooks_stripe_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/webhooks/stripe-connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stripe Connect Webhook
+         * @description Connected-account events: direct-charge payments, refunds, payouts, account updates.
+         */
+        post: operations["stripe_connect_webhook_api_v1_webhooks_stripe_connect_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/workspaces": {
         parameters: {
             query?: never;
@@ -520,6 +884,16 @@ export interface components {
              */
             status: "check_your_email";
         };
+        /** Body_upload_receipt_api_v1_receipts_post */
+        Body_upload_receipt_api_v1_receipts_post: {
+            /** File */
+            file: string;
+        };
+        /** ConnectOut */
+        ConnectOut: {
+            /** Url */
+            url: string;
+        };
         /** ConsentOut */
         ConsentOut: {
             /** Text */
@@ -577,6 +951,62 @@ export interface components {
              */
             id: string;
             role: components["schemas"]["Role"];
+        };
+        /** LedgerEntryOut */
+        LedgerEntryOut: {
+            /** Amount Minor */
+            amount_minor: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Currency */
+            currency: string;
+            /** Description */
+            description: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Occurred On
+             * Format: date
+             */
+            occurred_on: string;
+            /** Order Id */
+            order_id: string | null;
+            /** Product Key */
+            product_key: string | null;
+            /** Reverses Id */
+            reverses_id: string | null;
+            /** Source */
+            source: string;
+            /** Spend Id */
+            spend_id: string | null;
+            /** Type */
+            type: string;
+        };
+        /** LedgerPage */
+        LedgerPage: {
+            /** Items */
+            items: components["schemas"]["LedgerEntryOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * LedgerType
+         * @enum {string}
+         */
+        LedgerType: "sale" | "fee" | "refund" | "payout" | "spend" | "adjustment";
+        /** LinkReceiptIn */
+        LinkReceiptIn: {
+            /**
+             * Receipt Id
+             * Format: uuid
+             */
+            receipt_id: string;
         };
         /** MagicLinkIn */
         MagicLinkIn: {
@@ -678,6 +1108,110 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /**
+         * OcrStatus
+         * @enum {string}
+         */
+        OcrStatus: "pending" | "done" | "failed" | "skipped";
+        /** OrderItemOut */
+        OrderItemOut: {
+            /** Description */
+            description: string;
+            /** Product Key */
+            product_key: string | null;
+            /** Quantity */
+            quantity: number;
+            /** Unit Amount Minor */
+            unit_amount_minor: number;
+        };
+        /** OrderOut */
+        OrderOut: {
+            /** Channel */
+            channel: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Currency */
+            currency: string;
+            /** Customer Email */
+            customer_email: string | null;
+            /** External Id */
+            external_id: string;
+            /** Fees Minor */
+            fees_minor: number;
+            /** Gross Minor */
+            gross_minor: number;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Items
+             * @default []
+             */
+            items: components["schemas"]["OrderItemOut"][];
+            /** Net Minor */
+            net_minor: number;
+            /** Note */
+            note: string | null;
+            /** Paid At */
+            paid_at: string | null;
+            /** Refunded Minor */
+            refunded_minor: number;
+            /** Status */
+            status: string;
+            /** Tax Minor */
+            tax_minor: number;
+        };
+        /** OrderPage */
+        OrderPage: {
+            /** Items */
+            items: components["schemas"]["OrderOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /** PnlLineOut */
+        PnlLineOut: {
+            /** Adjustments Minor */
+            adjustments_minor: number;
+            /** Ads Minor */
+            ads_minor: number;
+            /** Cogs Minor */
+            cogs_minor: number;
+            /** Fees Minor */
+            fees_minor: number;
+            /** Other Spend Minor */
+            other_spend_minor: number;
+            /** Product Key */
+            product_key: string | null;
+            /** Profit Minor */
+            profit_minor: number;
+            /** Refunds Minor */
+            refunds_minor: number;
+            /** Revenue Minor */
+            revenue_minor: number;
+        };
+        /** PnlOut */
+        PnlOut: {
+            /** By Product */
+            by_product: components["schemas"]["PnlLineOut"][] | null;
+            /** Currency */
+            currency: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            total: components["schemas"]["PnlLineOut"];
+        };
         /** ProviderOut */
         ProviderOut: {
             /** Built */
@@ -705,6 +1239,58 @@ export interface components {
             source: "env" | "db";
         };
         /**
+         * ReceiptConfirm
+         * @description Either the user-checked spend details (creates the spend) or an existing spend.
+         */
+        ReceiptConfirm: {
+            spend?: components["schemas"]["SpendCreate"] | null;
+            /** Spend Id */
+            spend_id?: string | null;
+        };
+        /** ReceiptOut */
+        ReceiptOut: {
+            /** Confirmed At */
+            confirmed_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Download Url */
+            download_url?: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Mime */
+            mime: string;
+            /** Ocr */
+            ocr?: {
+                [key: string]: unknown;
+            } | null;
+            /** Ocr Error */
+            ocr_error: string | null;
+            /** Ocr Provider */
+            ocr_provider: string | null;
+            ocr_status: components["schemas"]["OcrStatus"];
+            /** Original Name */
+            original_name: string;
+            /** Sha256 */
+            sha256: string;
+            /** Size Bytes */
+            size_bytes: number;
+            /** Spend Id */
+            spend_id?: string | null;
+        };
+        /** ReceiptPage */
+        ReceiptPage: {
+            /** Items */
+            items: components["schemas"]["ReceiptOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
          * Role
          * @enum {string}
          */
@@ -712,6 +1298,81 @@ export interface components {
         /** RoleChangeIn */
         RoleChangeIn: {
             role: components["schemas"]["Role"];
+        };
+        /**
+         * SaleCreate
+         * @description FR-7 /sale: a sale made outside Stripe (base currency only in Phase 1).
+         */
+        SaleCreate: {
+            /**
+             * Channel
+             * @example Etsy
+             * @example Market stall
+             */
+            channel: string;
+            /** Items */
+            items: components["schemas"]["SaleItemIn"][];
+            /** Note */
+            note?: string | null;
+            /** Order Ref */
+            order_ref?: string | null;
+            /**
+             * Sold On
+             * Format: date
+             */
+            sold_on: string;
+        };
+        /** SaleItemIn */
+        SaleItemIn: {
+            /** Description */
+            description: string;
+            /** Product Key */
+            product_key?: string | null;
+            /**
+             * Quantity
+             * @default 1
+             */
+            quantity: number;
+            /**
+             * Unit Amount
+             * @example 24.99
+             */
+            unit_amount: string;
+        };
+        /** SalesBucket */
+        SalesBucket: {
+            /** Fees Minor */
+            fees_minor: number;
+            /** Gross Minor */
+            gross_minor: number;
+            /** Net Minor */
+            net_minor: number;
+            /** Orders */
+            orders: number;
+            /** Period Start */
+            period_start: string;
+            /** Refunds Minor */
+            refunds_minor: number;
+        };
+        /** SalesSummaryOut */
+        SalesSummaryOut: {
+            /** Buckets */
+            buckets: components["schemas"]["SalesBucket"][];
+            /** Currency */
+            currency: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Period */
+            period: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            totals: components["schemas"]["SalesBucket"];
         };
         /** SessionOut */
         SessionOut: {
@@ -750,6 +1411,104 @@ export interface components {
             /** Source */
             source?: string | null;
         };
+        /**
+         * SpendCategory
+         * @enum {string}
+         */
+        SpendCategory: "stock" | "ads" | "software" | "shipping" | "fees" | "other";
+        /** SpendCreate */
+        SpendCreate: {
+            /**
+             * Amount
+             * @example 24.99
+             */
+            amount: string;
+            /**
+             * Base Amount
+             * @description GBP actually charged; required when currency is not GBP
+             */
+            base_amount?: string | null;
+            category: components["schemas"]["SpendCategory"];
+            /**
+             * Currency
+             * @default GBP
+             */
+            currency: string;
+            /** Note */
+            note?: string | null;
+            /** Order Id */
+            order_id?: string | null;
+            /** Payment Method */
+            payment_method: string;
+            /** Product Key */
+            product_key?: string | null;
+            /** Receipt Id */
+            receipt_id?: string | null;
+            /**
+             * Spent On
+             * Format: date
+             */
+            spent_on: string;
+            /** Tax Amount */
+            tax_amount?: string | null;
+            /** Vendor */
+            vendor: string;
+        };
+        /** SpendOut */
+        SpendOut: {
+            /** Amount Minor */
+            amount_minor: number;
+            /** Base Amount Minor */
+            base_amount_minor: number;
+            category: components["schemas"]["SpendCategory"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Currency */
+            currency: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Note */
+            note: string | null;
+            /** Order Id */
+            order_id: string | null;
+            /** Payment Method */
+            payment_method: string;
+            /** Product Key */
+            product_key: string | null;
+            /** Receipt Id */
+            receipt_id?: string | null;
+            /** Source */
+            source: string;
+            /**
+             * Spent On
+             * Format: date
+             */
+            spent_on: string;
+            /** Tax Minor */
+            tax_minor: number;
+            /** Vendor */
+            vendor: string;
+            /**
+             * Voided
+             * @default false
+             */
+            voided: boolean;
+        };
+        /** SpendPage */
+        SpendPage: {
+            /** Items */
+            items: components["schemas"]["SpendOut"][];
+            /** Missing Receipts */
+            missing_receipts: number;
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
         /** StatusOut */
         StatusOut: {
             /**
@@ -757,6 +1516,58 @@ export interface components {
              * @enum {string}
              */
             status: "check_your_email" | "confirmed" | "unsubscribed";
+        };
+        /** StripeStatusOut */
+        StripeStatusOut: {
+            /** Account Id */
+            account_id?: string | null;
+            /**
+             * Charges Enabled
+             * @default false
+             */
+            charges_enabled: boolean;
+            /** Connected */
+            connected: boolean;
+            /**
+             * Details Submitted
+             * @default false
+             */
+            details_submitted: boolean;
+            /** Last Sync At */
+            last_sync_at?: string | null;
+            /**
+             * Payouts Enabled
+             * @default false
+             */
+            payouts_enabled: boolean;
+            /**
+             * Requirements
+             * @default {}
+             */
+            requirements: {
+                [key: string]: unknown;
+            };
+            /** Status */
+            status?: string | null;
+            /** Test Mode */
+            test_mode: boolean;
+        };
+        /** TestCheckoutIn */
+        TestCheckoutIn: {
+            /** Items */
+            items: components["schemas"]["SaleItemIn"][];
+        };
+        /** TestCheckoutOut */
+        TestCheckoutOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Status */
+            status: string;
+            /** Url */
+            url: string;
         };
         /** TotpCodeIn */
         TotpCodeIn: {
@@ -769,6 +1580,71 @@ export interface components {
             otpauth_uri: string;
             /** Secret */
             secret: string;
+        };
+        /**
+         * TouchCategory
+         * @enum {string}
+         */
+        TouchCategory: "research_edit" | "listing_edit" | "pricing" | "fulfilment" | "customer_service" | "agent_override" | "team_and_permissions";
+        /** TouchCreate */
+        TouchCreate: {
+            category: components["schemas"]["TouchCategory"];
+            /** Description */
+            description: string;
+            /** Minutes */
+            minutes: number;
+            /** Note */
+            note?: string | null;
+            /** Object Id */
+            object_id?: string | null;
+            /** Object Type */
+            object_type?: string | null;
+        };
+        /** TouchOut */
+        TouchOut: {
+            /**
+             * Actor User Id
+             * Format: uuid
+             */
+            actor_user_id: string;
+            /** Auto */
+            auto: boolean;
+            category: components["schemas"]["TouchCategory"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Minutes */
+            minutes: number;
+            /** Object Id */
+            object_id: string | null;
+            /** Object Type */
+            object_type: string | null;
+        };
+        /** TouchPage */
+        TouchPage: {
+            /** Items */
+            items: components["schemas"]["TouchOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            summary: components["schemas"]["TouchSummary"];
+        };
+        /** TouchSummary */
+        TouchSummary: {
+            /** Auto Count */
+            auto_count: number;
+            /** Manual Count */
+            manual_count: number;
+            /** Manual Minutes */
+            manual_minutes: number;
         };
         /** UserOut */
         UserOut: {
@@ -798,6 +1674,11 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** VoidIn */
+        VoidIn: {
+            /** Reason */
+            reason: string;
         };
         /** WorkspaceIn */
         WorkspaceIn: {
@@ -1250,6 +2131,43 @@ export interface operations {
             };
         };
     };
+    create_test_checkout_api_v1_checkout_test_sessions_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TestCheckoutIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestCheckoutOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     countries_api_v1_countries_get: {
         parameters: {
             query?: never;
@@ -1320,6 +2238,102 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+        };
+    };
+    stripe_status_api_v1_integrations_stripe_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StripeStatusOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stripe_connect_api_v1_integrations_stripe_connect_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConnectOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stripe_refresh_api_v1_integrations_stripe_refresh_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StripeStatusOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1459,6 +2473,44 @@ export interface operations {
             };
         };
     };
+    list_ledger_api_v1_ledger_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+                type?: components["schemas"]["LedgerType"] | null;
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LedgerPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_members_api_v1_members_get: {
         parameters: {
             query?: never;
@@ -1561,6 +2613,76 @@ export interface operations {
             };
         };
     };
+    list_orders_api_v1_orders_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+                channel?: string | null;
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_order_api_v1_orders__order_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     permissions_api_v1_permissions_get: {
         parameters: {
             query?: never;
@@ -1583,6 +2705,74 @@ export interface operations {
             };
         };
     };
+    get_pnl_api_v1_pnl_get: {
+        parameters: {
+            query?: {
+                start?: string | null;
+                end?: string | null;
+                group_by?: "product_key" | null;
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PnlOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    product_keys_api_v1_product_keys_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     ready_api_v1_ready_get: {
         parameters: {
             query?: never;
@@ -1599,6 +2789,448 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    list_receipts_api_v1_receipts_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_receipt_api_v1_receipts_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_receipt_api_v1_receipts_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_receipt_api_v1_receipts__receipt_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                receipt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReceiptOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_receipt_api_v1_receipts__receipt_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                receipt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReceiptConfirm"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_sale_api_v1_sales_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SaleCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sales_summary_api_v1_sales_summary_get: {
+        parameters: {
+            query?: {
+                period?: "day" | "week" | "month";
+                start?: string | null;
+                end?: string | null;
+                product_key?: string | null;
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesSummaryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_spends_api_v1_spends_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+                missing_receipt?: boolean;
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpendPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_spend_api_v1_spends_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SpendCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpendOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    link_receipt_api_v1_spends__spend_id__receipt_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                spend_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkReceiptIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    void_spend_api_v1_spends__spend_id__void_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                spend_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoidIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_touches_api_v1_touches_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+                auto?: boolean | null;
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TouchPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_touch_api_v1_touches_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TouchCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TouchOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -1709,6 +3341,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StatusOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stripe_webhook_api_v1_webhooks_stripe_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Stripe-Signature"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stripe_connect_webhook_api_v1_webhooks_stripe_connect_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Stripe-Signature"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */

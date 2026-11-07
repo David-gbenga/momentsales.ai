@@ -23,6 +23,8 @@ from momentsales.adapters.identity.google import GoogleIdentityAdapter
 from momentsales.adapters.identity.mock import MockIdentityAdapter
 from momentsales.adapters.ocr.base import OcrError, OcrPort, OcrResult
 from momentsales.adapters.ocr.mock import MockOcrAdapter
+from momentsales.adapters.payments.base import PaymentsPort
+from momentsales.adapters.payments.mock import MockPaymentsAdapter
 from momentsales.adapters.storage.base import StoragePort
 from momentsales.adapters.storage.local import LocalStorageAdapter
 from momentsales.core.config import Env, ProviderMode, Settings
@@ -290,3 +292,15 @@ class ProviderRegistry:
             else:
                 self._storage = LocalStorageAdapter(s.storage_local_path, s)
         return self._storage
+
+    # --- Payments ----------------------------------------------------------------------
+
+    async def payments(self, session: AsyncSession) -> PaymentsPort:
+        cfg = await self.resolve(session, "payments")
+        if cfg.mode == "mock":
+            return MockPaymentsAdapter(self._redis, self._s.web_base_url)
+        if not self._s.stripe_secret_key:
+            raise ProviderConfigError("STRIPE_SECRET_KEY is not set")
+        from momentsales.adapters.payments.stripe import StripePaymentsAdapter
+
+        return StripePaymentsAdapter.from_key(self._s.stripe_secret_key.get_secret_value())

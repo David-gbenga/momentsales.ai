@@ -6,6 +6,10 @@
     "admin",
     "owner"
   ],
+  "checkout.test": [
+    "admin",
+    "owner"
+  ],
   "flags.read": [
     "accountant",
     "admin",
@@ -83,7 +87,15 @@
     "analyst",
     "owner"
   ],
+  "sales.record": [
+    "admin",
+    "owner"
+  ],
   "store.manage": [
+    "admin",
+    "owner"
+  ],
+  "touches.write": [
     "admin",
     "owner"
   ],
