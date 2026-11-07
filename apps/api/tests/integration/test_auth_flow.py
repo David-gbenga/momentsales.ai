@@ -6,6 +6,7 @@ from urllib.parse import parse_qs, urlparse
 import httpx
 import pyotp
 from helpers import XRW, link_token, sign_in, unique_email
+from redis.asyncio import Redis
 from sqlalchemy import update
 
 from momentsales.core.db import get_sessionmaker
@@ -25,6 +26,37 @@ async def test_magic_link_signs_up_and_is_single_use(client: httpx.AsyncClient) 
     r2 = await client.post("/api/v1/auth/magic-link/verify", json={"token": token})
     assert r2.status_code == 400 and r2.json()["type"] == "invalid_link"
     assert r2.headers["content-type"].startswith("application/problem+json")
+
+
+async def _clear_rate_limits(redis: Redis) -> None:
+    keys = [k async for k in redis.scan_iter(match="rl:*")]
+    if keys:
+        await redis.delete(*keys)
+
+
+async def test_magic_link_rate_limit_per_ip(app: object) -> None:
+    """Other tests (and the e2e stack in CI) turn limits off; this proves they work."""
+    state = app.state  # type: ignore[attr-defined]
+    original = state.settings
+    state.settings = original.model_copy(update={"rate_limit_enabled": True})
+    try:
+        await _clear_rate_limits(state.redis)
+        first = httpx.ASGITransport(app=app, client=("203.0.113.7", 40000))  # type: ignore[arg-type]
+        async with httpx.AsyncClient(transport=first, base_url="http://test") as c:
+            codes = [
+                (
+                    await c.post("/api/v1/auth/magic-link", json={"email": unique_email()})
+                ).status_code
+                for _ in range(6)
+            ]
+        assert codes == [202] * 5 + [429]
+        other = httpx.ASGITransport(app=app, client=("203.0.113.8", 40000))  # type: ignore[arg-type]
+        async with httpx.AsyncClient(transport=other, base_url="http://test") as c2:
+            r = await c2.post("/api/v1/auth/magic-link", json={"email": unique_email()})
+        assert r.status_code == 202
+    finally:
+        state.settings = original
+        await _clear_rate_limits(state.redis)
 
 
 async def test_expired_magic_link_rejected(client: httpx.AsyncClient) -> None:

@@ -84,6 +84,11 @@ def test_non_local_settings_refuse_dev_secrets() -> None:
         Settings(env=Env.STAGING, cookie_secure=True)
 
 
+def test_non_local_settings_refuse_disabled_rate_limits() -> None:
+    with pytest.raises(ValueError, match="RATE_LIMIT_ENABLED"):
+        Settings(env=Env.STAGING, rate_limit_enabled=False)
+
+
 def test_production_refuses_mock_providers() -> None:
     strong = "x" * 40
     with pytest.raises(ValueError, match="PROVIDER_MODE=mock"):

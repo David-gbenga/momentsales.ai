@@ -94,7 +94,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-      - run: cp .env.example .env
+      # Every Playwright request reaches the API from one IP, so the per-IP sign-in limit
+      # (5/min) trips when the suite runs fast. Limits are covered by pytest instead.
+      - run: cp .env.example .env && sed -i 's/^RATE_LIMIT_ENABLED=.*/RATE_LIMIT_ENABLED=false/' .env
       - run: docker compose up -d --build --wait
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @momentsales/web exec playwright install --with-deps chromium
@@ -127,3 +129,5 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: "1"
+        env:
+          TRIVY_SECRET_CONFIG: trivy-secret.yaml

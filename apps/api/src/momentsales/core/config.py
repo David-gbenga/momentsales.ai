@@ -150,6 +150,8 @@ class Settings(BaseSettings):
                 problems.append(f"{name} must be the endpoint's real signing secret")
         if self.storage_backend == "local":
             problems.append("STORAGE_BACKEND=local is for development only")
+        if not self.rate_limit_enabled:
+            problems.append("RATE_LIMIT_ENABLED must be true outside local")
         if self.provider_mode is ProviderMode.MOCK and self.env is Env.PRODUCTION:
             problems.append("PROVIDER_MODE=mock is not allowed in production")
         if problems:
