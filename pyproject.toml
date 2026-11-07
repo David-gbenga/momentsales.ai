@@ -24,7 +24,7 @@ src = ["apps/api/src", "apps/worker/src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "S", "ASYNC", "RUF", "SIM", "PTH", "N", "C4", "DTZ"]
-ignore = ["S101"]
+ignore = ["S101", "N818"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S105", "S106", "S311"]
@@ -51,8 +51,13 @@ markers = ["db: needs Postgres and Redis (docker compose)"]
 
 [tool.coverage.run]
 source = ["apps/api/src/momentsales"]
+concurrency = ["greenlet", "thread"]
 branch = true
 
 [tool.coverage.report]
 skip_covered = true
 show_missing = true
+
+[[tool.mypy.overrides]]
+module = ["momentsales_worker.*"]
+disallow_untyped_decorators = false
