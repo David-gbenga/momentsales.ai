@@ -1,0 +1,13 @@
+# gitleaks config: default rules, plus an allowlist for public development placeholders.
+# Only add a value here if it is a published local-only default that the app refuses
+# to run with outside ENV=local/test (see Settings validation in core/config.py).
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public local-development placeholders"
+regexes = [
+  # Dev-only Fernet key for TOTP secrets (.env.example, core/config.py _DEV_TOTP_KEY).
+  '''xb5Yb0bcm4o0r9bK0wQ1Zc5i8iX0b2S3dE4fG5hI6jY=''',
+]

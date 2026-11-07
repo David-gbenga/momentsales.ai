@@ -1,0 +1,102 @@
+{
+  "billing.manage": [
+    "owner"
+  ],
+  "billing.usage.read": [
+    "admin",
+    "owner"
+  ],
+  "flags.read": [
+    "accountant",
+    "admin",
+    "analyst",
+    "owner"
+  ],
+  "fulfilment.approve": [
+    "admin",
+    "owner"
+  ],
+  "integrations.payments.manage": [
+    "owner"
+  ],
+  "ledger.export": [
+    "accountant",
+    "owner"
+  ],
+  "ledger.read": [
+    "accountant",
+    "admin",
+    "owner"
+  ],
+  "ledger.write": [
+    "admin",
+    "owner"
+  ],
+  "listings.draft": [
+    "admin",
+    "analyst",
+    "owner"
+  ],
+  "listings.publish": [
+    "admin",
+    "owner"
+  ],
+  "members.change_role": [
+    "owner"
+  ],
+  "members.invite": [
+    "owner"
+  ],
+  "members.read": [
+    "admin",
+    "owner"
+  ],
+  "members.remove": [
+    "owner"
+  ],
+  "orders.read": [
+    "accountant",
+    "admin",
+    "owner"
+  ],
+  "payouts.read": [
+    "accountant",
+    "admin",
+    "owner"
+  ],
+  "receipts.upload": [
+    "admin",
+    "owner"
+  ],
+  "reports.export": [
+    "admin",
+    "analyst",
+    "owner"
+  ],
+  "reports.read": [
+    "admin",
+    "analyst",
+    "owner"
+  ],
+  "research.run": [
+    "admin",
+    "analyst",
+    "owner"
+  ],
+  "store.manage": [
+    "admin",
+    "owner"
+  ],
+  "workspace.delete": [
+    "owner"
+  ],
+  "workspace.read": [
+    "accountant",
+    "admin",
+    "analyst",
+    "owner"
+  ],
+  "workspace.update": [
+    "owner"
+  ]
+}

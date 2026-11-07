@@ -1,0 +1,129 @@
+{
+  "brand": "momentsales.ai",
+  "landing": {
+    "eyebrow": "For UK side-hustlers and small online shops",
+    "promise": "Find what's about to sell, launch a shop in a weekend, and keep books your accountant will accept.",
+    "points": {
+      "rising": "Spot products whose demand is rising, 6–10 weeks before Black Friday, Christmas and other retail moments.",
+      "local": "Sell from UK-stock suppliers that deliver in 2–7 days. No stock to hold.",
+      "books": "Every sale, spend and receipt in one audit-ready ledger."
+    },
+    "waitlistTitle": "Join the waitlist",
+    "waitlistBody": "We're opening to a small group of UK sellers first. Leave your email and we'll be in touch.",
+    "emailLabel": "Email address",
+    "join": "Join the waitlist",
+    "joining": "Joining…",
+    "checkEmail": "Check your inbox and confirm your email to secure your place.",
+    "privacy": "We only use your email for launch and early-access updates. No tracking cookies.",
+    "signIn": "Sign in"
+  },
+  "waitlist": {
+    "confirming": "Confirming your email…",
+    "confirmed": "You're on the list. We'll email you when we open.",
+    "unsubscribed": "You've been unsubscribed. We won't email you again.",
+    "invalid": "This link is invalid or has already been used."
+  },
+  "auth": {
+    "title": "Sign in to momentsales.ai",
+    "subtitle": "We'll email you a sign-in link. No password needed.",
+    "emailLabel": "Email address",
+    "sendLink": "Email me a sign-in link",
+    "sending": "Sending…",
+    "sent": "Check your inbox for a sign-in link. It works once and expires in 15 minutes.",
+    "or": "or",
+    "google": "Continue with Google",
+    "googleError": "Google sign-in didn't work. Try again or use an email link.",
+    "verifying": "Signing you in…",
+    "mfaTitle": "Enter your authenticator code",
+    "mfaLabel": "6-digit code",
+    "verify": "Verify",
+    "invalidLink": "This sign-in link is invalid, used or expired.",
+    "backToSignIn": "Back to sign in"
+  },
+  "onboarding": {
+    "title": "Create your workspace",
+    "subtitle": "A workspace is your shop: its listings, sales and books.",
+    "name": "Shop name",
+    "legalName": "Business legal name (optional)",
+    "country": "Country",
+    "countryHelp": "momentsales.ai is UK-only at launch. More countries are coming later.",
+    "currency": "Currency",
+    "create": "Create workspace",
+    "creating": "Creating…"
+  },
+  "nav": {
+    "label": "Main",
+    "home": "Home",
+    "research": "Research",
+    "reports": "Reports",
+    "listings": "Listings",
+    "store": "Store",
+    "sales": "Sales & Orders",
+    "ledger": "Ledger",
+    "integrations": "Integrations",
+    "billing": "Billing",
+    "settings": "Settings",
+    "skip": "Skip to main content",
+    "commandHint": "Commands",
+    "signOut": "Sign out",
+    "workspace": "Workspace",
+    "theme": "Toggle theme"
+  },
+  "sections": {
+    "home": { "title": "Home", "body": "Your sales, open orders, research runs and launch checklist will appear here.", "phase": "Phase 1–3" },
+    "research": { "title": "Research", "body": "Run seasonal demand research for the UK and get a Top 10 product report.", "phase": "Phase 2" },
+    "reports": { "title": "Reports", "body": "Your Top 10 reports with sources, prices, suppliers and profit forecasts.", "phase": "Phase 2" },
+    "listings": { "title": "Listings", "body": "Turn report products into listings, edit them and publish to your store.", "phase": "Phase 3" },
+    "store": { "title": "Store", "body": "Your storefront theme, domain, policies and preview.", "phase": "Phase 3" },
+    "sales": { "title": "Sales & Orders", "body": "Orders, the fulfilment queue, tracking, returns and refunds.", "phase": "Phase 1–3" },
+    "ledger": { "title": "Ledger", "body": "Spends, touches, receipts, sales and P&L, exportable as an audit pack.", "phase": "Phase 1" },
+    "integrations": { "title": "Integrations", "body": "Stripe, suppliers and data providers, with their health status.", "phase": "Phase 1–2" },
+    "billing": { "title": "Billing", "body": "Your plan, usage, invoices and the Stripe Customer Portal.", "phase": "Phase 1B" },
+    "comingIn": "Coming in {phase}"
+  },
+  "settings": {
+    "title": "Settings",
+    "team": "Team & roles",
+    "teamHelp": "Every change here is logged in your audit trail.",
+    "invite": "Invite",
+    "inviteEmail": "Email",
+    "inviteRole": "Role",
+    "sendInvite": "Send invitation",
+    "inviteSent": "Invitation sent to {email}.",
+    "pending": "Pending invitations",
+    "revoke": "Revoke",
+    "remove": "Remove",
+    "changeRole": "Role for {email}",
+    "you": "you",
+    "security": "Security",
+    "twoFactor": "Two-factor authentication",
+    "twoFactorOn": "Two-factor authentication is on.",
+    "twoFactorOff": "Add an authenticator app for extra protection. Owners will need it before billing goes live.",
+    "enable2fa": "Set up 2FA",
+    "scanHelp": "Add this key to your authenticator app, then enter the 6-digit code.",
+    "secretLabel": "Setup key",
+    "confirm2fa": "Turn on 2FA",
+    "workspace": "Workspace",
+    "noTeamAccess": "Only Owners and Admins can see the team."
+  },
+  "command": {
+    "title": "Command bar",
+    "placeholder": "Type a command, e.g. /spend",
+    "empty": "No matching command.",
+    "comingIn": "Available in {phase}",
+    "fields": "Fields",
+    "required": "required",
+    "notAllowed": "Your role can't use this command."
+  },
+  "invite": {
+    "accepting": "Accepting your invitation…",
+    "accepted": "You've joined the workspace.",
+    "signInFirst": "Sign in with the email the invitation was sent to, then open the link again.",
+    "error": "This invitation is invalid, expired, or for a different email."
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong. Please try again.",
+    "mockMode": "Demo mode: emails and Google sign-in are simulated."
+  }
+}

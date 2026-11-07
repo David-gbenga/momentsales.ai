@@ -166,3 +166,6 @@ CLAUDE.local.md
 # ---------------------------------------------------------------------------
 /node-check.ps1
 /node-check2.ps1
+
+# Celery beat
+celerybeat-schedule*

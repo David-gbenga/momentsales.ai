@@ -1,0 +1,18 @@
+{
+  "name": "momentsales",
+  "private": true,
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": ">=22.11.0 <23"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @momentsales/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "e2e": "pnpm --filter @momentsales/web e2e",
+    "gen:api": "uv run python -m momentsales.tools.export_contracts && pnpm --filter @momentsales/shared gen",
+    "seed": "uv run python -m momentsales.tools.seed"
+  }
+}
