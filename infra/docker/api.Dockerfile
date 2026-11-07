@@ -11,7 +11,8 @@ COPY apps/worker/pyproject.toml apps/worker/pyproject.toml
 RUN uv sync --frozen --no-dev --no-install-workspace --package momentsales-api
 COPY apps/api apps/api
 RUN uv sync --frozen --no-dev --package momentsales-api \
- && useradd --system --uid 10001 app \n && mkdir -p /data/storage && chown app /data/storage
+ && useradd --system --uid 10001 app \
+ && mkdir -p /data/storage && chown app /data/storage
 USER app
 EXPOSE 8000
 CMD ["uvicorn", "momentsales.main:app", "--host", "0.0.0.0", "--port", "8000"]

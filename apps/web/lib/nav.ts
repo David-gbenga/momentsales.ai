@@ -52,9 +52,6 @@ export const PLACEHOLDER_SECTIONS = new Set<SectionKey>([
   "reports",
   "listings",
   "store",
-  "sales",
-  "ledger",
-  "integrations",
   "billing",
 ]);
 

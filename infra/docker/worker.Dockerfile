@@ -11,6 +11,7 @@ RUN uv sync --frozen --no-dev --no-install-workspace --package momentsales-worke
 COPY apps/api apps/api
 COPY apps/worker apps/worker
 RUN uv sync --frozen --no-dev --package momentsales-worker \
- && useradd --system --uid 10001 app \n && mkdir -p /data/storage && chown app /data/storage
+ && useradd --system --uid 10001 app \
+ && mkdir -p /data/storage && chown app /data/storage
 USER app
 CMD ["celery", "-A", "momentsales_worker.celery_app", "worker", "--loglevel=INFO"]
