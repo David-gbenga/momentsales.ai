@@ -388,7 +388,7 @@ Use a modular monolith API plus separate worker processes for agents. This is si
 
 | Layer | Choice | Why |
 | --- | --- | --- |
-| Web frontend | React 18 + TypeScript, Vite or Next.js (App Router), Tailwind CSS, shadcn/ui, TanStack Query, React Hook Form + Zod, Recharts | Fast, typed, accessible components; Next.js also serves the SEO-friendly storefront |
+| Web frontend | React 19 + TypeScript, Next.js (App Router), Tailwind CSS, shadcn/ui, TanStack Query, React Hook Form + Zod, Recharts | Fast, typed, accessible components; Next.js also serves the SEO-friendly storefront |
 | Mobile (later) | React Native / Expo sharing the API client and Zod schemas | Reuse types and logic |
 | API | Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2 + Alembic | Typed, async, OpenAPI out of the box |
 | Agents | Claude API (Anthropic SDK) with tool use; orchestrator built with the Claude Agent SDK or LangGraph; prompts versioned in repo | Strong tool use and reasoning; graph gives resumable runs |
@@ -756,7 +756,7 @@ Growth, trust and MVP-scope acceptance criteria:
 Constraints:
 
 - Monorepo: `apps/web` (React/Next.js dashboard + storefront), `apps/api` (FastAPI), `apps/worker` (agents), `packages/shared` (generated API client, Zod schemas), `infra/`, `docs/`.
-- Python 3.12, Node 20 LTS, pnpm, uv or Poetry. Strict typing (mypy strict, TypeScript strict).
+- Python 3.12, Node 22 LTS, pnpm, uv. Strict typing (mypy strict, TypeScript strict). (Updated from Node 20, which reached end-of-life in April 2026; see docs/adr/0006-runtime-versions.md.)
 - No paid service is required to run locally; every adapter has a mock and a `PROVIDER_MODE=mock|live` switch.
 - Stripe (Connect and Billing) and Shopify always in test/dev mode until the Platform admin flips a production flag. Stripe Products and Prices are created by a seed script from the plans table, never by hand.
 - Agents never take irreversible actions (publish, charge, email customers, spend) without a human approval recorded as /touch.

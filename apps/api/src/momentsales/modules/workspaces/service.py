@@ -53,7 +53,7 @@ def workspace_snapshot(w: Workspace) -> dict[str, Any]:
     }
 
 
-async def _log_permission_change(
+async def log_permission_change(
     session: AsyncSession,
     *,
     workspace_id: uuid.UUID,
@@ -152,7 +152,7 @@ async def create_workspace(
         after=workspace_snapshot(workspace),
         ip_hash=ip_hash,
     )
-    await _log_permission_change(
+    await log_permission_change(
         session,
         workspace_id=workspace_id,
         actor_id=user.id,
@@ -246,7 +246,7 @@ async def change_role(
     old = membership.role
     membership.role = new_role
     await session.flush()
-    await _log_permission_change(
+    await log_permission_change(
         session,
         workspace_id=workspace_id,
         actor_id=actor_id,
@@ -273,7 +273,7 @@ async def remove_member(
         raise ProblemError(409, "last_owner", "Keep at least one Owner")
     membership.status = MembershipStatus.REMOVED
     await session.flush()
-    await _log_permission_change(
+    await log_permission_change(
         session,
         workspace_id=workspace_id,
         actor_id=actor_id,
@@ -348,7 +348,7 @@ async def create_invitation(
     )
     session.add(invitation)
     await session.flush()
-    await _log_permission_change(
+    await log_permission_change(
         session,
         workspace_id=workspace_id,
         actor_id=actor_id,
@@ -379,7 +379,7 @@ async def revoke_invitation(
     if inv is None or inv.accepted_at or inv.revoked_at:
         raise ProblemError(404, "invitation_not_found", "Invitation not found")
     inv.revoked_at = datetime.now(UTC)
-    await _log_permission_change(
+    await log_permission_change(
         session,
         workspace_id=workspace_id,
         actor_id=actor_id,
@@ -436,7 +436,7 @@ async def accept_invitation(
         membership.invited_by = inv.invited_by
     inv.accepted_at = now
     await session.flush()
-    await _log_permission_change(
+    await log_permission_change(
         session,
         workspace_id=workspace_id,
         actor_id=user.id,
