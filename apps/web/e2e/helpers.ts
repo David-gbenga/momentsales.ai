@@ -41,6 +41,9 @@ export async function signInWithMagicLink(page: Page, email: string): Promise<vo
   await page.getByRole("button", { name: "Email me a sign-in link" }).click();
   await expect(page.getByText(/Check your inbox/)).toBeVisible();
   await page.goto(await linkFromOutbox(page.request, email, "/auth/verify"));
+  // Wait until the verify page has exchanged the link for a session and redirected;
+  // navigating away earlier aborts the exchange and leaves the browser signed out.
+  await page.waitForURL(/\/(app|onboarding\/workspace)(\?|$)/);
 }
 
 export async function createWorkspace(page: Page, name: string): Promise<void> {
