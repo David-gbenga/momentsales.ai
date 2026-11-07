@@ -79,22 +79,31 @@ export function refreshSession(): Promise<string | null> {
 export interface RequestOptions {
   method?: string;
   body?: unknown;
+  /** Multipart upload (e.g. a receipt). Mutually exclusive with `body`. */
+  form?: FormData;
+  /** Extra headers, e.g. Idempotency-Key for money writes. */
+  headers?: Record<string, string>;
   workspace?: string | null | false;
   auth?: boolean;
 }
 
+/** A fresh key per user action; reuse it when retrying the same action. */
+export function newIdempotencyKey(): string {
+  return crypto.randomUUID();
+}
+
 export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const doFetch = () => {
-    const headers: Record<string, string> = { "X-Requested-With": "momentsales" };
+    const headers: Record<string, string> = { "X-Requested-With": "momentsales", ...opts.headers };
     if (opts.body !== undefined) headers["Content-Type"] = "application/json";
     if (opts.auth !== false && accessToken) headers.Authorization = `Bearer ${accessToken}`;
     const ws = opts.workspace === undefined ? workspaceId : opts.workspace;
     if (ws) headers["X-Workspace-Id"] = ws;
     return fetch(`/api/v1${path}`, {
-      method: opts.method ?? (opts.body === undefined ? "GET" : "POST"),
+      method: opts.method ?? (opts.body === undefined && !opts.form ? "GET" : "POST"),
       headers,
       credentials: "same-origin",
-      body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+      body: opts.form ?? (opts.body === undefined ? undefined : JSON.stringify(opts.body)),
     });
   };
   let res = await doFetch();

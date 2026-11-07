@@ -70,6 +70,35 @@ class Settings(BaseSettings):
     google_client_id: str | None = None
     google_client_secret: SecretStr | None = None
 
+    # Payments (ADR-0011). Test mode only: live keys are refused below.
+    provider_payments: Literal["stripe"] = "stripe"
+    stripe_secret_key: SecretStr | None = None
+    stripe_publishable_key: str | None = None
+    stripe_webhook_secret: SecretStr = SecretStr("whsec_mock_platform_secret")
+    stripe_connect_webhook_secret: SecretStr = SecretStr("whsec_mock_connect_secret")
+
+    # Background jobs: "celery" (worker) or "inline" (run in-process after the response;
+    # tests only)
+    jobs_mode: Literal["celery", "inline"] = "celery"
+
+    # Receipt OCR (ADR-0014)
+    provider_ocr: Literal["claude", "textract"] = "claude"
+    provider_ocr_secondary: Literal["claude", "textract"] | None = "textract"
+    provider_ocr_failover: Literal["auto", "manual"] = "auto"
+    anthropic_api_key: SecretStr | None = None
+    ocr_claude_model: str = "claude-haiku-5-5"
+    aws_region: str = "eu-west-2"
+    aws_access_key_id: str | None = None
+    aws_secret_access_key: SecretStr | None = None
+
+    # File storage (ADR-0012)
+    storage_backend: Literal["local", "s3"] = "local"
+    storage_local_path: Path = _REPO_ROOT / "data" / "storage"
+    s3_bucket: str | None = None
+    s3_endpoint_url: str | None = None
+    signed_url_ttl_seconds: int = Field(default=300, ge=30, le=3600)
+    receipt_max_bytes: int = Field(default=10 * 1024 * 1024, ge=1024, le=10 * 1024 * 1024)
+
     @property
     def is_local(self) -> bool:
         return self.env in (Env.LOCAL, Env.TEST)
@@ -80,8 +109,25 @@ class Settings(BaseSettings):
         return self.is_local and self.provider_mode is ProviderMode.MOCK
 
     @property
+    def stripe_test_mode(self) -> bool:
+        """Mock mode, or a live adapter running with test keys (always true until a separately
+        approved production switch exists)."""
+        key = self.stripe_secret_key.get_secret_value() if self.stripe_secret_key else ""
+        return self.provider_mode is ProviderMode.MOCK or key.startswith(("sk_test_", "rk_test_"))
+
+    @property
     def google_redirect_uri(self) -> str:
         return f"{self.web_base_url.rstrip('/')}/api/v1/auth/google/callback"
+
+    @model_validator(mode="after")
+    def _refuse_stripe_live_keys(self) -> Settings:
+        """CLAUDE.md: Stripe stays in test mode unless the owner explicitly says otherwise."""
+        key = self.stripe_secret_key.get_secret_value() if self.stripe_secret_key else ""
+        if key.startswith(("sk_live_", "rk_live_")):
+            raise ValueError("STRIPE_SECRET_KEY is a live key; only test-mode keys are allowed")
+        if (self.stripe_publishable_key or "").startswith("pk_live_"):
+            raise ValueError("STRIPE_PUBLISHABLE_KEY is a live key; only test keys are allowed")
+        return self
 
     @model_validator(mode="after")
     def _refuse_dev_secrets_outside_local(self) -> Settings:
@@ -98,6 +144,14 @@ class Settings(BaseSettings):
             problems.append("database_url uses a development password")
         if not self.cookie_secure:
             problems.append("cookie_secure must be true outside local")
+        for name in ("stripe_webhook_secret", "stripe_connect_webhook_secret"):
+            secret: SecretStr = getattr(self, name)
+            if "mock" in secret.get_secret_value():
+                problems.append(f"{name} must be the endpoint's real signing secret")
+        if self.storage_backend == "local":
+            problems.append("STORAGE_BACKEND=local is for development only")
+        if not self.rate_limit_enabled:
+            problems.append("RATE_LIMIT_ENABLED must be true outside local")
         if self.provider_mode is ProviderMode.MOCK and self.env is Env.PRODUCTION:
             problems.append("PROVIDER_MODE=mock is not allowed in production")
         if problems:

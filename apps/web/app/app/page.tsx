@@ -1,5 +1,5 @@
-import { EmptyState } from "@/components/sections/empty-state";
+import { HomeView } from "@/components/home/home-view";
 
 export default function HomePage() {
-  return <EmptyState section="home" />;
+  return <HomeView />;
 }

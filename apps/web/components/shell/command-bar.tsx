@@ -1,9 +1,18 @@
 "use client";
 
-import { can, COMMANDS, matchCommands, type CommandSpec, type Role } from "@momentsales/shared";
+import {
+  can,
+  COMMAND_ROUTES,
+  COMMANDS,
+  matchCommands,
+  parseCommand,
+  type CommandSpec,
+  type Role,
+} from "@momentsales/shared";
 import { Command } from "cmdk";
 import { Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/primitives";
@@ -13,9 +22,12 @@ function isTyping(el: EventTarget | null): boolean {
   return el.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName);
 }
 
-/** Global command bar: "/" or Ctrl/⌘+K. Phase 0 lists FR-7 commands with autocomplete. */
+/** Global command bar: "/" or Ctrl/⌘+K. Choosing a command opens its form, pre-filled from
+ * what was typed after it (e.g. "/spend 24.99 GBP shipping vendor:Royal Mail"). Nothing is
+ * saved until the form is confirmed. */
 export function CommandBar({ role }: { role: Role | null }) {
   const t = useTranslations("command");
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<CommandSpec | null>(null);
@@ -50,6 +62,18 @@ export function CommandBar({ role }: { role: Role | null }) {
 
   const matches = matchCommands(query || "/", COMMANDS);
 
+  function run(cmd: CommandSpec) {
+    if (!cmd.enabled || !can(role, cmd.permission)) {
+      setSelected(cmd);
+      return;
+    }
+    const { command, args } = parseCommand(query);
+    const route = COMMAND_ROUTES[cmd.name] ?? "/app";
+    const extra = command?.name === cmd.name && args ? `${route.includes("?") ? "&" : "?"}args=${encodeURIComponent(args)}` : "";
+    changeOpen(false);
+    router.push(`${route}${extra}`);
+  }
+
   return (
     <Command.Dialog
       open={open}
@@ -77,7 +101,7 @@ export function CommandBar({ role }: { role: Role | null }) {
             <Command.Item
               key={cmd.name}
               value={cmd.name}
-              onSelect={() => setSelected(cmd)}
+              onSelect={() => run(cmd)}
               className="flex cursor-pointer items-center justify-between gap-3 rounded-md px-3 py-2.5 text-sm data-[selected=true]:bg-accent"
             >
               <span className="grid">
@@ -86,7 +110,7 @@ export function CommandBar({ role }: { role: Role | null }) {
               </span>
               <span className="flex items-center gap-2">
                 {!allowed ? <Lock aria-label={t("notAllowed")} className="size-4" /> : null}
-                <Badge>{t("comingIn", { phase: cmd.availableIn })}</Badge>
+                {cmd.enabled ? null : <Badge>{t("comingIn", { phase: cmd.availableIn })}</Badge>}
               </span>
             </Command.Item>
           );
@@ -95,8 +119,8 @@ export function CommandBar({ role }: { role: Role | null }) {
       {selected ? (
         <div role="status" className="border-t p-4 text-sm">
           <p className="font-medium">
-            <span className="font-mono">{selected.name}</span> —{" "}
-            {t("comingIn", { phase: selected.availableIn })}
+            <span className="font-mono">{selected.name}</span>
+            {selected.enabled ? null : <> — {t("comingIn", { phase: selected.availableIn })}</>}
           </p>
           {!can(role, selected.permission) ? (
             <p className="mt-1 text-destructive">{t("notAllowed")}</p>

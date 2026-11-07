@@ -3,6 +3,7 @@ when a user targets a workspace they don't belong to — by header or by path.""
 
 from __future__ import annotations
 
+import re
 import uuid
 from typing import Any
 
@@ -47,16 +48,12 @@ async def test_every_tenant_route_hides_foreign_workspace(
     fake_id = str(uuid.uuid4())
     checked = 0
     for method, path in tenant_routes(app):
-        url = (
-            path.replace("{workspace_id}", ws_a)
-            .replace("{membership_id}", fake_id)
-            .replace("{invitation_id}", fake_id)
-        )
+        url = re.sub(r"\{[a-z_]+_id\}", fake_id, path.replace("{workspace_id}", ws_a))
         r = await client.request(method, url, headers=intruder.headers(ws_a), json={})
         assert r.status_code == 404, f"{method} {path} → {r.status_code} {r.text}"
         assert r.json()["type"] == "workspace_not_found"
         checked += 1
-    assert checked >= 8
+    assert checked >= 25
 
 
 @pytest.mark.parametrize("header", ["not-a-uuid", ""])

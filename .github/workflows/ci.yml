@@ -43,8 +43,8 @@ jobs:
       TEST_MIGRATION_DATABASE_URL: postgresql+psycopg://app_owner:ci-owner@localhost:5432/momentsales_test
       TEST_REDIS_URL: redis://localhost:6379/15
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           version: ${{ env.UV_VERSION }}
           python-version: ${{ env.PYTHON_VERSION }}
@@ -52,6 +52,8 @@ jobs:
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
           POSTGRES_USER=postgres PGHOST=localhost sh infra/docker/postgres/10-roles.sh
+      - name: Install Pango for WeasyPrint (audit-pack PDF tests)
+        run: sudo apt-get install -y -qq libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-dejavu-core
       - run: uv sync --frozen
       - run: uv run ruff check apps
       - run: uv run ruff format --check apps
@@ -64,11 +66,11 @@ jobs:
     name: Web + shared (eslint, tsc, vitest, build)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -84,15 +86,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: [python, web]
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
         with:
           version: ${{ env.PNPM_VERSION }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-      - run: cp .env.example .env
+      # Every Playwright request reaches the API from one IP, so the per-IP sign-in limit
+      # (5/min) trips when the suite runs fast. Limits are covered by pytest instead.
+      - run: cp .env.example .env && sed -i 's/^RATE_LIMIT_ENABLED=.*/RATE_LIMIT_ENABLED=false/' .env
       - run: docker compose up -d --build --wait
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @momentsales/web exec playwright install --with-deps chromium
@@ -100,7 +104,7 @@ jobs:
       - if: failure()
         run: docker compose logs --no-color > compose.log
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-artifacts
           path: |
@@ -112,7 +116,7 @@ jobs:
     name: Secrets and image scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -125,3 +129,5 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           exit-code: "1"
+        env:
+          TRIVY_SECRET_CONFIG: trivy-secret.yaml

@@ -1,7 +1,7 @@
 /**
  * Command-bar grammar for the FR-7 ledger commands.
- * Phase 0 ships the grammar and autocomplete only; each command's form and API arrive
- * in the phase listed in `availableIn`.
+ * Running a command opens its form pre-filled from the typed arguments (see ledger.ts);
+ * nothing is saved until the user confirms the form.
  */
 import type { Action } from "./permissions";
 
@@ -30,7 +30,7 @@ export const COMMANDS: readonly CommandSpec[] = [
     fields: [],
     availableIn: "Phase 1",
     permission: "integrations.payments.manage",
-    enabled: false,
+    enabled: true,
   },
   {
     name: "/touch",
@@ -43,8 +43,8 @@ export const COMMANDS: readonly CommandSpec[] = [
       f("note", "Note", false),
     ],
     availableIn: "Phase 1",
-    permission: "ledger.write",
-    enabled: false,
+    permission: "touches.write",
+    enabled: true,
   },
   {
     name: "/spend",
@@ -61,7 +61,7 @@ export const COMMANDS: readonly CommandSpec[] = [
     ],
     availableIn: "Phase 1",
     permission: "ledger.write",
-    enabled: false,
+    enabled: true,
   },
   {
     name: "/receipt",
@@ -69,15 +69,15 @@ export const COMMANDS: readonly CommandSpec[] = [
     fields: [f("file", "File"), f("spend", "Link to an existing spend", false)],
     availableIn: "Phase 1",
     permission: "receipts.upload",
-    enabled: false,
+    enabled: true,
   },
   {
     name: "/sale",
     summary: "Record a sale made outside Stripe",
     fields: [f("amount", "Amount"), f("date", "Date"), f("channel", "Channel"), f("ref", "Order ref", false)],
     availableIn: "Phase 1",
-    permission: "ledger.write",
-    enabled: false,
+    permission: "sales.record",
+    enabled: true,
   },
   {
     name: "/export",
@@ -85,7 +85,7 @@ export const COMMANDS: readonly CommandSpec[] = [
     fields: [f("period", "Period"), f("format", "Format", false)],
     availableIn: "Phase 1",
     permission: "ledger.export",
-    enabled: false,
+    enabled: true,
   },
 ];
 
@@ -106,3 +106,13 @@ export function parseCommand(input: string): { command: CommandSpec | null; args
   const command = sorted.find((c) => text === c.name || text.startsWith(`${c.name} `)) ?? null;
   return { command, args: command ? text.slice(command.name.length).trim() : text };
 }
+
+/** Where each command's confirm form lives in the dashboard. */
+export const COMMAND_ROUTES: Record<string, string> = {
+  "/stripe connect": "/app/integrations",
+  "/touch": "/app/ledger?tab=touches&new=1",
+  "/spend": "/app/ledger?tab=spends&new=1",
+  "/receipt": "/app/ledger?tab=receipts&new=1",
+  "/sale": "/app/sales?new=sale",
+  "/export": "/app/ledger?tab=export",
+};

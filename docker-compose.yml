@@ -5,6 +5,8 @@ x-app-env: &app-env
   DATABASE_URL: postgresql+psycopg://app_rw:${APP_RW_PASSWORD}@postgres:5432/momentsales
   MIGRATION_DATABASE_URL: postgresql+psycopg://app_owner:${APP_OWNER_PASSWORD}@postgres:5432/momentsales
   REDIS_URL: redis://redis:6379/0
+  # Receipts and audit packs (local backend); shared by api and worker
+  STORAGE_LOCAL_PATH: /data/storage
 
 services:
   postgres:
@@ -38,6 +40,8 @@ services:
     environment: *app-env
     command: sh -c "alembic -c apps/api/alembic.ini upgrade head && uvicorn momentsales.main:app --host 0.0.0.0 --port 8000 --proxy-headers"
     ports: ["${API_PORT:-8000}:8000"]
+    volumes:
+      - storage:/data/storage
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
@@ -52,6 +56,8 @@ services:
     env_file: .env
     environment: *app-env
     command: celery -A momentsales_worker.celery_app worker --beat --schedule /tmp/celerybeat-schedule --loglevel=INFO --concurrency=2
+    volumes:
+      - storage:/data/storage
     depends_on:
       api: { condition: service_healthy }
 
@@ -68,3 +74,4 @@ services:
 
 volumes:
   pgdata:
+  storage:

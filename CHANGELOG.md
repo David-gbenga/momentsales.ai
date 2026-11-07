@@ -2,6 +2,42 @@
 
 All notable changes are recorded here, by phase.
 
+## [Phase 1 — Ledger and payments] — 2026-11-07
+
+### Added
+- **Database:** Alembic migration `0002`: Stripe integrations, webhook events, idempotency keys, orders and order items, checkout sessions, spends, spend voids and receipts, ledger entries, CSV imports and exports. RLS is enabled and forced on every new table. `ledger_entries`, `spends`, `spend_voids` and `spend_receipts` are append-only (no grant, no policy, trigger), like the audit log.
+- **Ledger (FR-7, ADR-0010):** signed integer minor-unit entries with currency; sales per item with Stripe fees spread by value; spends (a GBP base amount is required for other currencies, and no rate is guessed); voids as reversing entries; P&L by period and by product. Payouts are recorded as cash movements and kept out of P&L.
+- **Idempotent money writes:** a unique `(workspace, source, source_ref)` on ledger entries, plus an `Idempotency-Key` header on every money-writing call (a replay returns the stored response; a changed body gets 422).
+- **Commands:** `/spend` (including `ads`, which needs a product key), `/touch`, `/sale` (manual sale) and `/receipt`. The command bar opens each form pre-filled from the typed arguments; nothing saves without a click.
+- **Receipts and OCR (ADR-0014):** magic-byte type check, 10 MB limit, SHA-256 stored, OCR in a background job, human confirmation that creates or links the spend and clears the "missing receipt" flag. OCR adapters: Claude vision (primary), AWS Textract AnalyzeExpense (secondary), automatic failover, and a mock that never invents values.
+- **Stripe Connect and Checkout (FR-6, ADR-0011):** onboarding through Account Links with Standard-equivalent controller properties (Owner only); test-mode Checkout as direct charges; fees read from the balance transaction. Webhook receivers for the platform and Connect endpoints verify signatures on the raw body, refuse live events, store each event once and process it in a job. They handle checkout completion, refunds (cumulative, so replays write nothing), disputes, payouts and account updates. A one-minute sweeper re-queues stuck webhooks and OCR jobs.
+- **CSV imports (FR-13, J7):** ad spend and outside sales, with a suggested column mapping, per-row errors and duplicate-file protection. There are no ad-platform presets yet, because the export columns are unverified.
+- **Audit pack (FR-8):** a worker job that builds ledger, spends, touches and orders CSVs, a receipts ZIP with a hash manifest, an audit-log extract with chain verification, a WeasyPrint summary PDF and a SHA-256 manifest. Owner and Accountant only. Downloads use 5-minute signed links.
+- **File storage (ADR-0012):** a storage port with a local adapter (Docker volume, HMAC-signed links) and an S3/R2 adapter.
+- **Interim product key (ADR-0013):** order items, spends and ledger entries carry an optional `product_key` for per-product P&L until listings arrive in Phase 3.
+- **Web:** Home KPIs and daily chart; Sales & Orders (counters, orders, test checkout, manual sale, CSV import); Ledger tabs (spends, touches, receipts with OCR confirm, entries, P&L by product, audit-pack export); Integrations (Stripe card). Charts have data-table fallbacks. Mock Stripe onboarding and checkout pages exist in mock mode only.
+- **Shared package:** command argument parsers, money formatting and form schemas.
+- **Tests:** 248 pytest tests (86% coverage), including AC-6, AC-7, AC-8, AC-9, AC-10 and AC-28, isolation and append-only checks on every new table, and contract tests for Stripe, Claude, Textract (botocore Stubber) and S3 (moto). Vitest: 14 shared and 8 web. Playwright: 10 end-to-end tests covering payments (AC-6), `/spend` with a receipt, `/touch` and the audit pack (AC-8 to AC-10), and axe on the ledger screens in light and dark.
+- **Docs:** ADRs 0010–0014; integration notes for Stripe Connect, Stripe Checkout and webhooks, Claude vision, Textract and S3/R2.
+- **Dependencies:** stripe, boto3, anthropic, weasyprint, pillow and recharts (runtime); moto and boto3 type stubs (dev).
+
+### Changed
+- CI actions were bumped to their Node 24 majors, and Pango is installed for the audit-pack PDF test. The Postgres-roles step had been merged into the Pango step by mistake, so the roles were never created; that is fixed.
+- Settings refuse Stripe live keys, mock webhook secrets and local storage outside `local`/`test`.
+
+### Acceptance criteria
+- AC-6, AC-7, AC-8, AC-9, AC-10 and AC-28 pass (pytest and Playwright).
+- AC-19 covers the Phase 1 parts: ledger, receipts, orders and exports are isolated at the database and API level. Usage and invoices come with Phase 1B.
+
+### Still mocked or not yet built
+- **Stripe:** the mock signs Stripe-shaped events and posts them to the real webhook endpoints. Live test mode needs `STRIPE_SECRET_KEY` (test key) and webhook secrets from the Stripe CLI or dashboard. Production keys are refused.
+- **OCR:** with no keys, a mock returns fixture results keyed by file hash. HEIC receipts skip OCR (entered by hand) until a conversion library is approved.
+- **Storage:** local volume only, unless `STORAGE_BACKEND=s3` and bucket credentials are set.
+- **Platform fee:** 0 in Phase 1.
+- **Per-product P&L** uses the interim `product_key` until listings arrive in Phase 3.
+- **The audit-pack PDF unit test** is skipped on hosts without Pango (Windows). It runs in Docker and CI.
+- Plans and limits (Phase 1B), research (Phase 2) and listings and fulfilment (Phase 3) are not started.
+
 ## [Phase 0 — Foundations] — 2026-11-07
 
 ### Added

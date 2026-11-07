@@ -113,6 +113,10 @@ async def test_production_never_resolves_mock_from_db() -> None:
         totp_encryption_key="Z" * 43 + "=",  # type: ignore[arg-type]
         database_url="postgresql+psycopg://app_rw:real@db/ms",
         cookie_secure=True,
+        stripe_webhook_secret="whsec_real_platform",  # type: ignore[arg-type]
+        stripe_connect_webhook_secret="whsec_real_connect",  # type: ignore[arg-type]
+        storage_backend="s3",
+        rate_limit_enabled=True,
         provider_mode=ProviderMode.LIVE,
     )
     reg, http = await _registry(prod)
