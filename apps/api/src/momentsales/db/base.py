@@ -48,5 +48,27 @@ class Timestamps:
 # Tables that carry tenant data. Every one must have RLS ENABLE + FORCE and a policy;
 # tests/security/test_rls_coverage.py fails the build otherwise (ADR-0004).
 TENANT_TABLES: frozenset[str] = frozenset(
-    {"workspaces", "memberships", "invitations", "feature_flag_overrides", "touches", "audit_log"}
+    {
+        # Phase 0
+        "workspaces",
+        "memberships",
+        "invitations",
+        "feature_flag_overrides",
+        "touches",
+        "audit_log",
+        # Phase 1 (db/ledger.py)
+        "integrations",
+        "webhook_events",
+        "idempotency_keys",
+        "orders",
+        "order_items",
+        "checkout_sessions",
+        "spends",
+        "spend_voids",
+        "receipts",
+        "spend_receipts",
+        "ledger_entries",
+        "csv_imports",
+        "exports",
+    }
 )

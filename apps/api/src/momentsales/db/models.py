@@ -1,4 +1,5 @@
-"""All ORM models for Phase 0 (one place so Alembic and tests see every table)."""
+"""ORM models for Phase 0. Importing this module also registers the Phase 1 models in
+`db/ledger.py`, so Alembic and tests see every table."""
 
 from __future__ import annotations
 
@@ -293,3 +294,7 @@ class AuditLog(UUIDPk, Base):
     ip_hash: Mapped[str | None] = mapped_column(String(64))
     prev_hash: Mapped[str | None] = mapped_column(String(64))
     hash: Mapped[str] = mapped_column(String(64), nullable=False)
+
+
+# Register Phase 1 tables (kept in their own module; imported last to avoid a cycle).
+from momentsales.db import ledger as ledger  # noqa: E402

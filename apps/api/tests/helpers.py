@@ -81,3 +81,73 @@ async def add_member(owner: Session, workspace_id: str, role: str) -> Session:
     )
     assert r.status_code == 200, r.text
     return member
+
+
+# One row in every Phase 1 tenant table, written directly in the workspace's own context.
+# Isolation tests use it so each table has data that the other tenant must not see.
+_PHASE1_SEED_SQL = (
+    "INSERT INTO integrations (id, workspace_id, type, external_id, status, charges_enabled,"
+    " payouts_enabled, details_submitted, requirements, livemode, created_at, updated_at)"
+    " VALUES (gen_random_uuid(), :w, 'stripe', 'acct_' || md5(random()::text), 'pending',"
+    " false, false, false, '{}', false, now(), now())",
+    "INSERT INTO idempotency_keys (id, workspace_id, key, request_hash, response_status,"
+    " response_body, created_at) VALUES (gen_random_uuid(), :w, md5(random()::text),"
+    " repeat('0', 64), 201, '{}', now())",
+    "INSERT INTO orders (id, workspace_id, channel, external_id, status, currency, gross_minor,"
+    " tax_minor, fees_minor, refunded_minor, created_at, updated_at) VALUES (:o, :w, 'manual',"
+    " md5(random()::text), 'paid', 'GBP', 1000, 0, 0, 0, now(), now())",
+    "INSERT INTO order_items (id, workspace_id, order_id, description, quantity,"
+    " unit_amount_minor) VALUES (gen_random_uuid(), :w, :o, 'Candle', 1, 1000)",
+    "INSERT INTO checkout_sessions (id, workspace_id, status, currency, items, created_at,"
+    " updated_at) VALUES (gen_random_uuid(), :w, 'open', 'GBP', '[]', now(), now())",
+    "INSERT INTO csv_imports (id, workspace_id, kind, filename, sha256, column_mapping,"
+    " rows_total, rows_imported, rows_skipped, errors, status, created_by, created_at,"
+    " updated_at) VALUES (gen_random_uuid(), :w, 'spends', 'a.csv', md5(random()::text), '{}',"
+    " 0, 0, 0, '[]', 'completed', :u, now(), now())",
+    "INSERT INTO spends (id, workspace_id, amount_minor, tax_minor, currency, base_amount_minor,"
+    " spent_on, vendor, category, payment_method, source, created_by, created_at)"
+    " VALUES (:s, :w, 2499, 0, 'GBP', 2499, current_date, 'Royal Mail', 'shipping', 'card',"
+    " 'manual', :u, now())",
+    "INSERT INTO receipts (id, workspace_id, file_key, sha256, mime, size_bytes, original_name,"
+    " ocr_status, uploaded_by, created_at) VALUES (:r, :w, :fk,"
+    " repeat('a', 64), 'image/png', 10, 'r.png', 'skipped', :u, now())",
+    "INSERT INTO spend_receipts (id, workspace_id, spend_id, receipt_id, linked_by, created_at)"
+    " VALUES (gen_random_uuid(), :w, :s, :r, :u, now())",
+    "INSERT INTO ledger_entries (id, workspace_id, type, amount_minor, currency, occurred_on,"
+    " spend_id, source, source_ref, description, created_by, created_at) VALUES"
+    " (gen_random_uuid(), :w, 'spend', -2499, 'GBP', current_date, :s, 'spend', :sref, 'seed',"
+    " :u, now())",
+    "INSERT INTO spend_voids (id, workspace_id, spend_id, reason, voided_by, created_at)"
+    " VALUES (gen_random_uuid(), :w, :s, 'seed', :u, now())",
+    "INSERT INTO exports (id, workspace_id, period_start, period_end, status, files,"
+    " requested_by, created_at, updated_at) VALUES (gen_random_uuid(), :w, current_date,"
+    " current_date, 'pending', '[]', :u, now(), now())",
+)
+_WEBHOOK_SEED_SQL = (
+    "INSERT INTO webhook_events (id, provider, event_id, type, livemode, workspace_id, payload,"
+    " received_at, attempts) VALUES (gen_random_uuid(), 'stripe', 'evt_' || md5(random()::text),"
+    " 'account.updated', false, :w, '{}', now(), 0)"
+)
+
+
+async def seed_phase1_rows(workspace_id: uuid.UUID, user_id: uuid.UUID) -> None:
+    from sqlalchemy import text
+
+    from momentsales.core.db import get_sessionmaker, set_tenant_context
+
+    params = {
+        "w": str(workspace_id),
+        "u": str(user_id),
+        "o": str(uuid.uuid4()),
+        "s": str(uuid.uuid4()),
+        "r": str(uuid.uuid4()),
+    }
+    params["fk"] = f"{workspace_id}/receipts/{params['r']}"
+    params["sref"] = params["s"]
+    async with get_sessionmaker()() as s, s.begin():
+        await set_tenant_context(s, user_id=user_id, workspace_id=workspace_id)
+        for stmt in _PHASE1_SEED_SQL:
+            await s.execute(text(stmt), params)
+    async with get_sessionmaker()() as s, s.begin():
+        await set_tenant_context(s, user_id=user_id, platform=True)
+        await s.execute(text(_WEBHOOK_SEED_SQL), params)

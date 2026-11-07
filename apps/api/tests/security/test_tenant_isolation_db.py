@@ -8,12 +8,13 @@ from dataclasses import dataclass
 
 import httpx
 import pytest
-from helpers import add_member, create_workspace, sign_in
+from helpers import add_member, create_workspace, seed_phase1_rows, sign_in
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
 
 from momentsales.core.db import get_sessionmaker, set_tenant_context
 from momentsales.db.base import TENANT_TABLES
+from momentsales.db.ledger import APPEND_ONLY_TABLES
 
 
 @dataclass
@@ -30,6 +31,7 @@ async def tenants(client: httpx.AsyncClient) -> Tenants:
     a = await create_workspace(owner_a, "Tenant A")
     b = await create_workspace(owner_b, "Tenant B")
     await add_member(owner_a, a, "analyst")  # creates invitations + more rows in A
+    await seed_phase1_rows(uuid.UUID(a), uuid.UUID(owner_a.user_id))
     return Tenants(
         uuid.UUID(a), uuid.UUID(b), uuid.UUID(owner_a.user_id), uuid.UUID(owner_b.user_id)
     )
@@ -99,6 +101,20 @@ async def test_cannot_delete_other_tenant_invitations(tenants: Tenants) -> None:
         " invited_by, created_at, updated_at)"
         " VALUES (gen_random_uuid(), :a, 'x@evil.test', 'admin',"
         " md5(random()::text), now() + interval '1 day', :u, now(), now())",
+        "INSERT INTO ledger_entries (id, workspace_id, type, amount_minor, currency, occurred_on,"
+        " source, source_ref, description, created_at) VALUES (gen_random_uuid(), :a, 'sale',"
+        " 100, 'GBP', current_date, 'manual', md5(random()::text), 'x', now())",
+        "INSERT INTO spends (id, workspace_id, amount_minor, tax_minor, currency,"
+        " base_amount_minor, spent_on, vendor, category, payment_method, source, created_by,"
+        " created_at) VALUES (gen_random_uuid(), :a, 1, 0, 'GBP', 1, current_date, 'x', 'other',"
+        " 'card', 'manual', :u, now())",
+        "INSERT INTO orders (id, workspace_id, channel, external_id, status, currency,"
+        " gross_minor, tax_minor, fees_minor, refunded_minor, created_at, updated_at) VALUES"
+        " (gen_random_uuid(), :a, 'manual', md5(random()::text), 'paid', 'GBP', 1, 0, 0, 0,"
+        " now(), now())",
+        "INSERT INTO webhook_events (id, provider, event_id, type, livemode, workspace_id,"
+        " payload, received_at, attempts) VALUES (gen_random_uuid(), 'stripe',"
+        " md5(random()::text), 'x', false, :a, '{}', now(), 0)",
     ],
 )
 async def test_cannot_insert_into_other_tenant(statement: str, tenants: Tenants) -> None:
@@ -115,3 +131,35 @@ async def test_member_lists_only_own_workspaces(tenants: Tenants) -> None:
         await set_tenant_context(s, user_id=tenants.user_b)
         ids = set((await s.scalars(text("SELECT id FROM workspaces"))).all())
     assert ids == {tenants.b}
+
+
+@pytest.mark.parametrize("table", sorted(APPEND_ONLY_TABLES))
+@pytest.mark.parametrize(
+    "statement", ["UPDATE {t} SET workspace_id = workspace_id", "DELETE FROM {t}"]
+)
+async def test_append_only_tables_refuse_changes(
+    table: str, statement: str, tenants: Tenants
+) -> None:
+    """Own-tenant rows can't be changed either: no grant, no policy, and a trigger (ADR-0010)."""
+    async with get_sessionmaker()() as s:
+        await s.begin()
+        await set_tenant_context(s, user_id=tenants.user_a, workspace_id=tenants.a)
+        with pytest.raises(DBAPIError, match=r"permission denied|append-only"):
+            await s.execute(text(statement.format(t=table)))
+        await s.rollback()
+    assert await _count(table, tenants.a, tenants.a, tenants.user_a) > 0
+
+
+async def test_unmatched_webhook_events_need_platform_context(tenants: Tenants) -> None:
+    async def count(**ctx: object) -> int:
+        async with get_sessionmaker()() as s, s.begin():
+            await set_tenant_context(s, **ctx)  # type: ignore[arg-type]
+            n = await s.scalar(
+                text("SELECT count(*) FROM webhook_events WHERE workspace_id = :w"),
+                {"w": str(tenants.a)},
+            )
+        return int(n or 0)
+
+    assert await count(user_id=tenants.user_a, workspace_id=tenants.a) == 1
+    assert await count(user_id=tenants.user_b, workspace_id=tenants.b) == 0
+    assert await count(platform=True) == 1
