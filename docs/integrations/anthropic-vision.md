@@ -11,9 +11,9 @@ Checked against the official docs on 2026-11-07:
 | Item | Value |
 | --- | --- |
 | Endpoint | `POST https://api.anthropic.com/v1/messages` (via the `anthropic` SDK) |
-| Auth | `x-api-key: <ANTHROPIC_API_KEY>`, `anthropic-version` set by the SDK |
+| Auth | The docs' examples send `x-api-key`; the `anthropic` 2.6 SDK sends `Authorization: Bearer <ANTHROPIC_API_KEY>` and `anthropic-version: 2026-10-21` (checked in the adapter tests) |
 | Model | `OCR_CLAUDE_MODEL`, default `claude-haiku-5-5` (the docs list it for extraction tasks) |
-| Images | `image/jpeg`, `image/png`, `image/gif`, `image/webp`; ≤ 10 MB base64; ≤ 8000×8000 px. **HEIC not supported** → converted to JPEG before sending |
+| Images | `image/jpeg`, `image/png`, `image/gif`, `image/webp`; ≤ 10 MB base64; ≤ 8000×8000 px. **HEIC not supported**: HEIC receipts are stored but skip OCR until a conversion library is approved (ADR-0014) |
 | Image block | `{"type": "image", "source": {"type": "base64", "media_type": …, "data": …}}`, placed before the text prompt |
 | PDF block | `{"type": "document", "source": {"type": "base64", "media_type": "application/pdf", "data": …}}` |
 | Structured output | `output_config.format = {"type": "json_schema", "schema": …}`; every object has `additionalProperties: false` and all fields `required` (nullable via `["string","null"]`) |

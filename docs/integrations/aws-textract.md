@@ -10,7 +10,7 @@ Checked against the official docs on 2026-11-07:
 | Item | Value |
 | --- | --- |
 | Call | `AnalyzeExpense` (boto3 `textract.analyze_expense(Document={"Bytes": …})`) |
-| Formats | JPEG, PNG, PDF, TIFF (no XFA or password-protected PDFs). HEIC → converted to JPEG first |
+| Formats | JPEG, PNG, PDF, TIFF (no XFA or password-protected PDFs). HEIC skips OCR for now (ADR-0014) |
 | Sync limits | 10 MB; PDF/TIFF **1 page only** synchronously; ≤ 10000 px per side |
 | Multi-page PDF | Needs async `StartExpenseAnalysis` + S3; not used — multi-page PDFs go to the next provider or manual entry |
 | Response | `ExpenseDocuments[].SummaryFields[]` with `Type.Text`, `ValueDetection.Text`, `ValueDetection.Confidence`, `Currency.Code` |
