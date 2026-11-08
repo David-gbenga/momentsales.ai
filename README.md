@@ -85,8 +85,8 @@ docs/          PRD, ADRs, ERD, OpenAPI spec, integration notes, runbooks, compli
 | Email (sign-in links, invitations, waitlist) | Redis dev outbox, `GET /api/v1/dev/outbox` | Resend (primary), Postmark (secondary), automatic failover | `PROVIDER_MODE=live`, `RESEND_API_KEY` and/or `POSTMARK_SERVER_TOKEN`, a verified sending domain |
 | Google sign-in | Local mock consent page `/dev/mock-google` | Google OIDC | A Google Cloud OAuth client (testing mode), `GOOGLE_CLIENT_ID/SECRET` |
 | Stripe Connect, Checkout, webhooks | Mock onboarding and checkout pages; signed Stripe-shaped events posted to the real webhook endpoints | Stripe (test mode only) | `STRIPE_SECRET_KEY` (test), `STRIPE_PUBLISHABLE_KEY`, webhook secrets from the Stripe CLI or dashboard |
-| Receipt OCR | Fixture results keyed by file hash; never invents values | Claude vision (primary), AWS Textract (secondary), automatic failover | `ANTHROPIC_API_KEY` and/or AWS credentials (`eu-west-2`). HEIC receipts skip OCR until a converter is approved |
-| File storage | Local Docker volume with signed 5-minute links | S3 or Cloudflare R2 | `STORAGE_BACKEND=s3`, `S3_BUCKET`, credentials, `S3_ENDPOINT_URL` for R2 |
+| Receipt OCR | Fixture results keyed by file hash; never invents values | Claude vision (primary), AWS Textract (secondary), automatic failover | `ANTHROPIC_API_KEY` and/or `AWS_REGION` (`eu-west-2`), `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (used only by Textract). HEIC receipts skip OCR until a converter is approved |
+| File storage | Local Docker volume with signed 5-minute links | S3 or Cloudflare R2 | `STORAGE_BACKEND=s3`, `S3_BUCKET`, `S3_ENDPOINT_URL` (R2), `S3_REGION` (`auto` for R2), `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. Separate from Textract's `AWS_*` keys |
 | Plan limits | `EntitlementService` allows everything (no plans yet) | — | Phase 1B adds plans and limits |
 | Market data, suppliers, research LLM | Registered in the provider registry, no adapters yet | — | Phase 2 |
 

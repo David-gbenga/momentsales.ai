@@ -75,7 +75,10 @@ test("/spend with a receipt, /touch and an audit pack (AC-8, AC-9, AC-10)", asyn
   ]);
   await page.getByLabel("Upload a receipt").setInputFiles({ name: "receipt.png", mimeType: "image/png", buffer: fixture });
   await page.getByRole("button", { name: "Upload", exact: true }).click();
-  await expect(page.getByText("Check the details we read from the receipt, then save.")).toBeVisible();
+  // OCR runs in the worker (JOBS_MODE=celery); the page polls until it finishes
+  await expect(page.getByText("Check the details we read from the receipt, then save.")).toBeVisible({
+    timeout: 30_000,
+  });
   await expect(page.getByLabel("Vendor")).toHaveValue("Royal Mail");
   await expect(page.getByLabel("Amount", { exact: true })).toHaveValue("24.99");
   await page.getByLabel("Or attach to an existing spend").selectOption({ index: 1 });

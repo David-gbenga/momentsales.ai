@@ -278,13 +278,15 @@ class ProviderRegistry:
 
                 if not s.s3_bucket:
                     raise ProviderConfigError("S3_BUCKET is not set")
+                # S3_* only: the AWS_* settings belong to Textract (they can be different
+                # accounts, e.g. R2 storage with AWS OCR).
                 client = build_s3_client(
-                    region=s.aws_region,
+                    region=s.s3_region,
                     endpoint_url=s.s3_endpoint_url,
-                    access_key_id=s.aws_access_key_id,
+                    access_key_id=s.s3_access_key_id,
                     secret=(
-                        s.aws_secret_access_key.get_secret_value()
-                        if s.aws_secret_access_key
+                        s.s3_secret_access_key.get_secret_value()
+                        if s.s3_secret_access_key
                         else None
                     ),
                 )

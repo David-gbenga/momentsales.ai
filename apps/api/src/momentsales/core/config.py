@@ -96,6 +96,11 @@ class Settings(BaseSettings):
     storage_local_path: Path = _REPO_ROOT / "data" / "storage"
     s3_bucket: str | None = None
     s3_endpoint_url: str | None = None
+    # Storage has its own credentials so it can live on Cloudflare R2 while Textract uses AWS.
+    # Region "auto" for R2. Unset keys fall back to boto3's default credential chain.
+    s3_region: str = "auto"
+    s3_access_key_id: str | None = None
+    s3_secret_access_key: SecretStr | None = None
     signed_url_ttl_seconds: int = Field(default=300, ge=30, le=3600)
     receipt_max_bytes: int = Field(default=10 * 1024 * 1024, ge=1024, le=10 * 1024 * 1024)
 

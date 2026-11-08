@@ -2,6 +2,17 @@
 
 All notable changes are recorded here, by phase.
 
+## [Unreleased] — Phase 1 follow-ups
+
+### Fixed
+- **Storage credentials:** file storage and Textract both read `AWS_REGION`, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, so storage on Cloudflare R2 (region `auto`, R2 token) and OCR on AWS Textract (`eu-west-2`, AWS keys) could not run together. Storage now has its own `S3_REGION` (default `auto`), `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY`; the `AWS_*` settings are Textract's only. **If you deploy with S3/R2, set the new `S3_*` keys.**
+- **E2E:** the receipt step waits up to 30 s for OCR, which runs in the Celery worker; Playwright's 5 s default was tight on slow Docker hosts.
+- **Image scan:** the api and worker images now run `apt-get upgrade` at build time, so Debian security fixes (here zlib1g CVE-2026-76844 and CVE-2026-85091) land even when the `python:3.12-slim` base lags behind.
+
+### Decided
+- Backup OCR stays AWS Textract (not Google Cloud Vision).
+- Sellers keep the full Stripe Dashboard (Standard-equivalent connected accounts, ADR-0011), not Express.
+
 ## [Phase 1 — Ledger and payments] — 2026-11-07
 
 ### Added
