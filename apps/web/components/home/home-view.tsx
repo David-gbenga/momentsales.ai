@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { BarChartCard } from "@/components/charts/bar-chart";
+import { SeasonCalendarCard } from "@/components/home/season-calendar";
 import { EmptyState } from "@/components/sections/empty-state";
 import { Card, Notice } from "@/components/ui/primitives";
 import { DataTable, Num, Td } from "@/components/ui/table";
@@ -27,6 +28,7 @@ export function HomeView() {
   if (!ws.can("orders.read")) {
     return (
       <div className="grid gap-4">
+        <SeasonCalendarCard />
         <EmptyState section="home" />
         <Notice>{t("viewerNote")}</Notice>
       </div>
@@ -45,6 +47,7 @@ export function HomeView() {
       <h1 id="home-title" className="text-2xl font-semibold tracking-tight">
         {t("title")}
       </h1>
+      <SeasonCalendarCard />
       <dl className="grid gap-3 sm:grid-cols-3" aria-live="polite">
         {cards.map(([key, value, testId]) => (
           <Card key={key} className="p-4">

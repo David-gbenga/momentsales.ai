@@ -515,5 +515,107 @@
     "payInvoice": "Pay the open invoice",
     "back": "Back to Billing",
     "done": "Done."
+  },
+  "research": {
+    "title": "Research",
+    "intro": "Find products with rising demand before UK retail moments. Each run uses one research run from your plan.",
+    "loading": "Loading the run…",
+    "newRun": "New seasonal run",
+    "window": "Look-ahead window",
+    "windowHelp": "How far ahead to look. 6–10 weeks gives you time to list and market before demand peaks.",
+    "weeks": "{count} weeks",
+    "season": "Season",
+    "seasonAuto": "Detect automatically",
+    "seasonHelp": "Override the detected season if you sell ahead of the calendar.",
+    "category": "Category (optional)",
+    "categoryHelp": "For example: home, gifts or outdoor.",
+    "priceMin": "Lowest price, £ (optional)",
+    "priceMax": "Highest price, £ (optional)",
+    "priceInvalid": "Enter prices as numbers, for example 12.50.",
+    "priceOrder": "The lowest price can't be more than the highest price.",
+    "useAudience": "Use my audience description",
+    "run": "Run research",
+    "starting": "Starting…",
+    "costCap": "Each run stops at {cap} of data and AI costs.",
+    "limitReached": "You've used all your research runs for this period.",
+    "upgrade": "See plans and run packs",
+    "recent": "Recent runs",
+    "noRuns": "No research runs yet.",
+    "runOf": "Run for {date}",
+    "status": {
+      "queued": "Queued",
+      "running": "Running",
+      "completed": "Completed",
+      "partial": "Partial results",
+      "failed": "Failed"
+    },
+    "stepStatus": {
+      "running": "Running",
+      "completed": "Done",
+      "degraded": "Done, some data not available",
+      "failed": "Failed"
+    },
+    "agents": {
+      "season": "Season and retail calendar"
+    },
+    "progress": "Progress",
+    "spend": "Spent {spent} of {cap}",
+    "failed": "The run failed.",
+    "refunded": "It failed before any costs, so the run was given back.",
+    "partialNote": "The run stopped at its cost cap. Results found so far are shown.",
+    "seasonNow": "Now: {season}",
+    "seasonNext": "next: {season}",
+    "overridden": "Season set by you (detected: {detected})",
+    "seasonNames": {
+      "spring": "Spring",
+      "summer": "Summer",
+      "autumn": "Autumn",
+      "winter": "Winter"
+    },
+    "moments": "Retail moments in the next {weeks} weeks",
+    "noMoments": "No retail moments in this window.",
+    "moment": "Moment",
+    "date": "Date",
+    "actBy": "Act by",
+    "actByPassed": "Passed",
+    "actByHelp": "Act-by dates assume {days}-day delivery until a supplier is matched, plus 21 days of selling time.",
+    "holidays": "Bank holidays in the window",
+    "holidaysNone": "None in this window.",
+    "notAvailable": "Not available",
+    "source": "Source: {provider}, fetched {when}",
+    "reportSoon": "Product research and the Top 10 report are being added next. This run shows the season and retail calendar."
+  },
+  "audience": {
+    "title": "Describe your audience (optional)",
+    "intro": "Preferences only. Don't enter names, emails or other personal details.",
+    "ageRange": "Age range",
+    "genderFocus": "Gender focus",
+    "budgetBand": "Budget",
+    "style": "Style",
+    "interests": "Interests",
+    "interestsHelp": "Up to 10, separated by commas.",
+    "any": "Any age",
+    "notSet": "Not set",
+    "gender": {
+      "any": "Anyone",
+      "women": "Mostly women",
+      "men": "Mostly men"
+    },
+    "budget": {
+      "budget": "Budget",
+      "mid": "Mid-range",
+      "premium": "Premium"
+    },
+    "save": "Save audience",
+    "saved": "Saved."
+  },
+  "calendar": {
+    "title": "Coming up",
+    "daysAway": "{count, plural, =0 {today} one {in # day} other {in # days}}",
+    "actBy": "Act by {date}",
+    "passed": "Passed",
+    "assumed": "Act-by dates assume {days}-day delivery plus 21 days to sell.",
+    "start": "Start seasonal research",
+    "empty": "No upcoming retail moments."
   }
 }
