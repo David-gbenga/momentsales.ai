@@ -8,7 +8,7 @@ been processed is never applied twice.
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -40,6 +40,7 @@ from momentsales.db.ledger import (
     WebhookEvent,
 )
 from momentsales.modules.audit import service as audit
+from momentsales.modules.billing import entitlements as billing_entitlements
 from momentsales.modules.billing import webhooks as billing_webhooks
 from momentsales.modules.billing.webhooks import BILLING_EVENTS
 from momentsales.modules.ledger import service as ledger
@@ -158,10 +159,13 @@ async def create_test_checkout(
             "Connect Stripe first",
             "Finish Stripe onboarding before taking payments (/stripe connect).",
         )
+    bps = await billing_entitlements.platform_fee_bps(session, workspace_id)
+    application_fee = billing_entitlements.platform_fee_minor(sum(i.total for i in items), bps)
     checkout = CheckoutSession(
         workspace_id=workspace_id,
         status=CheckoutStatus.OPEN,
         currency=BASE_CURRENCY,
+        application_fee_minor=application_fee,
         items=[
             {
                 "description": i.description,
@@ -185,6 +189,7 @@ async def create_test_checkout(
             cancel_url=f"{base}/app/sales?checkout=cancelled",
             metadata={"workspace_id": str(workspace_id), "checkout_id": str(checkout.id)},
             idempotency_key=f"checkout-{checkout.id}",
+            application_fee_minor=application_fee,
         )
     except PaymentsError as exc:
         raise _unavailable(exc) from exc
@@ -197,7 +202,11 @@ async def create_test_checkout(
         object_id=checkout.id,
         workspace_id=workspace_id,
         actor_user_id=actor_user_id,
-        after={"amount_minor": sum(i.total for i in items), "items": len(items)},
+        after={
+            "amount_minor": sum(i.total for i in items),
+            "items": len(items),
+            "application_fee_minor": application_fee,
+        },
     )
     return checkout
 
@@ -339,7 +348,9 @@ async def _on_checkout_completed(
         customer_email=(obj.get("customer_details") or {}).get("email"),
         currency=currency,
         gross_minor=int(obj.get("amount_total") or charge.amount_minor),
-        fees_minor=charge.fee_minor,
+        fees_minor=charge.fee_minor + charge.platform_fee_minor,
+        platform_fee_minor=charge.platform_fee_minor,
+        platform_fee_id=charge.application_fee_id,
         paid_at=occurred,
         charge_id=charge.charge_id,
     )
@@ -366,6 +377,7 @@ async def _on_checkout_completed(
         ref=session_id,
         occurred_on=await ledger.uk_date(session, occurred),
         fee_minor=charge.fee_minor,
+        platform_fee_minor=charge.platform_fee_minor,
     )
     checkout.status = CheckoutStatus.COMPLETED
     checkout.order_id = order.id
@@ -376,7 +388,12 @@ async def _on_checkout_completed(
         object_id=order.id,
         workspace_id=integration.workspace_id,
         actor_user_id=None,
-        after={"event": event_id, "gross_minor": order.gross_minor, "fee_minor": charge.fee_minor},
+        after={
+            "event": event_id,
+            "gross_minor": order.gross_minor,
+            "fee_minor": charge.fee_minor,
+            "platform_fee_minor": charge.platform_fee_minor,
+        },
     )
     return "order_created"
 
@@ -417,6 +434,52 @@ async def _items(session: AsyncSession, order: Order) -> list[OrderItem]:
     )
 
 
+async def _refund_platform_fee(
+    session: AsyncSession,
+    payments: PaymentsPort,
+    order: Order,
+    items: list[OrderItem],
+    charge: dict[str, Any],
+    total_refunded: int,
+    *,
+    occurred_on: date,
+) -> None:
+    """Give back the platform fee in proportion to what the seller refunded (ADR-0017).
+
+    Refunding a direct charge leaves the application fee with the platform, so we refund it
+    ourselves. The target is cumulative and the Stripe call is keyed by it, so a replay, or
+    a retry after a failed commit, refunds nothing twice. A failed call raises and the
+    webhook job retries the whole event (the ledger writes roll back with it)."""
+    if order.platform_fee_minor <= 0 or order.gross_minor <= 0:
+        return
+    refunded = min(total_refunded, order.gross_minor)
+    target = order.platform_fee_minor * refunded // order.gross_minor
+    if total_refunded >= order.gross_minor:
+        target = order.platform_fee_minor  # a full refund gives back the whole fee
+    amount = target - order.platform_fee_refunded_minor
+    if amount <= 0:
+        return
+    fee_id = charge.get("application_fee") or order.platform_fee_id
+    if isinstance(fee_id, dict):
+        fee_id = fee_id.get("id")
+    if not fee_id:
+        raise PaymentsError("stripe", "application fee not available yet", retryable=True)
+    await payments.refund_application_fee(
+        str(fee_id), amount, idempotency_key=f"appfee-refund-{fee_id}-{target}"
+    )
+    await ledger.post_platform_fee_refund(
+        session,
+        order,
+        items,
+        source=PROVIDER,
+        ref=f"{charge['id']}:{target}",
+        amount_minor=amount,
+        occurred_on=occurred_on,
+    )
+    order.platform_fee_id = str(fee_id)
+    order.platform_fee_refunded_minor = target
+
+
 async def _on_refunded(
     session: AsyncSession,
     payments: PaymentsPort,
@@ -434,14 +497,19 @@ async def _on_refunded(
     delta = total_refunded - order.refunded_minor
     if delta <= 0:
         return "no_change"
+    items = await _items(session, order)
+    occurred_on = await ledger.uk_date(session, occurred)
     await ledger.post_order_refund(
         session,
         order,
-        await _items(session, order),
+        items,
         source=PROVIDER,
         ref=f"{obj['id']}:{total_refunded}",
         amount_minor=delta,
-        occurred_on=await ledger.uk_date(session, occurred),
+        occurred_on=occurred_on,
+    )
+    await _refund_platform_fee(
+        session, payments, order, items, obj, total_refunded, occurred_on=occurred_on
     )
     order.refunded_minor = total_refunded
     order.status = (

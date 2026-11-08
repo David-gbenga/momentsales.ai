@@ -116,17 +116,20 @@ async def post_order_sale(
     ref: str,
     occurred_on: date,
     fee_minor: int,
+    platform_fee_minor: int = 0,
     created_by: uuid.UUID | None = None,
 ) -> int:
-    """One `sale` entry per item (so P&L can group by product) and the fee spread across
-    items in proportion to their value. Returns the number of entries written."""
+    """One `sale` entry per item (so P&L can group by product) and the fees spread across
+    items in proportion to their value: Stripe's fee and, apart, momentsales.ai's platform
+    fee (ADR-0017). Returns the number of entries written."""
     written = 0
     totals = [i.quantity * i.unit_amount_minor for i in items]
     # Any difference between the order gross and the item totals (e.g. shipping or tax
     # collected by Checkout) is recorded as its own unattributed sale line.
     extra = order.gross_minor - sum(totals)
     fees = allocate(fee_minor, totals) if fee_minor else [0] * len(items)
-    for idx, (item, amount, fee) in enumerate(zip(items, totals, fees, strict=True)):
+    pfees = allocate(platform_fee_minor, totals) if platform_fee_minor else [0] * len(items)
+    for idx, (item, amount, fee, pfee) in enumerate(zip(items, totals, fees, pfees, strict=True)):
         if await post_entry(
             session,
             workspace_id=order.workspace_id,
@@ -152,6 +155,21 @@ async def post_order_sale(
             source=source,
             source_ref=f"{ref}:fee:{idx}",
             description=f"Stripe fee: {item.description}",
+            order_id=order.id,
+            product_key=item.product_key,
+            created_by=created_by,
+        ):
+            written += 1
+        if pfee and await post_entry(
+            session,
+            workspace_id=order.workspace_id,
+            type=LedgerType.FEE,
+            amount_minor=-pfee,
+            currency=order.currency,
+            occurred_on=occurred_on,
+            source=source,
+            source_ref=f"{ref}:pfee:{idx}",
+            description=f"Platform fee: {item.description}",
             order_id=order.id,
             product_key=item.product_key,
             created_by=created_by,
@@ -200,6 +218,39 @@ async def post_order_refund(
             source=source,
             source_ref=f"{ref}:refund:{idx}",
             description=f"Refund: {item.description if item else 'order'}",
+            order_id=order.id,
+            product_key=item.product_key if item else None,
+        ):
+            written += 1
+    return written
+
+
+async def post_platform_fee_refund(
+    session: AsyncSession,
+    order: Order,
+    items: list[OrderItem],
+    *,
+    source: str,
+    ref: str,
+    amount_minor: int,
+    occurred_on: date,
+) -> int:
+    """Platform fee given back to the seller after a refund (ADR-0017): positive `fee`
+    entries, spread across items like the sale."""
+    totals = [i.quantity * i.unit_amount_minor for i in items] or [1]
+    written = 0
+    for idx, part in enumerate(allocate(amount_minor, totals)):
+        item = items[idx] if items else None
+        if part and await post_entry(
+            session,
+            workspace_id=order.workspace_id,
+            type=LedgerType.FEE,
+            amount_minor=part,
+            currency=order.currency,
+            occurred_on=occurred_on,
+            source=source,
+            source_ref=f"{ref}:pfee-refund:{idx}",
+            description=f"Platform fee refund: {item.description if item else 'order'}",
             order_id=order.id,
             product_key=item.product_key if item else None,
         ):
