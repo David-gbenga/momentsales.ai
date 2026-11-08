@@ -59,10 +59,50 @@ async def sign_in(client: httpx.AsyncClient, email: str | None = None) -> Sessio
     return Session(email, body["access_token"], body["user"]["id"], client)
 
 
-async def create_workspace(s: Session, name: str = "Test Shop") -> str:
+async def create_workspace(
+    s: Session, name: str = "Test Shop", *, plan: str | None = "pro", status: str = "active"
+) -> str:
+    """Create a workspace. By default it gets an active subscription on `plan` (written
+    directly, as a verified webhook would), so tests reach features past the billing gate
+    (ADR-0016). Pass `plan=None` for a workspace with no subscription."""
     r = await s.client.post("/api/v1/workspaces", json={"name": name}, headers=s.headers())
     assert r.status_code == 201, r.text
-    return str(r.json()["id"])
+    workspace_id = str(r.json()["id"])
+    if plan is not None:
+        await set_subscription(uuid.UUID(workspace_id), plan=plan, status=status)
+    return workspace_id
+
+
+async def set_subscription(
+    workspace_id: uuid.UUID,
+    *,
+    plan: str = "pro",
+    status: str = "active",
+    interval: str = "month",
+    days_into_period: int = 0,
+) -> None:
+    """Create or replace the workspace's subscription row (test setup only)."""
+    from sqlalchemy import text
+
+    from momentsales.core.db import get_sessionmaker, set_tenant_context
+
+    async with get_sessionmaker()() as session, session.begin():
+        await set_tenant_context(session, workspace_id=workspace_id)
+        await session.execute(
+            text(
+                "INSERT INTO subscriptions (id, workspace_id, plan_id, interval, currency,"
+                " status, trial_used, cancel_at_period_end, trial_reminders_sent,"
+                " current_period_start, current_period_end, created_at, updated_at)"
+                " SELECT gen_random_uuid(), :w, id, CAST(:i AS billing_interval), 'GBP',"
+                " CAST(:st AS subscription_status), false, false, '[]',"
+                " date_trunc('second', now()) - make_interval(days => :d),"
+                " date_trunc('second', now()) - make_interval(days => :d) + interval '30 days',"
+                " now(), now() FROM plans WHERE code = :p"
+                " ON CONFLICT (workspace_id) DO UPDATE SET plan_id = EXCLUDED.plan_id,"
+                " status = EXCLUDED.status, interval = EXCLUDED.interval"
+            ),
+            {"w": str(workspace_id), "p": plan, "st": status, "i": interval, "d": days_into_period},
+        )
 
 
 async def add_member(owner: Session, workspace_id: str, role: str) -> Session:

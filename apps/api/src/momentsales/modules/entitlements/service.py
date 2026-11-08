@@ -1,8 +1,8 @@
 """EntitlementService: the one place plan limits are checked (FR-10).
 
 Every plan-limited action calls `EntitlementService.check(...)` before acting.
-Phase 0 has no plans yet, so the default policy allows everything; Phase 1B
-replaces `UnrestrictedPolicy` with a plan-backed policy and the callers stay the same.
+Phase 1B's `PlanPolicy` (modules/billing/entitlements.py) is the policy in use;
+`UnrestrictedPolicy` remains for unit tests. Callers are unchanged.
 Over the limit the API returns 402 `plan_limit_reached`.
 """
 
@@ -70,8 +70,14 @@ class EntitlementService:
             raise PlanLimitReached(limit, usage.used, usage.allowed, self._upgrade_url)
 
 
-_service = EntitlementService()
+_service: EntitlementService | None = None
 
 
 def get_entitlements() -> EntitlementService:
+    """The plan-backed service (Phase 1B, ADR-0015)."""
+    global _service
+    if _service is None:
+        from momentsales.modules.billing.entitlements import PlanPolicy
+
+        _service = EntitlementService(PlanPolicy(), upgrade_url="/app/billing")
     return _service
