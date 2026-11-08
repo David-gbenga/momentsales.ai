@@ -64,6 +64,7 @@ class TouchCategory(enum.StrEnum):
     CUSTOMER_SERVICE = "customer_service"
     AGENT_OVERRIDE = "agent_override"
     TEAM_AND_PERMISSIONS = "team_and_permissions"
+    BILLING = "billing"  # Phase 1B: automatic touches for billing changes
 
 
 # --- Platform tables (no workspace_id) -----------------------------------------------

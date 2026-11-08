@@ -58,6 +58,7 @@ def test_every_action_is_classified_for_the_gate() -> None:
         Action.MEMBERS_REMOVE,
         Action.BILLING_MANAGE,
         Action.FULFILMENT_APPROVE,
+        Action.RESEARCH_RUN,  # metered by consume_run (pay-per-report needs no plan)
     }
     assert ent.GATED_ACTIONS | reads | exempt == set(Action)
     assert not ent.GATED_ACTIONS & (reads | exempt)

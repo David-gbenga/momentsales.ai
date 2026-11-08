@@ -38,12 +38,12 @@ READ_ONLY = frozenset(
 
 # Writes a workspace can only make with a trialing or active subscription. Reads and
 # exports stay open (data export on exit); billing, workspace settings, removing members and
-# fulfilling already-paid orders are never blocked (ADR-0016).
+# fulfilling already-paid orders are never blocked (ADR-0016). Research runs are metered by
+# consume_run instead (pay-per-report works without a plan; read-only states are refused).
 GATED_ACTIONS = frozenset(
     {
         Action.MEMBERS_INVITE,
         Action.MEMBERS_CHANGE_ROLE,
-        Action.RESEARCH_RUN,
         Action.LISTINGS_DRAFT,
         Action.LISTINGS_PUBLISH,
         Action.STORE_MANAGE,
@@ -76,7 +76,7 @@ async def plan_state(session: AsyncSession, workspace_id: uuid.UUID) -> PlanStat
     if sub.status is SubscriptionStatus.TRIALING:
         plan = await session.scalar(select(Plan).where(Plan.code == get_settings().trial_plan_code))
     else:
-        plan = await session.get(Plan, sub.plan_id)
+        plan = await session.get(Plan, sub.plan_id) if sub.plan_id else None
     return PlanState(sub, plan)
 
 

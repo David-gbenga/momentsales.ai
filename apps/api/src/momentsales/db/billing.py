@@ -140,16 +140,19 @@ class AddonProduct(UUIDPk, Timestamps, Base):
 
 
 class Subscription(UUIDPk, Timestamps, Base):
-    """The workspace's copy of its Stripe subscription (ADR-0016). One row per workspace."""
+    """The workspace's billing account and copy of its Stripe subscription (ADR-0016).
+    One row per workspace."""
 
     __tablename__ = "subscriptions"
 
     workspace_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("workspaces.id"), nullable=False, unique=True
     )
-    plan_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("plans.id"), nullable=False)
-    interval: Mapped[BillingInterval] = mapped_column(
-        _enum(BillingInterval, "billing_interval"), nullable=False
+    # NULL until a plan is chosen: the row also holds the Stripe customer for one-off
+    # purchases (pay-per-report) made before subscribing.
+    plan_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("plans.id"))
+    interval: Mapped[BillingInterval | None] = mapped_column(
+        _enum(BillingInterval, "billing_interval")
     )
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     status: Mapped[SubscriptionStatus] = mapped_column(

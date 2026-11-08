@@ -50,3 +50,11 @@ def sweep() -> dict[str, int]:
     if any(counts.values()):
         log.info("sweep_requeued", **counts)
     return counts
+
+
+@app.task(name="momentsales_worker.tasks.jobs.billing_sweep")
+def billing_sweep() -> dict[str, int]:
+    """Trial reminders, dunning suspension and pause resumption (ADR-0016)."""
+    from momentsales.modules.billing.jobs import sweep as do_billing_sweep
+
+    return _run(do_billing_sweep)

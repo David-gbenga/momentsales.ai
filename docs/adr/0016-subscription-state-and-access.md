@@ -21,6 +21,7 @@ Stripe Billing owns the subscription; the app needs a local, tenant-scoped copy 
 | past_due, suspended, paused | blocked (`403 subscription_read_only`), except billing | blocked | allowed (the storefront keeps selling; suspended pauses the storefront in Phase 3) |
 | none, incomplete, canceled | blocked (`403 subscription_required`); the app shows the plan picker | blocked | allowed |
 
+- **Research runs** are not gated by the table above; `consume_run` meters them instead. Read-only states are refused there, and a workspace with no plan can still spend single-report credits (pay-per-report).
 - **The Owner alone** starts checkout, opens the Portal, buys packs, pauses and cancels. Admins see plan and usage, but not invoices or card details (PRD role rules).
 - **Daily billing sweep (Beat):**
   - trial reminder emails on trial day 10 and 13 (once each, stored)

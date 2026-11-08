@@ -235,6 +235,8 @@ def _seed() -> None:
 
 
 def upgrade() -> None:
+    # Billing changes (trial extension, pause, cancel) are logged as automatic touches.
+    op.execute("ALTER TYPE touch_category ADD VALUE IF NOT EXISTS 'billing'")
     _create_tables()
     op.execute(_rls_sql())
     op.execute(EXTRA_SQL)
@@ -242,6 +244,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    # Postgres can't drop an enum value; 'billing' stays in touch_category (unused).
     op.execute(DROP_EXTRA_SQL)
     _drop_tables()
     for enum_name in ENUMS:
@@ -578,11 +581,11 @@ def _create_tables() -> None:
     op.create_table(
         "subscriptions",
         sa.Column("workspace_id", sa.UUID(), nullable=False),
-        sa.Column("plan_id", sa.UUID(), nullable=False),
+        sa.Column("plan_id", sa.UUID(), nullable=True),
         sa.Column(
             "interval",
             postgresql.ENUM("month", "year", name="billing_interval", create_type=False),
-            nullable=False,
+            nullable=True,
         ),
         sa.Column("currency", sa.String(length=3), nullable=False),
         sa.Column(

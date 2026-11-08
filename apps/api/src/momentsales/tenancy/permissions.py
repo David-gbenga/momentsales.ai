@@ -48,6 +48,8 @@ class Action(StrEnum):
     CHECKOUT_TEST = "checkout.test"
     SALES_RECORD = "sales.record"
     TOUCHES_WRITE = "touches.write"
+    # Phase 1B
+    BILLING_INVOICES_READ = "billing.invoices.read"
 
 
 PERMISSIONS: dict[Action, frozenset[Role]] = {
@@ -78,6 +80,8 @@ PERMISSIONS: dict[Action, frozenset[Role]] = {
     Action.CHECKOUT_TEST: frozenset({OW, AD}),
     Action.SALES_RECORD: frozenset({OW, AD}),
     Action.TOUCHES_WRITE: frozenset({OW, AD}),
+    # PRD: only the Owner sees billing details; Admins see usage and limits.
+    Action.BILLING_INVOICES_READ: frozenset({OW}),
 }
 
 assert set(PERMISSIONS) == set(Action), "every action needs a role set"

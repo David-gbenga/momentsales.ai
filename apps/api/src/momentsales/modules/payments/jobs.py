@@ -28,7 +28,10 @@ async def process_webhook(payload: dict[str, Any]) -> None:
         try:
             async with get_sessionmaker()() as session, session.begin():
                 payments = await rt.registry.payments(session)
-                outcome = await service.process_event(session, payments, event_id)
+                email = await rt.registry.email(session)
+                outcome = await service.process_event(
+                    session, payments, event_id, settings=rt.settings, email=email
+                )
             log.info("stripe_event_processed", event_id=event_id, outcome=outcome)
         except Exception as exc:
             # The event stays unprocessed; record why, and let the sweeper retry it.

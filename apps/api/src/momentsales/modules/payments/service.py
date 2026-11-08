@@ -22,7 +22,7 @@ from momentsales.adapters.payments.base import (
     PaymentsPort,
     account_status,
 )
-from momentsales.core.config import Settings
+from momentsales.core.config import Settings, get_settings
 from momentsales.core.db import set_tenant_context
 from momentsales.core.errors import ProblemError
 from momentsales.core.logging import get_logger
@@ -40,6 +40,8 @@ from momentsales.db.ledger import (
     WebhookEvent,
 )
 from momentsales.modules.audit import service as audit
+from momentsales.modules.billing import webhooks as billing_webhooks
+from momentsales.modules.billing.webhooks import BILLING_EVENTS
 from momentsales.modules.ledger import service as ledger
 from momentsales.modules.ledger.money import BASE_CURRENCY
 
@@ -247,7 +249,14 @@ async def ingest(
 # --- Webhooks: processing --------------------------------------------------------------
 
 
-async def process_event(session: AsyncSession, payments: PaymentsPort, event_id: str) -> str:
+async def process_event(
+    session: AsyncSession,
+    payments: PaymentsPort,
+    event_id: str,
+    *,
+    settings: Settings | None = None,
+    email: Any | None = None,
+) -> str:
     """Apply one stored event. Returns its outcome. Must run inside a transaction."""
     await set_tenant_context(session, platform=True)
     row = await session.scalar(
@@ -258,6 +267,15 @@ async def process_event(session: AsyncSession, payments: PaymentsPort, event_id:
     if row is None or row.processed_at is not None:
         return "skipped"
     row.attempts += 1
+    if row.account is None and row.type in BILLING_EVENTS:
+        # Platform-account events: SaaS billing (ADR-0016), not a seller's Connect account.
+        outcome = await billing_webhooks.apply(
+            session, row, settings=settings or get_settings(), email=email
+        )
+        row.processed_at = datetime.now(UTC)
+        row.outcome = outcome
+        row.last_error = None
+        return outcome
     account = row.account or (
         row.payload.get("data", {}).get("object", {}).get("id")
         if row.type.startswith("account.")
