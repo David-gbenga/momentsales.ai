@@ -32,7 +32,7 @@ export function DemandResults({ run }: { run: Run }) {
           head={[t("search"), t("growth"), t("competition"), t("prices"), t("source")]}
         >
           {rows.map((c) => (
-            <Row key={c.keyword} c={c} />
+            <Row key={c.keyword} c={c} marketChecked={demand.market_available} />
           ))}
         </DataTable>
       )}
@@ -44,8 +44,11 @@ export function DemandResults({ run }: { run: Run }) {
   );
 }
 
-function Row({ c }: { c: Candidate }) {
+function Row({ c, marketChecked }: { c: Candidate; marketChecked: boolean }) {
   const t = useTranslations("research.demand");
+  // Competition is checked for the fastest-growing searches only; a provider outage
+  // shows "not available" instead.
+  const noMarket = marketChecked ? t("notChecked") : t("notAvailable");
   const trend = c.trend!;
   const market = c.market;
   const growth = formatGrowth(trend.growth_rate);
@@ -73,7 +76,7 @@ function Row({ c }: { c: Candidate }) {
             </span>
           </span>
         ) : (
-          t("notAvailable")
+          noMarket
         )}
       </Td>
       <Td>
@@ -84,7 +87,7 @@ function Row({ c }: { c: Candidate }) {
             `${formatMoney(market.price_min_minor, market.currency)}–${formatMoney(market.price_max_minor ?? market.price_min_minor, market.currency)}`
           )
         ) : (
-          t("notAvailable")
+          noMarket
         )}
       </Td>
       <Td>

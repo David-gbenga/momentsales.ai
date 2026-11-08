@@ -605,7 +605,8 @@
       "mock": "Mock data: these numbers are made up for testing. Live market data is switched on once the providers confirm their terms.",
       "unavailable": "Search trends were not available for this run.",
       "unmeasured": "{count, plural, one {# more search had} other {# more searches had}} too little data to measure.",
-      "method": "Growth compares the last 3 weeks with the 6 weeks before. \"Crowded\" means interest is already near its 12-month high. Competition is 0–100 (lower is better), from Google ads, shopping sellers and price spread. Prices are what shoppers see on Google, not supplier costs."
+      "method": "Growth compares the last 3 weeks with the 6 weeks before. \"Crowded\" means interest is already near its 12-month high. Competition is checked for the fastest-growing searches and scored 0–100 (lower is better), from Google ads, shopping sellers and price spread. Prices are what shoppers see on Google, not supplier costs.",
+      "notChecked": "Not checked"
     }
   },
   "audience": {

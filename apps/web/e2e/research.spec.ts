@@ -47,7 +47,8 @@ test("J2 (Phases 2a-2b): season calendar on Home, then a seasonal run with risin
   await expect(
     demand.locator('[data-keyword="advent calendar"]').getByTestId("badge-crowded"),
   ).toHaveText("Crowded");
-  await expect(demand.locator('[data-keyword="secret santa gifts"]')).toContainText("+");
+  // Fastest growing first: the top row is rising.
+  await expect(demand.getByTestId("demand-row").first().locator("td").nth(1)).toContainText("+");
   await expect(page.getByTestId("run-steps")).toContainText("Search trends");
   await expect(page.getByTestId("run-steps")).toContainText("Competition");
   await expect(page.getByTestId("recent-runs").getByRole("listitem")).toHaveCount(1);
