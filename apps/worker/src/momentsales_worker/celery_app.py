@@ -1,7 +1,8 @@
 """Celery application (ADR-0005).
 
 `momentsales.run_job` runs the API package's job handlers (webhook processing, receipt OCR,
-audit exports); Beat runs the heartbeat and the stuck-work sweeper every minute.
+audit exports). Beat runs the heartbeat and the stuck-work sweeper every minute, and the
+billing sweep (trial reminders, dunning, pause resumption) hourly.
 """
 
 from __future__ import annotations
@@ -24,6 +25,10 @@ app.conf.update(
     beat_schedule={
         "heartbeat": {"task": "momentsales_worker.tasks.heartbeat.heartbeat", "schedule": 60.0},
         "sweep": {"task": "momentsales_worker.tasks.jobs.sweep", "schedule": 60.0},
+        "billing-sweep": {
+            "task": "momentsales_worker.tasks.jobs.billing_sweep",
+            "schedule": 3600.0,
+        },
     },
 )
 app.autodiscover_tasks(["momentsales_worker.tasks"], related_name="heartbeat")

@@ -2,7 +2,73 @@
 
 All notable changes are recorded here, by phase.
 
-## [Unreleased] — Phase 1 follow-ups
+## [Phase 1B — SaaS subscriptions and billing] — 2026-11-08
+
+### Added
+- **Plans (ADR-0015):** migration `0003` adds `plans`, `plan_prices` and `addon_products`, seeded with the PRD placeholders:
+
+  | Plan | Price (monthly / annual) | Research runs | Listings | Seats |
+  | --- | --- | --- | --- | --- |
+  | Lite | £12 / £120 | 3 | 10 | 1 |
+  | Starter | £29 / £290 | 10 | 25 | 1 |
+  | Growth | £79 / £790 | 40 | 100 | 3 |
+  | Pro | £199 / £1,990 | 120 | unlimited | 10 |
+
+  - Annual plans get +2 runs a month.
+  - Run pack: 10 runs for £15. Single report: £9.
+  - GBP only for now: prices are stored per currency, so others can be added later without code.
+- **Subscriptions:** a 14-day trial with a card required, on Growth features and capped at 3 runs. Upgrades apply now; downgrades and cancellations apply at the period end.
+  - Managed through Stripe Checkout and the Customer Portal (test mode only, ADR-0016).
+  - The Customer Portal configuration turns off cancel and pause there, so both go through the app.
+- **Entitlements:** `PlanPolicy` behind `EntitlementService`, with 402 `plan_limit_reached` when a limit is hit.
+  - Metering: `consume_run`/`refund_run` spend plan runs first, then packs, then single reports, and are idempotent.
+  - Seats count members plus pending invitations.
+  - Access gate: gated writes need a trialing or active plan. `past_due`, `suspended` and `paused` are read-only; reads, exports, billing and settings stay open.
+- **Billing API:**
+  - `GET /plans` (public)
+  - `/billing/checkout`, `packs/checkout`, `report-checkout` and `portal`
+  - `/billing/subscription`, `usage` and `invoices` (invoices: Owner only)
+  - `/billing/pause`, `resume`, `cancel-survey` and `keep`
+- **Webhooks:** billing events arrive on the existing platform endpoint and webhook job. Older events can't overwrite newer state, and packs and reports are granted once.
+- **Billing sweep (hourly, Celery Beat):**
+  - trial reminder emails on day 10 and 13, stating the price and the date of the first charge
+  - `past_due` → `suspended` after 30 days, with an email
+  - paused subscriptions resume at the end of the pause
+- **Dunning:** a failed payment makes the workspace read-only, shows a banner and emails the Owner. Paying the invoice restores access.
+- **Pause and cancel:** pause for 1–3 months. The cancel survey offers a pause or one month free depending on the reason (the discount only once).
+- **Platform admin API:**
+  - tenants with plan, status, usage and MRR (the sum of active subscriptions)
+  - plan and price edits with the unit-economics guard
+  - trial extension, logged as a /touch and in the audit log
+- **Web:**
+  - public `/pricing` page, server-rendered from the plans table, annual plans first with the saving
+  - plan gate for workspaces without a plan; trial countdown and status banners
+  - Billing page: usage bars, plan picker, Portal, packs, single reports, pause and cancel survey, invoices
+  - upgrade prompt when a plan limit is hit
+  - mock Checkout and Customer Portal pages for local mock mode
+- **Tools:** `tools/stripe_billing_seed.py` creates the Stripe catalogue from the tables, never by hand. The demo seed gives the demo workspace a mock Pro subscription.
+- **Tests:**
+  - pytest covers AC-14 to AC-17, the API part of AC-18, billing isolation (AC-19), webhook replay and out-of-order events, entitlement maths and a concurrency check, and contract tests for every Stripe Billing call.
+  - Playwright covers pricing (desktop and mobile), AC-14 to AC-17, and axe on the billing screens in light and dark.
+- **Docs:** `docs/integrations/stripe-billing.md` (checked against the current Stripe docs, API `2026-10-28.endive`) and ADRs 0015–0016.
+
+### Changed
+- `EntitlementService` now enforces plan limits. Before Phase 1B it allowed everything.
+- Research runs are metered by `consume_run` rather than the write gate, so pay-per-report works without a plan.
+- New touch category `billing` and the Owner-only permission `billing.invoices.read`.
+- The web image passes `API_INTERNAL_URL` to the run stage for server-rendered pages.
+
+### Still mocked or open
+- **Stripe Billing** uses the mock adapter and dev pages unless test keys are set and the billing seed has run. It stays in test mode.
+- **Stripe Tax** is off (`STRIPE_TAX_ENABLED=false`). The pricing page doesn't say whether prices include VAT until the VAT decision is made, and Stripe prices are created without a tax behaviour.
+- **Prices and limits** are the PRD placeholders. The unit-economics guard only compares prices in the cost cap's currency (the PRD's $2.00 cap against GBP prices is reported as unchecked; no exchange rate is assumed).
+- **Research runs and listings** don't exist yet. Runs are metered through a mock-only test tool, and listings count as 0 until Phase 3.
+- **Admin console UI** is Phase 4; Phase 1B ships the API only. Deleting suspended workspaces' data after 90 days is a Phase 5 retention job.
+
+## [Phase 1 follow-ups] — 2026-11-08
+
+### Added
+- **HEIC receipt OCR (ADR-0014):** HEIC receipts are converted to JPEG with libheif's decoder (`heif-dec`) before OCR; the original stays stored unaltered. The api and worker images install Debian's libheif tools with only the LGPL libde265 decoder, and the build fails if the GPL x265 encoder is present (pillow-heif was not used because its wheels bundle x265 and are GPLv2). Hosts without the decoder fall back to manual entry. CI installs the decoder so the conversion tests run.
 
 ### Fixed
 - **Storage credentials:** file storage and Textract both read `AWS_REGION`, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, so storage on Cloudflare R2 (region `auto`, R2 token) and OCR on AWS Textract (`eu-west-2`, AWS keys) could not run together. Storage now has its own `S3_REGION` (default `auto`), `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY`; the `AWS_*` settings are Textract's only. **If you deploy with S3/R2, set the new `S3_*` keys.**

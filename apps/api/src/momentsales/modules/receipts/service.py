@@ -13,6 +13,7 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from momentsales.adapters.ocr import heic
 from momentsales.adapters.ocr.base import OcrError
 from momentsales.adapters.storage.base import StoragePort, key_belongs_to, object_key
 from momentsales.core.errors import ProblemError, not_found
@@ -44,9 +45,13 @@ MIME_BY_EXTENSION = {
     "jsonl": "application/x-ndjson",
     "json": "application/json",
 }
-# HEIC is accepted and stored, but OCR needs a JPEG conversion that is pending approval of
-# the conversion library (ADR-0014); until then HEIC receipts are typed in by hand.
+# Read directly by the OCR providers. HEIC is converted to JPEG first when libheif's decoder
+# is installed (ADR-0014); without it HEIC receipts are stored and typed in by hand.
 OCR_MIME = frozenset({"image/jpeg", "image/png", "application/pdf"})
+
+
+def ocr_supported(mime: str) -> bool:
+    return mime in OCR_MIME or (mime == "image/heic" and heic.converter() is not None)
 
 
 def detect_mime(content: bytes) -> str | None:
@@ -102,7 +107,7 @@ async def upload(
         mime=mime,
         size_bytes=len(content),
         original_name=safe_name(filename),
-        ocr_status=OcrStatus.PENDING if mime in OCR_MIME else OcrStatus.SKIPPED,
+        ocr_status=OcrStatus.PENDING if ocr_supported(mime) else OcrStatus.SKIPPED,
         uploaded_by=actor_user_id,
     )
     session.add(receipt)
@@ -139,8 +144,20 @@ async def run_ocr(
         receipt.ocr_error = "Stored file does not match its recorded hash."
         log.error("receipt_hash_mismatch", receipt_id=str(receipt.id))
         return
+    mime = receipt.mime
+    if mime == "image/heic":
+        # OCR reads a JPEG copy; the stored original is untouched.
+        try:
+            content, mime = await heic.heic_to_jpeg(content), "image/jpeg"
+        except heic.HeicConversionError as exc:
+            receipt.ocr_status = OcrStatus.FAILED
+            receipt.ocr_error = (
+                "We couldn't read this HEIC file automatically; enter the details by hand."
+            )
+            log.warning("heic_conversion_failed", receipt_id=str(receipt.id), error=str(exc))
+            return
     try:
-        result = await ocr.extract(content, receipt.mime)
+        result = await ocr.extract(content, mime)
     except OcrError as exc:
         receipt.ocr_status = OcrStatus.FAILED
         receipt.ocr_provider = exc.provider

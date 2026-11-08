@@ -15,7 +15,8 @@
     "joining": "Joining…",
     "checkEmail": "Check your inbox and confirm your email to secure your place.",
     "privacy": "We only use your email for launch and early-access updates. No tracking cookies.",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "pricing": "Pricing"
   },
   "waitlist": {
     "confirming": "Confirming your email…",
@@ -109,11 +110,6 @@
       "title": "Integrations",
       "body": "Stripe, suppliers and data providers, with their health status.",
       "phase": "Phase 1–2"
-    },
-    "billing": {
-      "title": "Billing",
-      "body": "Your plan, usage, invoices and the Stripe Customer Portal.",
-      "phase": "Phase 1B"
     },
     "comingIn": "Coming in {phase}"
   },
@@ -285,7 +281,7 @@
     "reading": "Reading the receipt…",
     "ocrFailed": "We couldn't read this receipt automatically. Enter the details yourself.",
     "ocrDone": "Check the details we read from the receipt, then save.",
-    "ocrSkipped": "HEIC receipts are stored but not read automatically yet. Enter the details yourself.",
+    "ocrSkipped": "We stored this receipt but can't read this file type automatically here. Enter the details yourself.",
     "confirmReceipt": "Save spend with this receipt",
     "linkToSpend": "Or attach to an existing spend",
     "download": "Download",
@@ -356,5 +352,166 @@
     "pay": "Pay {amount}",
     "cancel": "Cancel",
     "paid": "Payment complete."
+  },
+  "pricing": {
+    "title": "Pricing",
+    "metaDescription": "Plans for UK side-hustlers and small online shops. 14-day free trial on Growth features.",
+    "intro": "Start with a 14-day free trial on Growth features ({runs} research runs). A card is needed to start; cancel any time before the trial ends and you won't be charged.",
+    "annual": "Annual",
+    "monthly": "Monthly",
+    "perMonth": "{price}/month",
+    "perYear": "{price}/year",
+    "saving": "Save {amount} a year",
+    "runs": "{count} research runs a month",
+    "runsAnnual": "+{count} extra runs a month on annual plans",
+    "listings": "{count} live listings",
+    "listingsUnlimited": "Unlimited live listings",
+    "seats": "{count, plural, one {# team seat} other {# team seats}}",
+    "export": {
+      "monthly_csv": "Monthly CSV ledger export",
+      "csv_pdf_receipts": "Audit pack: CSV, PDF summary and receipts ZIP",
+      "full_any_period": "Full audit pack, any period"
+    },
+    "support": {
+      "email": "Email support",
+      "email_1_business_day": "Email support, 1 business day",
+      "priority": "Priority support"
+    },
+    "startTrial": "Start free trial",
+    "choose": "Choose {plan}",
+    "report": "Just one report? A single research report is {price}, no subscription needed.",
+    "packs": "Need more research? Run packs: {runs} extra runs for {price}, kept while you're subscribed.",
+    "unavailable": "Prices aren't available right now. Please try again shortly.",
+    "signIn": "Sign in",
+    "back": "Home",
+    "currency": "Prices in GBP."
+  },
+  "billing": {
+    "title": "Billing",
+    "loading": "Loading billing…",
+    "status": {
+      "none": "No plan",
+      "incomplete": "Checkout not finished",
+      "trialing": "Free trial",
+      "active": "Active",
+      "past_due": "Payment failed",
+      "suspended": "Suspended",
+      "paused": "Paused",
+      "canceled": "Cancelled"
+    },
+    "plan": "Plan",
+    "interval": {
+      "month": "Monthly",
+      "year": "Annual"
+    },
+    "trialEnds": "Trial ends {date}",
+    "renews": "Renews {date}",
+    "endsOn": "Ends {date}",
+    "pausedUntil": "Paused until {date}",
+    "cancelScheduled": "Your subscription ends on {date}. You keep full access until then.",
+    "keep": "Keep my subscription",
+    "usage": "Usage this period",
+    "runs": "Research runs",
+    "seats": "Team seats",
+    "listings": "Live listings",
+    "usedOf": "{used} of {allowed}",
+    "usedUnlimited": "{used} (unlimited)",
+    "extraRuns": "Extra runs: {pack} from packs, {single} single reports",
+    "listingsLater": "Listings arrive with the storefront.",
+    "choosePlan": "Choose a plan",
+    "choosePlanHelp": "Start your 14-day free trial on Growth features ({runs} research runs). You choose the plan you'll pay for after the trial.",
+    "afterTrial": "Your free trial has been used, so this starts a paid subscription.",
+    "ownerOnly": "Only the workspace owner can choose a plan.",
+    "waitingForOwner": "Waiting for the workspace owner to choose a plan.",
+    "manage": "Manage billing",
+    "manageHelp": "Change plan, update your card or tax details, and download invoices in the Stripe Customer Portal. Upgrades apply now; downgrades apply at the end of the period.",
+    "buyPack": "Buy run pack ({runs} runs, {price})",
+    "buyReport": "Buy a single report ({price})",
+    "pause": "Pause instead",
+    "pauseHelp": "Pause for 1 to 3 months: no charges, research off, your data and store settings kept.",
+    "pauseMonths": "{count, plural, one {# month} other {# months}}",
+    "pauseConfirm": "Pause subscription",
+    "resume": "Resume now",
+    "cancel": "Cancel subscription",
+    "survey": {
+      "title": "Before you go",
+      "question": "Why are you cancelling?",
+      "reasons": {
+        "no_sales": "No sales yet",
+        "too_expensive": "Too expensive",
+        "missing_feature": "Missing a feature",
+        "seasonal_break": "Taking a seasonal break",
+        "other": "Something else"
+      },
+      "details": "Anything you'd like to tell us? (optional)",
+      "next": "Continue",
+      "offerPause": "You could pause for a month instead: no charges, your data kept.",
+      "offerDiscount": "We'd like to offer your next month free instead.",
+      "acceptPause": "Pause for a month",
+      "acceptDiscount": "Take a month free",
+      "confirmCancel": "Cancel at the end of the period",
+      "back": "Back",
+      "cancelled": "Your subscription will end at the end of this billing period.",
+      "discountApplied": "Your next month is free.",
+      "pausedDone": "Your subscription is paused for a month."
+    },
+    "invoices": "Invoices",
+    "invoiceNumber": "Number",
+    "invoiceDate": "Date",
+    "invoiceTotal": "Total",
+    "invoiceStatus": "Status",
+    "invoiceOpen": "View",
+    "noInvoices": "No invoices yet.",
+    "checkoutDone": "Thanks! We're confirming your subscription with Stripe…",
+    "purchaseDone": "Thanks! Your purchase will appear in a moment.",
+    "checkoutCancelled": "Checkout was cancelled. Nothing was charged.",
+    "devTools": "Test tools (mock mode)",
+    "devToolsHelp": "Research runs arrive in Phase 2. This spends one metered run, as a real run will.",
+    "useRun": "Use one research run",
+    "runUsed": "Run used (from {pool, select, plan {your plan} pack {a run pack} other {a single report}})."
+  },
+  "banner": {
+    "trial": "{days, plural, one {# day} other {# days}} left in your free trial.",
+    "trialAction": "Billing",
+    "past_due": "We couldn't take your last payment. Your workspace is read-only until it's paid; your storefront keeps selling.",
+    "suspended": "Your workspace is suspended because a payment is overdue. Your data is kept.",
+    "paused": "Your subscription is paused. Research and changes are off until you resume.",
+    "canceled": "Your subscription has ended. Your data is still here to view and export.",
+    "fix": "Go to Billing"
+  },
+  "gate": {
+    "title": "Choose a plan to get started",
+    "body": "Start a free trial to use research, the ledger and your store.",
+    "action": "Choose a plan",
+    "waiting": "The workspace owner needs to choose a plan before you can use the app."
+  },
+  "upgrade": {
+    "title": "Plan limit reached",
+    "body": "Your plan allows {allowed} {limit}. Upgrade or buy more to continue.",
+    "limits": {
+      "research_runs": "research runs",
+      "live_listings": "live listings",
+      "seats": "team seats"
+    },
+    "action": "See plans"
+  },
+  "mockBilling": {
+    "checkoutTitle": "Mock Stripe Checkout",
+    "checkoutBody": "This page stands in for Stripe Checkout while PROVIDER_MODE=mock. No card is needed.",
+    "trial": "{days}-day free trial, then {price} per {interval}",
+    "subscribe": "{price} per {interval}",
+    "oneOff": "{price}, paid once",
+    "start": "Start trial",
+    "pay": "Pay {price}",
+    "portalTitle": "Mock Stripe Customer Portal",
+    "portalBody": "This page stands in for the Stripe Customer Portal while PROVIDER_MODE=mock.",
+    "current": "Current plan",
+    "switchTo": "Switch to {plan} ({interval})",
+    "devTools": "Test tools",
+    "renew": "Start the next billing period",
+    "fail": "Fail the next payment",
+    "payInvoice": "Pay the open invoice",
+    "back": "Back to Billing",
+    "done": "Done."
   }
 }

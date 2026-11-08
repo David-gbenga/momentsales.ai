@@ -8,12 +8,18 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { PlanGate } from "@/components/billing/plan-gate";
+import { SubscriptionBanner } from "@/components/billing/subscription-banner";
 import { CommandBar } from "@/components/shell/command-bar";
 import { Button } from "@/components/ui/button";
 import { Badge, Notice, Select } from "@/components/ui/primitives";
+import { needsPlan, useSubscription } from "@/lib/billing";
 import { NAV } from "@/lib/nav";
 import { useSession } from "@/lib/session";
 import { cn, IS_MOCK_MODE } from "@/lib/utils";
+
+/** Screens that work before a plan is chosen (ADR-0016). */
+const OPEN_WITHOUT_PLAN = ["/app/billing", "/app/settings"];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("nav");
@@ -22,6 +28,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
+  const subscription = useSubscription();
+  const gated =
+    !!subscription.data && needsPlan(subscription.data.status) && !OPEN_WITHOUT_PLAN.some((p) => pathname.startsWith(p));
 
   useEffect(() => {
     if (status === "signed_out") router.replace("/sign-in");
@@ -127,7 +136,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Notice>{tc("mockMode")}</Notice>
           </div>
         ) : null}
-        {children}
+        {subscription.data ? <SubscriptionBanner sub={subscription.data} /> : null}
+        {gated ? <PlanGate isOwner={can(role, "billing.manage")} /> : children}
       </main>
       <CommandBar role={role} />
     </div>

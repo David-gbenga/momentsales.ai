@@ -64,6 +64,7 @@ class TouchCategory(enum.StrEnum):
     CUSTOMER_SERVICE = "customer_service"
     AGENT_OVERRIDE = "agent_override"
     TEAM_AND_PERMISSIONS = "team_and_permissions"
+    BILLING = "billing"  # Phase 1B: automatic touches for billing changes
 
 
 # --- Platform tables (no workspace_id) -----------------------------------------------
@@ -297,4 +298,6 @@ class AuditLog(UUIDPk, Base):
 
 
 # Register Phase 1 tables (kept in their own module; imported last to avoid a cycle).
+# Phase 1B SaaS billing tables (db/billing.py).
+from momentsales.db import billing as billing  # noqa: E402
 from momentsales.db import ledger as ledger  # noqa: E402

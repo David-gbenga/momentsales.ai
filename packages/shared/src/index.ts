@@ -1,3 +1,4 @@
+export * from "./billing";
 export * from "./commands";
 export * from "./ledger";
 export * from "./permissions";

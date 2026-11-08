@@ -17,6 +17,9 @@ from momentsales.core.logging import configure_logging, get_logger
 from momentsales.core.redis import get_redis
 from momentsales.modules import devtools
 from momentsales.modules.auth.router import router as auth_router
+from momentsales.modules.billing import dev as billing_dev
+from momentsales.modules.billing.admin import router as billing_admin_router
+from momentsales.modules.billing.router import router as billing_router
 from momentsales.modules.exports.router import router as exports_router
 from momentsales.modules.flags.router import router as flags_router
 from momentsales.modules.imports.router import router as imports_router
@@ -45,6 +48,8 @@ ROUTERS: tuple[APIRouter, ...] = (
     webhooks_router,
     imports_router,
     exports_router,
+    billing_router,
+    billing_admin_router,
 )
 log = get_logger(__name__)
 
@@ -96,6 +101,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         api.include_router(router)
     if settings.dev_tools_enabled:
         api.include_router(devtools.router)
+        api.include_router(billing_dev.router)
     app.include_router(api)
     return app
 

@@ -14,6 +14,7 @@ import httpx
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from momentsales.adapters.billing.base import BillingPort
 from momentsales.adapters.email.base import EmailMessage, EmailPort, EmailSendError, SendResult
 from momentsales.adapters.email.mock import MockEmailAdapter
 from momentsales.adapters.email.postmark import PostmarkEmailAdapter
@@ -306,3 +307,17 @@ class ProviderRegistry:
         from momentsales.adapters.payments.stripe import StripePaymentsAdapter
 
         return StripePaymentsAdapter.from_key(self._s.stripe_secret_key.get_secret_value())
+
+    # --- Billing (SaaS subscriptions; same Stripe account and mode as payments) ---------
+
+    async def billing(self, session: AsyncSession) -> BillingPort:
+        cfg = await self.resolve(session, "payments")
+        if cfg.mode == "mock":
+            from momentsales.adapters.billing.mock import MockBillingAdapter
+
+            return MockBillingAdapter(self._redis, self._s.web_base_url)
+        if not self._s.stripe_secret_key:
+            raise ProviderConfigError("STRIPE_SECRET_KEY is not set")
+        from momentsales.adapters.billing.stripe import StripeBillingAdapter
+
+        return StripeBillingAdapter.from_key(self._s.stripe_secret_key.get_secret_value())

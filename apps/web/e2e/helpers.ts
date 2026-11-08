@@ -46,10 +46,28 @@ export async function signInWithMagicLink(page: Page, email: string): Promise<vo
   await page.waitForURL(/\/(app|onboarding\/workspace)(\?|$)/);
 }
 
-export async function createWorkspace(page: Page, name: string): Promise<void> {
+/** Create a workspace and, unless `startTrial` is false, start the 14-day trial through the
+ * mock Stripe Checkout so the workspace is past the billing gate (ADR-0016). */
+export async function createWorkspace(
+  page: Page,
+  name: string,
+  { startTrial = true, plan = "growth" }: { startTrial?: boolean; plan?: string } = {},
+): Promise<void> {
   await expect(page.getByRole("heading", { name: "Create your workspace" })).toBeVisible();
   await expect(page.getByLabel("Country")).toHaveValue("GB");
   await page.getByLabel("Shop name").fill(name);
   await page.getByRole("button", { name: "Create workspace" }).click();
   await expect(page.getByRole("navigation", { name: "Main" })).toBeVisible();
+  if (startTrial) await startFreeTrial(page, plan);
+}
+
+/** Billing page -> plan card -> mock Checkout -> back, trialing. */
+export async function startFreeTrial(page: Page, plan = "growth"): Promise<void> {
+  await page.goto("/app/billing");
+  await page.getByTestId(`plan-${plan}`).getByRole("button", { name: "Start free trial" }).click();
+  await page.waitForURL(/\/dev\/mock-billing\/checkout\//);
+  await expect(page.getByTestId("mock-billing-terms")).toContainText("14-day free trial");
+  await page.getByRole("button", { name: "Start trial" }).click();
+  await page.waitForURL(/\/app\/billing\?checkout=success/);
+  await expect(page.getByTestId("subscription-status")).toHaveText("Free trial", { timeout: 10_000 });
 }

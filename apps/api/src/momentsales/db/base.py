@@ -70,5 +70,15 @@ TENANT_TABLES: frozenset[str] = frozenset(
         "ledger_entries",
         "csv_imports",
         "exports",
+        # Phase 1B (db/billing.py)
+        "subscriptions",
+        "usage_counters",
+        "run_credits",
+        "run_consumptions",
+        "addon_purchases",
+        "saas_invoices",
+        "trial_extensions",
+        "cancel_surveys",
+        "subscription_pauses",
     }
 )

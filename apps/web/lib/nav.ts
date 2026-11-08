@@ -52,7 +52,6 @@ export const PLACEHOLDER_SECTIONS = new Set<SectionKey>([
   "reports",
   "listings",
   "store",
-  "billing",
 ]);
 
 export const HOME_ICON = BarChart3;

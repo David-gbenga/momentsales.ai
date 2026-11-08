@@ -2,7 +2,7 @@
 
 Agentic commerce assistant for **UK side-hustlers and small online shops**: *find what's about to sell, launch a shop in a weekend, and keep books your accountant will accept.*
 
-The source of truth for scope and phases is [`docs/PRD.md`](docs/PRD.md). **Status: Phase 1 (Ledger and payments) complete; Phase 1B not started.**
+The source of truth for scope and phases is [`docs/PRD.md`](docs/PRD.md). **Status: Phase 1B (SaaS subscriptions and billing) built, awaiting review. Phases 0 and 1 are merged.**
 
 ## Quick start (no paid keys needed)
 
@@ -19,6 +19,7 @@ Then open http://localhost:3000.
 - **Sign in:** go to `/sign-in` and enter any email. In mock mode no email is sent: open the link from the dev outbox at http://localhost:3000/api/v1/dev/outbox, or use "Continue with Google", which opens a local mock consent page.
 - **Seeded demo workspace** "Demo Candle Co": `owner@`, `admin@`, `analyst@` and `accountant@example.com`, one per role.
 - **API docs:** http://localhost:${API_PORT:-8000}/api/v1/docs (local only).
+- **Plans and trial:** new workspaces start on the plan picker. Choose a plan on Billing to start the 14-day trial through a mock Stripe Checkout page (no card needed in mock mode). The demo workspace already has a mock Pro subscription. In mock mode, Manage billing opens a mock Customer Portal with test tools to start the next billing period or fail and pay an invoice. The Billing page has a "Use one research run" test tool until research arrives in Phase 2. Public pricing: http://localhost:3000/pricing.
 - **Try the ledger:** in Integrations, connect Stripe (a mock onboarding page), then take a test payment from Sales & Orders. It appears on Home within seconds. Press `/` and type `/spend 24.99 GBP shipping vendor:Royal Mail` or `/touch pricing 10m "adjusted margin"`, then attach a receipt and export an audit pack from Ledger.
 
 ## Developing on the host
@@ -62,9 +63,9 @@ npx pnpm@10.34.9 gen:api
 
 ```
 apps/api       FastAPI modular monolith (auth, tenancy, workspaces, flags, providers, audit,
-               ledger, payments, receipts, imports, exports)
-apps/worker    Celery workers (webhook processing, receipt OCR, audit packs, sweeper)
-apps/web       Next.js App Router: landing page, auth, onboarding, dashboard shell
+               ledger, payments, receipts, imports, exports, billing)
+apps/worker    Celery workers (webhooks, receipt OCR, audit packs, sweepers, billing sweep)
+apps/web       Next.js App Router: landing and pricing pages, auth, onboarding, dashboard
 packages/shared  Generated API types and client, role matrix, command grammar, Zod schemas
 infra/         Dockerfiles, Postgres role bootstrap, Terraform placeholder
 docs/          PRD, ADRs, ERD, OpenAPI spec, integration notes, runbooks, compliance
@@ -77,17 +78,20 @@ docs/          PRD, ADRs, ERD, OpenAPI spec, integration notes, runbooks, compli
 - The audit log and touches are append-only and hash-chained ([ADR-0008](docs/adr/0008-audit-log-and-touches.md)). So are the ledger, spends and receipts, with corrections as reversing entries ([ADR-0010](docs/adr/0010-ledger.md)).
 - Money is stored as integer minor units plus currency, and every money write is idempotent.
 - Stripe runs in test mode only; settings refuse live keys and live events ([ADR-0011](docs/adr/0011-stripe-connect.md)).
+- Every plan-limited action goes through `EntitlementService`; writes need a trialing or active subscription ([ADR-0015](docs/adr/0015-plans-entitlements-usage.md), [ADR-0016](docs/adr/0016-subscription-state-and-access.md)).
 
-## What is mocked (as of Phase 1)
+## What is mocked (as of Phase 1B)
 
 | Area | Mock | Live adapter | To go live |
 | --- | --- | --- | --- |
 | Email (sign-in links, invitations, waitlist) | Redis dev outbox, `GET /api/v1/dev/outbox` | Resend (primary), Postmark (secondary), automatic failover | `PROVIDER_MODE=live`, `RESEND_API_KEY` and/or `POSTMARK_SERVER_TOKEN`, a verified sending domain |
 | Google sign-in | Local mock consent page `/dev/mock-google` | Google OIDC | A Google Cloud OAuth client (testing mode), `GOOGLE_CLIENT_ID/SECRET` |
 | Stripe Connect, Checkout, webhooks | Mock onboarding and checkout pages; signed Stripe-shaped events posted to the real webhook endpoints | Stripe (test mode only) | `STRIPE_SECRET_KEY` (test), `STRIPE_PUBLISHABLE_KEY`, webhook secrets from the Stripe CLI or dashboard |
-| Receipt OCR | Fixture results keyed by file hash; never invents values | Claude vision (primary), AWS Textract (secondary), automatic failover | `ANTHROPIC_API_KEY` and/or `AWS_REGION` (`eu-west-2`), `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (used only by Textract). HEIC receipts skip OCR until a converter is approved |
+| Receipt OCR | Fixture results keyed by file hash; never invents values | Claude vision (primary), AWS Textract (secondary), automatic failover | `ANTHROPIC_API_KEY` and/or `AWS_REGION` (`eu-west-2`), `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` (used only by Textract). HEIC receipts are converted to JPEG for OCR by libheif's decoder (in the Docker images); on a host without it they are typed in by hand |
 | File storage | Local Docker volume with signed 5-minute links | S3 or Cloudflare R2 | `STORAGE_BACKEND=s3`, `S3_BUCKET`, `S3_ENDPOINT_URL` (R2), `S3_REGION` (`auto` for R2), `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. Separate from Textract's `AWS_*` keys |
-| Plan limits | `EntitlementService` allows everything (no plans yet) | — | Phase 1B adds plans and limits |
+| SaaS billing (trial, subscriptions, Portal, packs, reports, dunning) | Mock Stripe Billing: mock Checkout and Customer Portal pages; signed Stripe-shaped events posted to the real platform webhook endpoint; test tools for renewals and failed/paid invoices | Stripe Billing (test mode only) | `STRIPE_SECRET_KEY` (test), then `uv run python -m momentsales.tools.stripe_billing_seed` to create Products, Prices, the retention coupon and the Portal configuration (`STRIPE_PORTAL_CONFIGURATION_ID`). In the Stripe dashboard set Smart Retries to "Leave the subscription past-due". `STRIPE_TAX_ENABLED=true` once tax registrations exist |
+| Plan prices and limits | PRD placeholder values in the `plans` tables (GBP only) | Edited by a Platform admin through `/api/v1/admin/plans` | Final prices and limits from you; other currencies when other countries open |
+| Research runs and listings | Metered now (`consume_run`; a mock-only "Use one research run" tool); listings count 0 | — | Phase 2 (research) and Phase 3 (listings) call the same metering |
 | Market data, suppliers, research LLM | Registered in the provider registry, no adapters yet | — | Phase 2 |
 
 Dev endpoints (`/api/v1/dev/*`) exist only when `ENV` is `local` or `test` **and** `PROVIDER_MODE=mock`. Settings refuse mock providers and placeholder secrets in production.
@@ -96,6 +100,7 @@ Dev endpoints (`/api/v1/dev/*`) exist only when `ENV` is `local` or `test` **and
 
 - **Phase 0 — Foundations:** done (merged).
 - **Phase 1 — Ledger and payments:** done. AC-6, AC-7, AC-8, AC-9, AC-10 and AC-28 pass, plus the Phase 1 parts of AC-19.
-- **Phase 1B — SaaS subscriptions and billing:** next. It needs approval before work starts.
+- **Phase 1B — SaaS subscriptions and billing:** built and awaiting review. AC-14, AC-15, AC-16 and AC-17 pass (API and e2e), the API part of AC-18 (admin tenants, MRR, trial extension; the console UI is Phase 4), the billing parts of AC-19, and AC-13 on the new screens.
+- **Phase 2 — Seasonal research:** next. It needs approval before work starts.
 
 See [CHANGELOG.md](CHANGELOG.md) for details. The landing page and waitlist are built but **not deployed**. Publishing them is a separate step that needs approval.

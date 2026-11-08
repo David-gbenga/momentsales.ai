@@ -12,13 +12,14 @@ from __future__ import annotations
 
 import asyncio
 import sys
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from momentsales.core.config import get_settings
+from momentsales.core.config import ProviderMode, get_settings
 from momentsales.core.db import get_sessionmaker, set_tenant_context
+from momentsales.db.billing import BillingInterval, Plan, Subscription, SubscriptionStatus
 from momentsales.db.models import Membership, Role, User
 from momentsales.modules.workspaces import service as ws_service
 
@@ -80,6 +81,26 @@ async def seed() -> None:
                 before=None,
                 after={"user_id": str(users[role].id), "role": role.value},
                 ip_hash=None,
+            )
+        # Mock-mode Pro subscription (4 members need more than Growth's 3 seats), as if a
+        # trial had already converted. With PROVIDER_MODE=live use a real test checkout.
+        await set_tenant_context(session, user_id=owner.id, workspace_id=workspace.id)
+        plan = await session.scalar(select(Plan).where(Plan.code == "pro"))
+        if plan is not None and settings.provider_mode is ProviderMode.MOCK:
+            now = datetime.now(UTC).replace(microsecond=0)
+            session.add(
+                Subscription(
+                    workspace_id=workspace.id,
+                    plan_id=plan.id,
+                    interval=BillingInterval.MONTH,
+                    currency="GBP",
+                    status=SubscriptionStatus.ACTIVE,
+                    trial_used=True,
+                    cancel_at_period_end=False,
+                    trial_reminders_sent=[],
+                    current_period_start=now,
+                    current_period_end=now + timedelta(days=30),
+                )
             )
         print(f"Seeded workspace {workspace.name} ({workspace.id}).")
         for role, (email, _) in DEMO_USERS.items():

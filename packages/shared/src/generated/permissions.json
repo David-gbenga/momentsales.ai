@@ -1,4 +1,7 @@
 {
+  "billing.invoices.read": [
+    "owner"
+  ],
   "billing.manage": [
     "owner"
   ],

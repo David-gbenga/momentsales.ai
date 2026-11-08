@@ -59,10 +59,50 @@ async def sign_in(client: httpx.AsyncClient, email: str | None = None) -> Sessio
     return Session(email, body["access_token"], body["user"]["id"], client)
 
 
-async def create_workspace(s: Session, name: str = "Test Shop") -> str:
+async def create_workspace(
+    s: Session, name: str = "Test Shop", *, plan: str | None = "pro", status: str = "active"
+) -> str:
+    """Create a workspace. By default it gets an active subscription on `plan` (written
+    directly, as a verified webhook would), so tests reach features past the billing gate
+    (ADR-0016). Pass `plan=None` for a workspace with no subscription."""
     r = await s.client.post("/api/v1/workspaces", json={"name": name}, headers=s.headers())
     assert r.status_code == 201, r.text
-    return str(r.json()["id"])
+    workspace_id = str(r.json()["id"])
+    if plan is not None:
+        await set_subscription(uuid.UUID(workspace_id), plan=plan, status=status)
+    return workspace_id
+
+
+async def set_subscription(
+    workspace_id: uuid.UUID,
+    *,
+    plan: str = "pro",
+    status: str = "active",
+    interval: str = "month",
+    days_into_period: int = 0,
+) -> None:
+    """Create or replace the workspace's subscription row (test setup only)."""
+    from sqlalchemy import text
+
+    from momentsales.core.db import get_sessionmaker, set_tenant_context
+
+    async with get_sessionmaker()() as session, session.begin():
+        await set_tenant_context(session, workspace_id=workspace_id)
+        await session.execute(
+            text(
+                "INSERT INTO subscriptions (id, workspace_id, plan_id, interval, currency,"
+                " status, trial_used, cancel_at_period_end, trial_reminders_sent,"
+                " current_period_start, current_period_end, created_at, updated_at)"
+                " SELECT gen_random_uuid(), :w, id, CAST(:i AS billing_interval), 'GBP',"
+                " CAST(:st AS subscription_status), false, false, '[]',"
+                " date_trunc('second', now()) - make_interval(days => :d),"
+                " date_trunc('second', now()) - make_interval(days => :d) + interval '30 days',"
+                " now(), now() FROM plans WHERE code = :p"
+                " ON CONFLICT (workspace_id) DO UPDATE SET plan_id = EXCLUDED.plan_id,"
+                " status = EXCLUDED.status, interval = EXCLUDED.interval"
+            ),
+            {"w": str(workspace_id), "p": plan, "st": status, "i": interval, "d": days_into_period},
+        )
 
 
 async def add_member(owner: Session, workspace_id: str, role: str) -> Session:
@@ -151,3 +191,45 @@ async def seed_phase1_rows(workspace_id: uuid.UUID, user_id: uuid.UUID) -> None:
     async with get_sessionmaker()() as s, s.begin():
         await set_tenant_context(s, user_id=user_id, platform=True)
         await s.execute(text(_WEBHOOK_SEED_SQL), params)
+
+
+_BILLING_SEED_SQL = (
+    "INSERT INTO subscriptions (id, workspace_id, plan_id, interval, currency, status,"
+    " trial_used, cancel_at_period_end, trial_reminders_sent, created_at, updated_at)"
+    " SELECT gen_random_uuid(), :w, id, 'month', 'GBP', 'active', false, false, '[]', now(),"
+    " now() FROM plans WHERE code = 'growth' ON CONFLICT (workspace_id) DO NOTHING",
+    "INSERT INTO usage_counters (id, workspace_id, period_start, period_end, research_runs_used,"
+    " created_at, updated_at) VALUES (gen_random_uuid(), :w, now() - interval '1 day',"
+    " now() + interval '29 days', 1, now(), now()) ON CONFLICT DO NOTHING",
+    "INSERT INTO run_credits (id, workspace_id, pack_runs, single_runs, created_at, updated_at)"
+    " VALUES (gen_random_uuid(), :w, 10, 0, now(), now()) ON CONFLICT DO NOTHING",
+    "INSERT INTO run_consumptions (id, workspace_id, key, pool, created_at)"
+    " VALUES (gen_random_uuid(), :w, md5(random()::text), 'plan', now())",
+    "INSERT INTO addon_purchases (id, workspace_id, addon_id, kind, quantity, runs,"
+    " amount_minor, currency, status, created_by, created_at, updated_at)"
+    " SELECT gen_random_uuid(), :w, id, kind, 1, runs, amount_minor, currency, 'paid', :u,"
+    " now(), now() FROM addon_products WHERE kind = 'run_pack'",
+    "INSERT INTO saas_invoices (id, workspace_id, stripe_invoice_id, status, total_minor,"
+    " tax_minor, currency, created_at, updated_at) VALUES (gen_random_uuid(), :w,"
+    " 'in_' || md5(random()::text), 'paid', 7900, 0, 'GBP', now(), now())",
+    "INSERT INTO trial_extensions (id, workspace_id, days, reason, applied_by, created_at)"
+    " VALUES (gen_random_uuid(), :w, 7, 'seed', :u, now())",
+    "INSERT INTO cancel_surveys (id, workspace_id, reason, offer_made, outcome, created_by,"
+    " created_at) VALUES (gen_random_uuid(), :w, 'other', 'none', 'canceled', :u, now())",
+    "INSERT INTO subscription_pauses (id, workspace_id, months, starts_at, resumes_at,"
+    " created_by, created_at) VALUES (gen_random_uuid(), :w, 1, now(),"
+    " now() + interval '1 month', :u, now())",
+)
+
+
+async def seed_billing_rows(workspace_id: uuid.UUID, user_id: uuid.UUID) -> None:
+    """One row in every Phase 1B tenant table (isolation tests)."""
+    from sqlalchemy import text
+
+    from momentsales.core.db import get_sessionmaker, set_tenant_context
+
+    params = {"w": str(workspace_id), "u": str(user_id)}
+    async with get_sessionmaker()() as s, s.begin():
+        await set_tenant_context(s, user_id=user_id, workspace_id=workspace_id)
+        for stmt in _BILLING_SEED_SQL:
+            await s.execute(text(stmt), params)

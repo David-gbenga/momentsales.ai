@@ -5,7 +5,8 @@ Every tenant route depends on `require(Action.X)`. That:
 2. reads the workspace from the `X-Workspace-Id` header (or the path),
 3. sets the RLS context for the transaction,
 4. checks an active membership (no membership → 404, so existence is not leaked),
-5. checks the role against the permission matrix (→ 403).
+5. checks the role against the permission matrix (→ 403),
+6. for writes, checks the workspace has a trialing or active subscription (→ 403).
 """
 
 from __future__ import annotations
@@ -117,6 +118,14 @@ def _parse_workspace_id(raw: str | None) -> uuid.UUID:
         ) from exc
 
 
+async def _gate(session: AsyncSession, ctx: WorkspaceContext, action: Action) -> None:
+    """Subscription access gate for writes (ADR-0016): 403 without an active plan."""
+    from momentsales.modules.billing.entitlements import GATED_ACTIONS, ensure_writable
+
+    if action in GATED_ACTIONS:
+        await ensure_writable(session, ctx.workspace_id)
+
+
 def require(action: Action) -> Callable[..., Awaitable[WorkspaceContext]]:
     """Dependency factory for routes scoped by the X-Workspace-Id header."""
 
@@ -128,6 +137,7 @@ def require(action: Action) -> Callable[..., Awaitable[WorkspaceContext]]:
         ctx = await enter_workspace(session, principal, _parse_workspace_id(x_workspace_id))
         if not is_allowed(ctx.role, action):
             raise forbidden(action.value)
+        await _gate(session, ctx, action)
         return ctx
 
     TENANT_DEPENDENCIES.add(_dep)
@@ -145,6 +155,7 @@ def require_path(action: Action) -> Callable[..., Awaitable[WorkspaceContext]]:
         ctx = await enter_workspace(session, principal, _parse_workspace_id(workspace_id))
         if not is_allowed(ctx.role, action):
             raise forbidden(action.value)
+        await _gate(session, ctx, action)
         return ctx
 
     TENANT_DEPENDENCIES.add(_dep)
