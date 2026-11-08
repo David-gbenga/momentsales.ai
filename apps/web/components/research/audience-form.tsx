@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -17,15 +17,23 @@ const BUDGETS = ["budget", "mid", "premium"] as const;
 /** "Describe your audience" (FR-12): optional preferences, no personal data. */
 export function AudienceForm() {
   const { data } = useAudience();
-  if (!data) return null;
-  // Keyed so a saved profile from elsewhere resets the fields.
-  return <AudienceFields key={data.updated_at ?? "new"} initial={data} />;
-}
-
-function AudienceFields({ initial }: { initial: Audience }) {
-  const t = useTranslations("audience");
   const ws = useWorkspace();
   const qc = useQueryClient();
+  // The mutation lives here, not in the keyed fields: a save changes updated_at,
+  // which remounts the fields, and its success state must survive that.
+  const save = useMutation({
+    mutationFn: (body: AudienceIn) => api<Audience>("/audience-profile", { method: "PUT", body }),
+    onSuccess: (saved) => qc.setQueryData(["research", "audience", ws.id], saved),
+  });
+  if (!data) return null;
+  // Keyed so a saved profile from elsewhere resets the fields.
+  return <AudienceFields key={data.updated_at ?? "new"} initial={data} save={save} />;
+}
+
+type SaveMutation = UseMutationResult<Audience, Error, AudienceIn>;
+
+function AudienceFields({ initial, save }: { initial: Audience; save: SaveMutation }) {
+  const t = useTranslations("audience");
   const [form, setForm] = useState({
     age_range: initial.age_range ?? "",
     gender_focus: initial.gender_focus ?? "",
@@ -34,22 +42,16 @@ function AudienceFields({ initial }: { initial: Audience }) {
     style: initial.style ?? "",
   });
 
-  const save = useMutation({
-    mutationFn: () => {
-      const body: AudienceIn = {
-        age_range: (form.age_range || null) as AudienceIn["age_range"],
-        gender_focus: (form.gender_focus || null) as AudienceIn["gender_focus"],
-        interests: form.interests
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean)
-          .slice(0, 10),
-        budget_band: (form.budget_band || null) as AudienceIn["budget_band"],
-        style: form.style.trim() || null,
-      };
-      return api<Audience>("/audience-profile", { method: "PUT", body });
-    },
-    onSuccess: (saved) => qc.setQueryData(["research", "audience", ws.id], saved),
+  const toBody = (): AudienceIn => ({
+    age_range: (form.age_range || null) as AudienceIn["age_range"],
+    gender_focus: (form.gender_focus || null) as AudienceIn["gender_focus"],
+    interests: form.interests
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 10),
+    budget_band: (form.budget_band || null) as AudienceIn["budget_band"],
+    style: form.style.trim() || null,
   });
 
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -61,7 +63,7 @@ function AudienceFields({ initial }: { initial: Audience }) {
       aria-labelledby="audience-title"
       onSubmit={(e) => {
         e.preventDefault();
-        save.mutate();
+        save.mutate(toBody());
       }}
     >
       <div>
