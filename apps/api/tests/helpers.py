@@ -233,3 +233,38 @@ async def seed_billing_rows(workspace_id: uuid.UUID, user_id: uuid.UUID) -> None
         await set_tenant_context(s, user_id=user_id, workspace_id=workspace_id)
         for stmt in _BILLING_SEED_SQL:
             await s.execute(text(stmt), params)
+
+
+_RESEARCH_SEED_SQL = (
+    "INSERT INTO research_runs (id, workspace_id, mode, status, country, params, window_weeks,"
+    " as_of, cost_minor, cost_cap_minor, cost_currency, consumption_key, run_refunded,"
+    " created_by, created_at, updated_at) VALUES (:r, :w, 'seasonal', 'completed', 'GB', '{}',"
+    " 8, now(), 0, 100, 'GBP', :k, false, :u, now(), now())",
+    "INSERT INTO agent_steps (id, workspace_id, run_id, agent, position, status, input,"
+    " tool_calls, tokens, cost_minor, started_at) VALUES (gen_random_uuid(), :w, :r, 'season',"
+    " 0, 'completed', '{}', '[]', 0, 0, now())",
+    "INSERT INTO source_snapshots (id, workspace_id, run_id, provider, kind, url, payload,"
+    " fetched_at, created_at) VALUES (gen_random_uuid(), :w, :r, 'mock', 'public_holidays',"
+    " 'mock://x', '[]', now(), now())",
+    "INSERT INTO audience_profiles (id, workspace_id, interests, updated_by, created_at,"
+    " updated_at) VALUES (gen_random_uuid(), :w, '[]', :u, now(), now())"
+    " ON CONFLICT (workspace_id) DO NOTHING",
+)
+
+
+async def seed_research_rows(workspace_id: uuid.UUID, user_id: uuid.UUID) -> None:
+    """One row in every Phase 2a tenant table (isolation tests)."""
+    from sqlalchemy import text
+
+    from momentsales.core.db import get_sessionmaker, set_tenant_context
+
+    params = {
+        "w": str(workspace_id),
+        "u": str(user_id),
+        "r": str(uuid.uuid4()),
+        "k": f"seed-{uuid.uuid4()}",
+    }
+    async with get_sessionmaker()() as s, s.begin():
+        await set_tenant_context(s, user_id=user_id, workspace_id=workspace_id)
+        for stmt in _RESEARCH_SEED_SQL:
+            await s.execute(text(stmt), params)

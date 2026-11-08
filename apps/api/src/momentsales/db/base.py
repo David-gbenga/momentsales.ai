@@ -80,5 +80,10 @@ TENANT_TABLES: frozenset[str] = frozenset(
         "trial_extensions",
         "cancel_surveys",
         "subscription_pauses",
+        # Phase 2 (db/research.py)
+        "research_runs",
+        "agent_steps",
+        "source_snapshots",
+        "audience_profiles",
     }
 )

@@ -99,7 +99,15 @@ class Settings(BaseSettings):
     # Dunning (FR-10): past_due -> suspended after this many days.
     suspend_after_days: int = Field(default=30, ge=1)
 
-    # Receipt OCR (ADR-0014)
+    # Research (Phase 2, ADR-0018)
+    provider_holidays: Literal["nager"] = "nager"
+    nager_base_url: str = "https://nagerholidays.com/api/v4"
+    # Delivery time used for act-by dates until a supplier is matched (Phase 2c replaces
+    # it with the matched supplier's real maximum). Shown to users as an assumption.
+    research_assumed_delivery_days: int = Field(default=5, ge=0, le=60)
+    # Runs stuck in queued/running longer than this are resumed by the sweeper.
+    research_stuck_after_minutes: int = Field(default=10, ge=1)
+
     provider_ocr: Literal["claude", "textract"] = "claude"
     provider_ocr_secondary: Literal["claude", "textract"] | None = "textract"
     provider_ocr_failover: Literal["auto", "manual"] = "auto"

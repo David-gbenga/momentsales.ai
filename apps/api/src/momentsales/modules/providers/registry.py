@@ -19,6 +19,9 @@ from momentsales.adapters.email.base import EmailMessage, EmailPort, EmailSendEr
 from momentsales.adapters.email.mock import MockEmailAdapter
 from momentsales.adapters.email.postmark import PostmarkEmailAdapter
 from momentsales.adapters.email.resend import ResendEmailAdapter
+from momentsales.adapters.holidays.base import HolidaysPort
+from momentsales.adapters.holidays.mock import MockHolidaysAdapter
+from momentsales.adapters.holidays.nager import NagerHolidaysAdapter
 from momentsales.adapters.identity.base import IdentityPort
 from momentsales.adapters.identity.google import GoogleIdentityAdapter
 from momentsales.adapters.identity.mock import MockIdentityAdapter
@@ -44,6 +47,7 @@ CATEGORIES: dict[str, tuple[str, ...]] = {
     "ocr": ("claude", "textract"),
     "payments": ("stripe",),
     "llm": (),  # Phase 2
+    "holidays": ("nager",),
 }
 
 
@@ -142,6 +146,10 @@ class ProviderRegistry:
                 "env",
                 CATEGORIES[category],
             )
+        if category == "holidays":
+            return ResolvedProvider(
+                category, s.provider_holidays, None, mode, "manual", "env", CATEGORIES[category]
+            )
         if category == "payments":
             return ResolvedProvider(
                 category, s.provider_payments, None, mode, "manual", "env", CATEGORIES[category]
@@ -170,6 +178,14 @@ class ProviderRegistry:
 
     async def describe_all(self, session: AsyncSession) -> list[ResolvedProvider]:
         return [await self.resolve(session, c) for c in CATEGORIES]
+
+    # --- Holidays (research context; one adapter + mock, not a critical category) -------
+
+    async def holidays(self, session: AsyncSession) -> HolidaysPort:
+        resolved = await self.resolve(session, "holidays")
+        if resolved.mode == "mock":
+            return MockHolidaysAdapter()
+        return NagerHolidaysAdapter(self._http, self._s.nager_base_url)
 
     # --- Email -------------------------------------------------------------------------
 

@@ -28,6 +28,7 @@ JOB_MODULES = (
     "momentsales.modules.receipts.jobs",
     "momentsales.modules.payments.jobs",
     "momentsales.modules.exports.jobs",
+    "momentsales.modules.research.jobs",
 )
 CELERY_TASK = "momentsales.run_job"
 

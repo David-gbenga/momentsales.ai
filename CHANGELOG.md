@@ -2,6 +2,48 @@
 
 All notable changes are recorded here, by phase.
 
+## [Phase 2a — season engine, research runs and calendar] — 2026-11-08
+
+### Added
+- **Research runs (ADR-0018):**
+  - Endpoints: `POST /research-runs`, `GET /research-runs`, `GET /research-runs/{id}`, and live progress at `GET /research-runs/{id}/events` (Server-Sent Events).
+  - Runs are metered: each spends one research run, and a 402 `plan_limit_reached` comes back when none are left (AC-15). An optional `Idempotency-Key` header prevents double-spending.
+  - A run that fails before spending anything gives the run back. A run that reaches its £1.00 cost cap stops as `partial` and keeps what it found.
+  - Only the UK can be chosen. Audience mode stays behind its Later-roadmap flag.
+- **Orchestrator:**
+  - A plain Python pipeline run by the worker, one transaction per agent step.
+  - Steps are stored, so a retried run resumes after the last finished step.
+  - The minute sweeper re-queues stuck runs.
+- **Season agent and engine (FR-2):**
+  - Meteorological seasons by hemisphere, a look-ahead window of 2–12 weeks (default 8), and a season override.
+  - Retail moments from a new `season_moments` table with yearly date rules, seeded with UK moments (AU too, for hemisphere tests only).
+  - Act-by dates.
+  - Public holidays in the window from Nager.Date, each stored as a source snapshot with URL and fetch time (AC-3).
+- **Season calendar:** `GET /season-calendar` returns the next three retail moments with act-by dates. It uses an assumed delivery time until Phase 2c matches suppliers, and says so.
+- **Audience profile:** `GET` and `PUT /audience-profile`. "Describe your audience" stores preferences only; runs copy them into their parameters.
+- **Migration `0005`:** `season_moments`, `research_runs`, `agent_steps`, `source_snapshots` and `audience_profiles`, with RLS forced on the tenant tables.
+- **Holidays adapter:** Nager.Date v4 plus a mock (`PROVIDER_HOLIDAYS`, `NAGER_BASE_URL`). Settings `RESEARCH_ASSUMED_DELIVERY_DAYS` and `RESEARCH_STUCK_AFTER_MINUTES`.
+- **Web:**
+  - Research page: a run form (window, season override, category, price band, audience toggle), a live progress timeline with spend against the cap, season results, recent runs, and the audience form.
+  - Home: a "Coming up" season calendar card.
+- **Docs:** ADR-0018 and `docs/integrations/nager-date.md`.
+
+### Tests
+- **Unit:** season rules, including Easter and nth-weekday rules, hemisphere seasons, windows, overrides and act-by.
+- **Contract:** the Nager adapter.
+- **Integration (pytest):**
+  - The UK run on 6 Nov (autumn into winter, with Black Friday and Christmas).
+  - Metering and 402, rejected runs spending nothing, idempotency and roles.
+  - Isolation, failure with refund, partial at the cap, a degraded holidays step, and resume.
+  - The sweeper, the events stream, the calendar and the audience profile.
+- **Security:** RLS isolation for the four new tables.
+- **Vitest and Playwright:** research helpers, and the J2 season flow with axe.
+
+### Still mocked
+- Market data, suppliers and the research LLM have no adapters yet (Phases 2b–2d).
+- Act-by dates use an assumed delivery time.
+- The mock holidays adapter computes UK bank holidays locally.
+
 ## [Phase 1B follow-up — product-owner decisions] — 2026-11-08
 
 ### Added
