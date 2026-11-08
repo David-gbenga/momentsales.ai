@@ -13,7 +13,9 @@ ENV API_INTERNAL_URL=$API_INTERNAL_URL NEXT_PUBLIC_PROVIDER_MODE=$NEXT_PUBLIC_PR
 RUN pnpm --filter @momentsales/web build
 
 FROM node:22-slim AS run
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
+# Server-rendered pages (e.g. /pricing) call the API at runtime, not only through the rewrite.
+ARG API_INTERNAL_URL=http://api:8000
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000 API_INTERNAL_URL=$API_INTERNAL_URL
 WORKDIR /app
 COPY --from=build --chown=node:node /app/apps/web/.next/standalone ./
 COPY --from=build --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static

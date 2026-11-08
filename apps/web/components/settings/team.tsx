@@ -19,7 +19,9 @@ import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Card, Field, Input, Notice, Select } from "@/components/ui/primitives";
+import { UpgradePrompt } from "@/components/billing/upgrade-prompt";
 import { api, ApiError } from "@/lib/api";
+import { planLimitOf, type PlanLimit } from "@/lib/billing";
 import { useSession } from "@/lib/session";
 
 type Member = components["schemas"]["MemberOut"];
@@ -51,8 +53,12 @@ export function TeamSettings() {
     void qc.invalidateQueries({ queryKey: ["members", wsId] });
     void qc.invalidateQueries({ queryKey: ["invitations", wsId] });
   };
-  const onError = (err: unknown) =>
-    setNotice({ tone: "error", text: err instanceof ApiError ? err.message : tc("error") });
+  const [limit, setLimit] = useState<PlanLimit | null>(null);
+  const onError = (err: unknown) => {
+    const hit = planLimitOf(err);
+    setLimit(hit);
+    setNotice(hit ? null : { tone: "error", text: err instanceof ApiError ? err.message : tc("error") });
+  };
 
   const changeRole = useMutation({
     mutationFn: ({ id, role: next }: { id: string; role: Role }) =>
@@ -78,6 +84,7 @@ export function TeamSettings() {
   const { errors, isSubmitting } = form.formState;
   async function invite(values: InvitationInput) {
     setNotice(null);
+    setLimit(null);
     try {
       await api("/invitations", { body: values });
       setNotice({ tone: "success", text: t("inviteSent", { email: values.email }) });
@@ -98,6 +105,7 @@ export function TeamSettings() {
       </div>
       {!canRead ? <Notice>{t("noTeamAccess")}</Notice> : null}
       {notice ? <Notice tone={notice.tone}>{notice.text}</Notice> : null}
+      {limit ? <UpgradePrompt limit={limit} /> : null}
 
       {canRead ? (
         <Card className="p-0">

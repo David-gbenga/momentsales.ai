@@ -15,9 +15,14 @@ export default async function LandingPage() {
     <div className="mx-auto flex min-h-dvh max-w-5xl flex-col px-4 sm:px-6">
       <header className="flex items-center justify-between py-6">
         <span className="text-lg font-semibold tracking-tight">momentsales.ai</span>
-        <Link href="/sign-in" className="text-sm font-medium underline-offset-4 hover:underline">
-          {t("signIn")}
-        </Link>
+        <nav aria-label="Site" className="flex items-center gap-4">
+          <Link href="/pricing" className="text-sm font-medium underline-offset-4 hover:underline">
+            {t("pricing")}
+          </Link>
+          <Link href="/sign-in" className="text-sm font-medium underline-offset-4 hover:underline">
+            {t("signIn")}
+          </Link>
+        </nav>
       </header>
       <main id="main" className="grid flex-1 items-center gap-12 py-10 md:grid-cols-[1.2fr_1fr]">
         <section aria-labelledby="promise">
