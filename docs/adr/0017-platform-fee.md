@@ -19,7 +19,7 @@ Sales are direct charges on the seller's Stripe account (ADR-0011). Two Stripe b
 - Refunding a charge does **not** refund the application fee.
 
 ## Decision
-- **Rate source:** `plans.platform_fee_bps` for any current subscriber: trialing, active, or past due, paused or suspended. A failed card retry must never raise a paying seller's fee. A trial uses the trial plan (Growth, 0%). A workspace with no subscription, or a cancelled or incomplete one, uses `PLATFORM_FEE_BPS_NO_PLAN` (default 200). Migration `0004` sets Lite to 200. Platform admin can change plan rates through `/admin/plans`.
+- **Rate source:** `plans.platform_fee_bps` for any current subscriber: trialing, active, or past due, paused or suspended. A failed card retry must never raise a paying seller's fee. (Confirmed by the product owner, 2026-11-08.) A trial uses the trial plan (Growth, 0%). A workspace with no subscription, or a cancelled or incomplete one, uses `PLATFORM_FEE_BPS_NO_PLAN` (default 200). Migration `0004` sets Lite to 200. Platform admin can change plan rates through `/admin/plans`.
 - **Amount at checkout:** `gross × bps // 10 000`, rounded down so a seller is never over-charged. It is sent as `payment_intent_data.application_fee_amount` only when above 0, and stored on the checkout session.
 - **Ledger uses Stripe's figures, never ours:**
   - `fee_details` entries of type `application_fee` become the platform fee; the rest of `fee` is Stripe's own fee.
