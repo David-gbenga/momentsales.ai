@@ -2,7 +2,7 @@
 
 Agentic commerce assistant for **UK side-hustlers and small online shops**: *find what's about to sell, launch a shop in a weekend, and keep books your accountant will accept.*
 
-The source of truth for scope and phases is [`docs/PRD.md`](docs/PRD.md). **Status: Phases 0, 1 and 1B are merged; a Phase 1B follow-up (product-owner decisions) is in review. Phase 2 needs approval.**
+The source of truth for scope and phases is [`docs/PRD.md`](docs/PRD.md). **Status: Phases 0, 1 and 1B (with its follow-up) are merged. Phase 2 is approved and in progress: 2a (season engine, research runs, season calendar) is in review.**
 
 ## Quick start (no paid keys needed)
 
@@ -80,7 +80,7 @@ docs/          PRD, ADRs, ERD, OpenAPI spec, integration notes, runbooks, compli
 - Stripe runs in test mode only; settings refuse live keys and live events ([ADR-0011](docs/adr/0011-stripe-connect.md)).
 - Every plan-limited action goes through `EntitlementService`; writes need a trialing or active subscription ([ADR-0015](docs/adr/0015-plans-entitlements-usage.md), [ADR-0016](docs/adr/0016-subscription-state-and-access.md)).
 
-## What is mocked (as of the Phase 1B follow-up)
+## What is mocked (as of Phase 2a)
 
 | Area | Mock | Live adapter | To go live |
 | --- | --- | --- | --- |
@@ -92,8 +92,11 @@ docs/          PRD, ADRs, ERD, OpenAPI spec, integration notes, runbooks, compli
 | SaaS billing (trial, subscriptions, Portal, packs, reports, dunning) | Mock Stripe Billing: mock Checkout and Customer Portal pages; signed Stripe-shaped events posted to the real platform webhook endpoint; test tools for renewals and failed/paid invoices | Stripe Billing (test mode only) | `STRIPE_SECRET_KEY` (test), then `uv run python -m momentsales.tools.stripe_billing_seed` to create Products, Prices, the retention coupon and the Portal configuration (`STRIPE_PORTAL_CONFIGURATION_ID`). In the Stripe dashboard set Smart Retries to "Leave the subscription past-due". `STRIPE_TAX_ENABLED=true` once tax registrations exist |
 | Plan prices and limits | Final launch values (product owner, 2026-11-08) in the `plans` tables (GBP only) | Edited by a Platform admin through `/api/v1/admin/plans` | Other currencies when other countries open |
 | Platform fee (2% on Lite and pay-per-report, ADR-0017) | Mock Stripe stores application fees and fee refunds | Stripe Connect application fees (test mode only) | Nothing extra beyond the Stripe Connect keys |
-| Research runs and listings | Metered now (`consume_run`; a mock-only "Use one research run" tool); listings count 0 | — | Phase 2 (research) and Phase 3 (listings) call the same metering |
-| Market data, suppliers, research LLM | Registered in the provider registry, no adapters yet | — | Phase 2 |
+| Research runs | Real runs through `POST /research-runs`, metered by `consume_run`. In 2a a run has one step, the Season agent (seasons, UK retail moments, act-by dates, public holidays). The mock-only "Use one research run" billing tool stays for billing tests | — | Phases 2b–2d add the trend, marketplace, supplier, scoring, compliance and report agents |
+| Public holidays (Season agent) | Mock computes the England and Wales bank holidays locally | Nager.Date v4 (no key) | `PROVIDER_MODE=live`; nothing else needed |
+| Act-by dates (season calendar) | Use an assumed delivery time (`RESEARCH_ASSUMED_DELIVERY_DAYS`, default 5), labelled as an assumption | — | Phase 2c uses the matched supplier's real delivery time |
+| Listings | Count 0 against the trial and plan caps | — | Phase 3 |
+| Market data, suppliers, research LLM | Registered in the provider registry, no adapters yet | — | Phases 2b (DataForSEO, SerpApi, eBay), 2c (CJ, Avasam), 2d (Claude) |
 
 Dev endpoints (`/api/v1/dev/*`) exist only when `ENV` is `local` or `test` **and** `PROVIDER_MODE=mock`. Settings refuse mock providers and placeholder secrets in production.
 
@@ -102,6 +105,8 @@ Dev endpoints (`/api/v1/dev/*`) exist only when `ENV` is `local` or `test` **and
 - **Phase 0 — Foundations:** done (merged).
 - **Phase 1 — Ledger and payments:** done. AC-6, AC-7, AC-8, AC-9, AC-10 and AC-28 pass, plus the Phase 1 parts of AC-19.
 - **Phase 1B — SaaS subscriptions and billing:** done (merged). A follow-up applies the product owner's decisions: the trial listing cap, the £1 run cost cap and the 2% platform fee with proportional refunds. AC-14, AC-15, AC-16 and AC-17 pass (API and e2e), the API part of AC-18 (admin tenants, MRR, trial extension; the console UI is Phase 4), the billing parts of AC-19, and AC-13 on the new screens.
-- **Phase 2 — Seasonal research:** next. It needs approval before work starts.
+- **Phase 2 — Seasonal research:** approved (2026-11-08), delivered as four PRs.
+  - **2a — season engine, research runs and calendar:** in review. Covers the season parts of AC-1, AC-2 (engine level, since only the UK is selectable), AC-3 for holiday facts, AC-15 on real runs, and the calendar part of AC-26 (with an assumed delivery time).
+  - **2b–2d:** market data and signals, suppliers and matching, then scoring, compliance and the Top 10 report.
 
 See [CHANGELOG.md](CHANGELOG.md) for details. The landing page and waitlist are built but **not deployed**. Publishing them is a separate step that needs approval.
