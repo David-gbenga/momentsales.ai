@@ -301,3 +301,17 @@ async def test_application_fee_refund_runs_on_the_platform(
     assert form(request)["amount"] == ["20"]
     assert request.headers["Idempotency-Key"] == "appfee-refund-fee_9-20"
     assert "Stripe-Account" not in request.headers
+
+
+@respx.mock
+async def test_application_fee_refunded_reads_the_platform_fee(
+    adapter: StripePaymentsAdapter,
+) -> None:
+    route = respx.get(f"{STRIPE}/v1/application_fees/fee_9").mock(
+        return_value=httpx.Response(
+            200,
+            json={"id": "fee_9", "object": "application_fee", "amount": 50, "amount_refunded": 20},
+        )
+    )
+    assert await adapter.application_fee_refunded("fee_9") == 20
+    assert "Stripe-Account" not in route.calls.last.request.headers

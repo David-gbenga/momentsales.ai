@@ -175,6 +175,12 @@ class MockPaymentsAdapter:
         await self._put(fee_id, fee)
         await self._redis.set(f"mockstripe:idem:{idempotency_key}", fee_id, ex=_TTL)
 
+    async def application_fee_refunded(self, fee_id: str) -> int:
+        fee = await self._get(fee_id)
+        if fee is None:
+            raise PaymentsError("mock", "no such application fee", retryable=False)
+        return int(fee["amount_refunded"])
+
     async def application_fee(self, fee_id: str) -> dict[str, Any] | None:
         """Dev and test helper: the stored application fee."""
         return await self._get(fee_id)

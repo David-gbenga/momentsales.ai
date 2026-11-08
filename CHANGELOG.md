@@ -9,7 +9,8 @@ All notable changes are recorded here, by phase.
   - Rates: 2% on Lite and for workspaces without a trialing or active plan (pay-per-report); 0% on Starter, Growth, Pro and during the trial.
   - Checkout sends the fee as the Connect application fee, rounded down.
   - The ledger splits Stripe's `fee_details` into separate "Stripe fee" and "Platform fee" entries.
-  - When a seller refunds a shopper, the fee is given back in proportion through Stripe's application-fee refunds. This is idempotent and safe to replay.
+  - When a seller refunds a shopper, the fee is given back in proportion through Stripe's application-fee refunds. We check what Stripe has already refunded first, so a replay or a late retry never refunds twice.
+  - Sellers on a paid plan keep their plan's rate while past due, paused or suspended. The 2% no-plan rate applies only with no subscription or a cancelled one.
 - **Migration `0004`:** `checkout_sessions.application_fee_minor`, plus `orders.platform_fee_minor`, `platform_fee_refunded_minor` and `platform_fee_id`. Lite's `platform_fee_bps` is set to 200.
 - **API:** `GET /plans` now returns each plan's `platform_fee_bps`, `no_plan_platform_fee_bps` and `trial.live_listings`.
 - **Settings:** `TRIAL_LIVE_LISTINGS=5` and `PLATFORM_FEE_BPS_NO_PLAN=200`.
@@ -27,6 +28,7 @@ All notable changes are recorded here, by phase.
   - Lite checkout pays 2%, with separate ledger lines
   - a partial then full refund gives back 20p then 50p, and a replayed refund event changes nothing
   - Pro and trial pay nothing
+  - a fee Stripe already refunded is not sent again
   - Stripe contract tests for the fee parameter, the `fee_details` split and platform-account fee refunds
   - the guard in GBP
 - Playwright: the pricing page fee wording.

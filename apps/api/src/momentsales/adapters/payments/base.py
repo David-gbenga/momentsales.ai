@@ -85,6 +85,10 @@ class PaymentsPort(Protocol):
         """Refund part of a platform fee to the seller (platform account call)."""
         ...
 
+    async def application_fee_refunded(self, fee_id: str) -> int:
+        """How much of a platform fee has already been refunded, per the provider."""
+        ...
+
     def verify_webhook(self, payload: bytes, signature: str | None, secret: str) -> dict[str, Any]:
         """Return the event as a dict, or raise WebhookSignatureError."""
         ...

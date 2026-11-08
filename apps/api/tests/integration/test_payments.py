@@ -13,9 +13,15 @@ import httpx
 from helpers import Session, add_member, create_workspace, set_subscription, sign_in
 from sqlalchemy import func, select
 
-from momentsales.adapters.payments.mock import MOCK_FEE_MINOR, build_event, sign_payload
+from momentsales.adapters.payments.mock import (
+    MOCK_FEE_MINOR,
+    MockPaymentsAdapter,
+    build_event,
+    sign_payload,
+)
 from momentsales.core.config import get_settings
 from momentsales.core.db import get_sessionmaker, set_tenant_context
+from momentsales.core.redis import get_redis
 from momentsales.db.ledger import LedgerEntry, Order
 
 API = "/api/v1"
@@ -296,9 +302,6 @@ async def _fee_state(ws: str, user_id: str) -> tuple[int, int, str | None]:
 
 
 async def _mock_fee(client: httpx.AsyncClient, fee_id: str) -> dict[str, Any]:
-    from momentsales.adapters.payments.mock import MockPaymentsAdapter
-    from momentsales.core.redis import get_redis
-
     payments = MockPaymentsAdapter(get_redis(), get_settings().web_base_url)
     fee = await payments.application_fee(fee_id)
     assert fee is not None
@@ -373,3 +376,25 @@ async def test_trial_pays_no_platform_fee(client: httpx.AsyncClient) -> None:
     created = await checkout(owner, ws)
     await pay(client, created["url"])
     assert (await _fee_state(ws, owner.user_id))[0] == 0
+
+
+async def test_fee_already_refunded_at_stripe_is_not_sent_again(
+    client: httpx.AsyncClient,
+) -> None:
+    """A Stripe fee refund that succeeded before our commit rolled back is not repeated,
+    even once Stripe's idempotency key has expired."""
+    owner, ws, _ = await connected_shop(client, plan="lite")
+    await pay(client, (await checkout(owner, ws))["url"])  # 50p platform fee
+    _, _, fee_id = await _fee_state(ws, owner.user_id)
+    assert fee_id
+    mock = MockPaymentsAdapter(get_redis(), get_settings().web_base_url)
+    # Stripe already gave back the whole fee under a key we no longer remember
+    await mock.refund_application_fee(fee_id, 50, idempotency_key="lost-key")
+    charge_id = await _charge_id(ws, owner.user_id)
+    r = await client.post(f"{API}/dev/mock-stripe/refund", json={"charge_id": charge_id})
+    assert r.status_code == 200, r.text
+    assert (await _fee_state(ws, owner.user_id))[:2] == (50, 50)  # ledger catches up
+    assert (await _mock_fee(client, fee_id))["amount_refunded"] == 50  # nothing sent twice
+    fees = (await client.get(f"{API}/ledger?type=fee", headers=owner.headers(ws))).json()
+    refunds = [e for e in fees["items"] if e["description"].startswith("Platform fee refund")]
+    assert sum(e["amount_minor"] for e in refunds) == 50

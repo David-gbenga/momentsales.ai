@@ -447,8 +447,9 @@ async def _refund_platform_fee(
     """Give back the platform fee in proportion to what the seller refunded (ADR-0017).
 
     Refunding a direct charge leaves the application fee with the platform, so we refund it
-    ourselves. The target is cumulative and the Stripe call is keyed by it, so a replay, or
-    a retry after a failed commit, refunds nothing twice. A failed call raises and the
+    ourselves. The target is cumulative, and we only ask Stripe for what it has not already
+    refunded on that fee, so a replay, or a retry after a failed commit (even after Stripe's
+    24-hour idempotency window), refunds nothing twice. A failed call raises and the
     webhook job retries the whole event (the ledger writes roll back with it)."""
     if order.platform_fee_minor <= 0 or order.gross_minor <= 0:
         return
@@ -464,9 +465,12 @@ async def _refund_platform_fee(
         fee_id = fee_id.get("id")
     if not fee_id:
         raise PaymentsError("stripe", "application fee not available yet", retryable=True)
-    await payments.refund_application_fee(
-        str(fee_id), amount, idempotency_key=f"appfee-refund-{fee_id}-{target}"
-    )
+    already = await payments.application_fee_refunded(str(fee_id))
+    to_send = target - max(already, order.platform_fee_refunded_minor)
+    if to_send > 0:
+        await payments.refund_application_fee(
+            str(fee_id), to_send, idempotency_key=f"appfee-refund-{fee_id}-{target}"
+        )
     await ledger.post_platform_fee_refund(
         session,
         order,

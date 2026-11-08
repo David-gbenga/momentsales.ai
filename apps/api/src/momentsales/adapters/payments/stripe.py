@@ -173,6 +173,13 @@ class StripePaymentsAdapter:
         except stripe.StripeError as exc:
             raise _wrap(exc) from exc
 
+    async def application_fee_refunded(self, fee_id: str) -> int:
+        try:
+            fee = await self._client.v1.application_fees.retrieve_async(fee_id)
+        except stripe.StripeError as exc:
+            raise _wrap(exc) from exc
+        return int(fee.amount_refunded or 0)
+
     def verify_webhook(self, payload: bytes, signature: str | None, secret: str) -> dict[str, Any]:
         return verify_signature(payload, signature, secret)
 
