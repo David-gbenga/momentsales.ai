@@ -100,7 +100,8 @@ async def test_db_row_overrides_env() -> None:
         assert isinstance((await reg.email(s)).primary, PostmarkEmailAdapter)
         listing = {p.category: p for p in await reg.describe_all(s)}
         assert set(listing) >= {"email", "identity", "market_data", "supplier", "ocr", "llm"}
-        assert listing["market_data"].built == ()
+        assert listing["market_data"].built == ("dataforseo", "serpapi")
+        assert listing["supplier"].built == () and listing["marketplace"].built == ()
         await s.execute(delete(ProviderConfig))
 
 

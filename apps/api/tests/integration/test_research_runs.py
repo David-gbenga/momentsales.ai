@@ -69,8 +69,9 @@ async def test_uk_seasonal_run_on_6_november(client: httpx.AsyncClient) -> None:
     assert "Black Friday" in names and "Christmas" in names
     assert [s["agent"] for s in run["steps"]] == ["season", "trend", "marketplace"]
     assert {s["status"] for s in run["steps"]} == {"completed"}
-    # Mock market data charges the primary's estimates, rounded up to the penny.
-    assert 0 < run["cost_minor"] <= run["cost_cap_minor"] == 100
+    # Mock market data charges the primary's estimates (nothing when the shared cache
+    # already holds the results; see test_demand_runs.py).
+    assert 0 <= run["cost_minor"] <= run["cost_cap_minor"] == 100
 
     # Every holiday shown traces to a stored source snapshot with URL and fetch time.
     holidays = season["public_holidays"]
