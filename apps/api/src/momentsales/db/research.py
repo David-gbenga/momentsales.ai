@@ -18,6 +18,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -85,7 +86,13 @@ class ResearchRun(UUIDPk, Timestamps, Base):
     as_of: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     # Season agent output (detected or overridden season, moments in the window).
     season: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
+    # Demand intelligence (ADR-0019): trend candidates with market data, merged by agents.
+    demand: Mapped[dict[str, Any] | None] = mapped_column(JSONB(none_as_null=True))
+    # Rounded up from cost_micros (GBP micros, 1,000,000 = £1); the API shows minor units.
     cost_minor: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    cost_micros: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    # Spend per provider in micros (FR-15 cost per run by provider).
+    cost_by_provider: Mapped[dict[str, int]] = mapped_column(JSONB, nullable=False, default=dict)
     cost_cap_minor: Mapped[int] = mapped_column(BigInteger, nullable=False)
     cost_currency: Mapped[str] = mapped_column(String(3), nullable=False)
     # Run-metering key (entitlements.consume_run / refund_run) and optional client key.
@@ -122,6 +129,7 @@ class AgentStep(UUIDPk, Base):
     tool_calls: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False, default=list)
     tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     cost_minor: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    cost_micros: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     duration_ms: Mapped[int | None] = mapped_column(Integer)
     error: Mapped[str | None] = mapped_column(Text)
     started_at: Mapped[datetime] = _created_at()
@@ -145,6 +153,48 @@ class SourceSnapshot(UUIDPk, Base):
     payload: Mapped[Any] = mapped_column(JSONB, nullable=False)
     fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     created_at: Mapped[datetime] = _created_at()
+
+
+class CategorySeedTerm(UUIDPk, Timestamps, Base):
+    """Global reference data (ADR-0019): starting search terms per category, used only to
+    choose candidates for Google Trends. No fact shown to a user comes from this table."""
+
+    __tablename__ = "category_seed_terms"
+
+    country: Mapped[str] = mapped_column(String(2), nullable=False)
+    category: Mapped[str] = mapped_column(String(60), nullable=False)
+    term: Mapped[str] = mapped_column(String(100), nullable=False)
+    active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    __table_args__ = (
+        UniqueConstraint("country", "category", "term", name="uq_category_seed_terms"),
+        Index("ix_category_seed_terms_lookup", "country", "category"),
+    )
+
+
+class MarketDataCache(UUIDPk, Base):
+    """Shared, non-personal market data (FR-12, ADR-0019). Global on purpose: no
+    workspace, run or user columns, so nothing here can identify who asked. Append-only;
+    the newest row within the cache age wins."""
+
+    __tablename__ = "market_data_cache"
+
+    data_type: Mapped[str] = mapped_column(String(40), nullable=False)
+    country: Mapped[str] = mapped_column(String(2), nullable=False)
+    category: Mapped[str | None] = mapped_column(String(80))
+    iso_week: Mapped[str] = mapped_column(String(8), nullable=False)  # e.g. 2026-W45
+    query_key: Mapped[str] = mapped_column(String(64), nullable=False)  # sha256 hex
+    query: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    provider: Mapped[str] = mapped_column(String(40), nullable=False)
+    url: Mapped[str] = mapped_column(String(2000), nullable=False)
+    result: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    cost_micros: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    fetched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = _created_at()
+
+    __table_args__ = (
+        Index("ix_market_data_cache_lookup", "data_type", "country", "query_key", "fetched_at"),
+    )
 
 
 class AudienceProfile(UUIDPk, Timestamps, Base):

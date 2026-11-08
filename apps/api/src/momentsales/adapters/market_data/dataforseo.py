@@ -215,7 +215,8 @@ class DataForSeoAdapter:
 
 
 def _offer(el: dict[str, Any], merchant: Any) -> ShoppingOffer:
-    price = el.get("price") if isinstance(el.get("price"), dict) else {}
+    found = el.get("price")
+    price: dict[str, Any] = found if isinstance(found, dict) else {}
     currency = price.get("currency") if isinstance(price.get("currency"), str) else None
     minor = to_minor(price.get("current"))
     return ShoppingOffer(
