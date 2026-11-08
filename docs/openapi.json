@@ -559,6 +559,83 @@
         "title": "CancelSurveyOut",
         "type": "object"
       },
+      "CandidateOut": {
+        "properties": {
+          "breakout": {
+            "default": false,
+            "title": "Breakout",
+            "type": "boolean"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "keyword": {
+            "title": "Keyword",
+            "type": "string"
+          },
+          "market": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarketOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rising_from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rising From"
+          },
+          "rising_value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rising Value"
+          },
+          "source": {
+            "enum": [
+              "seed",
+              "rising",
+              "category",
+              "audience"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "trend": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TrendOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "keyword",
+          "source",
+          "category",
+          "trend"
+        ],
+        "title": "CandidateOut",
+        "type": "object"
+      },
       "CatalogOut": {
         "properties": {
           "addons": {
@@ -750,6 +827,55 @@
           }
         },
         "title": "DefaultsIn",
+        "type": "object"
+      },
+      "DemandOut": {
+        "description": "Demand intelligence (FR-12, ADR-0019). Every number links to a source snapshot.",
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateOut"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "market_available": {
+            "title": "Market Available",
+            "type": "boolean"
+          },
+          "mock": {
+            "title": "Mock",
+            "type": "boolean"
+          },
+          "stopped_at_cap": {
+            "title": "Stopped At Cap",
+            "type": "boolean"
+          },
+          "trend_available": {
+            "title": "Trend Available",
+            "type": "boolean"
+          },
+          "window_end": {
+            "format": "date",
+            "title": "Window End",
+            "type": "string"
+          }
+        },
+        "required": [
+          "as_of",
+          "window_end",
+          "candidates",
+          "mock",
+          "stopped_at_cap",
+          "trend_available",
+          "market_available"
+        ],
+        "title": "DemandOut",
         "type": "object"
       },
       "ExportFileOut": {
@@ -1315,6 +1441,140 @@
         "title": "MagicLinkIn",
         "type": "object"
       },
+      "MarketOut": {
+        "properties": {
+          "competition_missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Competition Missing",
+            "type": "array"
+          },
+          "competition_parts": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Competition Parts",
+            "type": "object"
+          },
+          "competition_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Competition Score"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "fetched_at": {
+            "format": "date-time",
+            "title": "Fetched At",
+            "type": "string"
+          },
+          "merchants": {
+            "title": "Merchants",
+            "type": "integer"
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/OfferOut"
+            },
+            "title": "Offers",
+            "type": "array"
+          },
+          "offers_outside_band": {
+            "default": 0,
+            "title": "Offers Outside Band",
+            "type": "integer"
+          },
+          "paid_ads": {
+            "title": "Paid Ads",
+            "type": "integer"
+          },
+          "price_max_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Max Minor"
+          },
+          "price_min_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Min Minor"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "shopping_ads": {
+            "title": "Shopping Ads",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "total_results": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Results"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "total_results",
+          "paid_ads",
+          "shopping_ads",
+          "merchants",
+          "price_min_minor",
+          "price_max_minor",
+          "currency",
+          "offers",
+          "competition_score",
+          "competition_parts",
+          "competition_missing",
+          "provider",
+          "snapshot_id",
+          "url",
+          "fetched_at"
+        ],
+        "title": "MarketOut",
+        "type": "object"
+      },
       "MeOut": {
         "properties": {
           "memberships": {
@@ -1575,6 +1835,74 @@
         ],
         "title": "OcrStatus",
         "type": "string"
+      },
+      "OfferOut": {
+        "description": "A shopping offer seen on Google: demand evidence and a purchase link only.",
+        "properties": {
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "merchant": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Merchant"
+          },
+          "price_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Minor"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "title",
+          "merchant",
+          "price_minor",
+          "currency",
+          "url",
+          "snapshot_id"
+        ],
+        "title": "OfferOut",
+        "type": "object"
       },
       "OrderItemOut": {
         "properties": {
@@ -2647,6 +2975,16 @@
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "demand": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DemandOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "error": {
             "anyOf": [
@@ -4068,6 +4406,111 @@
           "auto_count"
         ],
         "title": "TouchSummary",
+        "type": "object"
+      },
+      "TrendOut": {
+        "properties": {
+          "baseline_mean": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Mean"
+          },
+          "fetched_at": {
+            "format": "date-time",
+            "title": "Fetched At",
+            "type": "string"
+          },
+          "growth_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Growth Rate"
+          },
+          "insufficient": {
+            "title": "Insufficient",
+            "type": "boolean"
+          },
+          "last_year_lift": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Year Lift"
+          },
+          "max_52w": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max 52W"
+          },
+          "peak": {
+            "title": "Peak",
+            "type": "boolean"
+          },
+          "points": {
+            "title": "Points",
+            "type": "integer"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "recent_mean": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recent Mean"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "growth_rate",
+          "peak",
+          "last_year_lift",
+          "recent_mean",
+          "baseline_mean",
+          "max_52w",
+          "insufficient",
+          "points",
+          "provider",
+          "snapshot_id",
+          "url",
+          "fetched_at"
+        ],
+        "title": "TrendOut",
         "type": "object"
       },
       "TrialExtensionIn": {

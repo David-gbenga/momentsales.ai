@@ -164,6 +164,7 @@ class CategorySeedTerm(UUIDPk, Timestamps, Base):
     country: Mapped[str] = mapped_column(String(2), nullable=False)
     category: Mapped[str] = mapped_column(String(60), nullable=False)
     term: Mapped[str] = mapped_column(String(100), nullable=False)
+    position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)  # order in group
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     __table_args__ = (

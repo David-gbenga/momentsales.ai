@@ -182,6 +182,7 @@ def upgrade() -> None:
         sa.Column("country", sa.String(length=2), nullable=False),
         sa.Column("category", sa.String(length=60), nullable=False),
         sa.Column("term", sa.String(length=100), nullable=False),
+        sa.Column("position", sa.Integer(), nullable=False),
         sa.Column("active", sa.Boolean(), nullable=False),
         sa.Column("id", sa.UUID(), nullable=False),
         *_timestamps(),
@@ -223,14 +224,22 @@ def upgrade() -> None:
         sa.column("country", sa.String()),
         sa.column("category", sa.String()),
         sa.column("term", sa.String()),
+        sa.column("position", sa.Integer()),
         sa.column("active", sa.Boolean()),
     )
     op.bulk_insert(
         table,
         [
-            {"id": uuid.uuid4(), "country": "GB", "category": c, "term": t, "active": True}
+            {
+                "id": uuid.uuid4(),
+                "country": "GB",
+                "category": c,
+                "term": t,
+                "position": i,
+                "active": True,
+            }
             for c, terms in SEED_TERMS.items()
-            for t in terms
+            for i, t in enumerate(terms)
         ],
     )
 

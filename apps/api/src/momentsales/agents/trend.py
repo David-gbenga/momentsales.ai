@@ -47,7 +47,7 @@ async def load_seed_terms(
                 CategorySeedTerm.active,
                 CategorySeedTerm.category.in_(categories),
             )
-            .order_by(CategorySeedTerm.created_at, CategorySeedTerm.id)
+            .order_by(CategorySeedTerm.category, CategorySeedTerm.position)
         )
     ).all()
     out: dict[str, list[str]] = {}
