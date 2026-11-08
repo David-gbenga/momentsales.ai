@@ -148,3 +148,31 @@ async def test_flag_override_and_cache(client: httpx.AsyncClient) -> None:
     r = await client.get("/api/v1/flags", headers=owner.headers(str(ws)))
     body = r.json()["flags"]
     assert body["country.GB"] is True and body["module.audience_research"] is False
+
+
+async def test_storage_and_textract_use_separate_credentials() -> None:
+    """R2 storage and AWS Textract run side by side, each with its own keys and region."""
+    reg, http = await _registry(
+        _settings(
+            provider_mode=ProviderMode.LIVE,
+            provider_ocr="textract",
+            provider_ocr_secondary=None,
+            aws_region="eu-west-2",
+            aws_access_key_id="AKIA-TEXTRACT",
+            aws_secret_access_key="textract-secret",
+            storage_backend="s3",
+            s3_bucket="momentsales-prod-files",
+            s3_endpoint_url="https://account.eu.r2.cloudflarestorage.com",
+            s3_region="auto",
+            s3_access_key_id="r2-key-id",
+            s3_secret_access_key="r2-secret",
+        )
+    )
+    async with http, get_sessionmaker()() as s, s.begin():
+        storage = reg.storage()._client  # type: ignore[attr-defined]
+        assert storage.meta.region_name == "auto"
+        assert storage.meta.endpoint_url == "https://account.eu.r2.cloudflarestorage.com"
+        assert storage._request_signer._credentials.access_key == "r2-key-id"
+        textract = (await reg.ocr(s)).primary._client  # type: ignore[attr-defined]
+        assert textract.meta.region_name == "eu-west-2"
+        assert textract._request_signer._credentials.access_key == "AKIA-TEXTRACT"
