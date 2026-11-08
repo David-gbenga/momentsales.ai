@@ -1543,6 +1543,29 @@ export interface components {
             outcome: string | null;
             subscription: components["schemas"]["SubscriptionOut"];
         };
+        /** CandidateOut */
+        CandidateOut: {
+            /**
+             * Breakout
+             * @default false
+             */
+            breakout: boolean;
+            /** Category */
+            category: string;
+            /** Keyword */
+            keyword: string;
+            market?: components["schemas"]["MarketOut"] | null;
+            /** Rising From */
+            rising_from?: string | null;
+            /** Rising Value */
+            rising_value?: number | null;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "seed" | "rising" | "category" | "audience";
+            trend: components["schemas"]["TrendOut"] | null;
+        };
         /** CatalogOut */
         CatalogOut: {
             /** Addons */
@@ -1623,6 +1646,32 @@ export interface components {
             product_key?: string | null;
             /** Vendor */
             vendor?: string | null;
+        };
+        /**
+         * DemandOut
+         * @description Demand intelligence (FR-12, ADR-0019). Every number links to a source snapshot.
+         */
+        DemandOut: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Candidates */
+            candidates: components["schemas"]["CandidateOut"][];
+            /** Market Available */
+            market_available: boolean;
+            /** Mock */
+            mock: boolean;
+            /** Stopped At Cap */
+            stopped_at_cap: boolean;
+            /** Trend Available */
+            trend_available: boolean;
+            /**
+             * Window End
+             * Format: date
+             */
+            window_end: string;
         };
         /** ExportFileOut */
         ExportFileOut: {
@@ -1847,6 +1896,52 @@ export interface components {
              */
             email: string;
         };
+        /** MarketOut */
+        MarketOut: {
+            /** Competition Missing */
+            competition_missing: string[];
+            /** Competition Parts */
+            competition_parts: {
+                [key: string]: number;
+            };
+            /** Competition Score */
+            competition_score: number | null;
+            /** Currency */
+            currency: string | null;
+            /**
+             * Fetched At
+             * Format: date-time
+             */
+            fetched_at: string;
+            /** Merchants */
+            merchants: number;
+            /** Offers */
+            offers: components["schemas"]["OfferOut"][];
+            /**
+             * Offers Outside Band
+             * @default 0
+             */
+            offers_outside_band: number;
+            /** Paid Ads */
+            paid_ads: number;
+            /** Price Max Minor */
+            price_max_minor: number | null;
+            /** Price Min Minor */
+            price_min_minor: number | null;
+            /** Provider */
+            provider: string;
+            /** Shopping Ads */
+            shopping_ads: number;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Total Results */
+            total_results: number | null;
+            /** Url */
+            url: string;
+        };
         /** MeOut */
         MeOut: {
             /** Memberships */
@@ -1967,6 +2062,27 @@ export interface components {
          * @enum {string}
          */
         OcrStatus: "pending" | "done" | "failed" | "skipped";
+        /**
+         * OfferOut
+         * @description A shopping offer seen on Google: demand evidence and a purchase link only.
+         */
+        OfferOut: {
+            /** Currency */
+            currency: string | null;
+            /** Merchant */
+            merchant: string | null;
+            /** Price Minor */
+            price_minor: number | null;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string | null;
+        };
         /** OrderItemOut */
         OrderItemOut: {
             /** Description */
@@ -2323,6 +2439,7 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            demand?: components["schemas"]["DemandOut"] | null;
             /** Error */
             error: string | null;
             /** Finished At */
@@ -2831,6 +2948,39 @@ export interface components {
             manual_count: number;
             /** Manual Minutes */
             manual_minutes: number;
+        };
+        /** TrendOut */
+        TrendOut: {
+            /** Baseline Mean */
+            baseline_mean: number | null;
+            /**
+             * Fetched At
+             * Format: date-time
+             */
+            fetched_at: string;
+            /** Growth Rate */
+            growth_rate: number | null;
+            /** Insufficient */
+            insufficient: boolean;
+            /** Last Year Lift */
+            last_year_lift: number | null;
+            /** Max 52W */
+            max_52w: number | null;
+            /** Peak */
+            peak: boolean;
+            /** Points */
+            points: number;
+            /** Provider */
+            provider: string;
+            /** Recent Mean */
+            recent_mean: number | null;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
+            /** Url */
+            url: string;
         };
         /** TrialExtensionIn */
         TrialExtensionIn: {

@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 import httpx
+from pydantic import SecretStr
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,6 +26,15 @@ from momentsales.adapters.holidays.nager import NagerHolidaysAdapter
 from momentsales.adapters.identity.base import IdentityPort
 from momentsales.adapters.identity.google import GoogleIdentityAdapter
 from momentsales.adapters.identity.mock import MockIdentityAdapter
+from momentsales.adapters.market_data.base import (
+    DataType,
+    InterestResult,
+    MarketDataError,
+    MarketDataPort,
+    RelatedResult,
+    SerpOverview,
+)
+from momentsales.adapters.market_data.mock import MockMarketDataAdapter
 from momentsales.adapters.ocr.base import OcrError, OcrPort, OcrResult
 from momentsales.adapters.ocr.mock import MockOcrAdapter
 from momentsales.adapters.payments.base import PaymentsPort
@@ -42,7 +52,9 @@ log = get_logger(__name__)
 CATEGORIES: dict[str, tuple[str, ...]] = {
     "email": ("resend", "postmark"),
     "identity": ("google",),
-    "market_data": (),  # Phase 2
+    "market_data": ("dataforseo", "serpapi"),
+    # Marketplace data (eBay, Amazon): no adapters until licence terms allow (ADR-0019).
+    "marketplace": (),
     "supplier": (),  # Phase 2
     "ocr": ("claude", "textract"),
     "payments": ("stripe",),
@@ -53,6 +65,11 @@ CATEGORIES: dict[str, tuple[str, ...]] = {
 
 class ProviderConfigError(Exception):
     pass
+
+
+def _secret(value: SecretStr | None) -> str:
+    """An empty `KEY=` line in .env counts as not set."""
+    return value.get_secret_value().strip() if value else ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -111,6 +128,49 @@ class FailoverOcr:
             return await self.secondary.extract(content, mime)
 
 
+class FailoverMarketData:
+    """Primary market data, then the secondary on a retryable error (FR-15, AC-34).
+
+    Read-only data, so failover is automatic when configured. Each result names the
+    provider that actually answered, so snapshots and costs stay correct."""
+
+    def __init__(
+        self, primary: MarketDataPort, secondary: MarketDataPort | None, auto: bool
+    ) -> None:
+        self.primary = primary
+        self.secondary = secondary if auto else None
+        self.name = primary.name
+
+    def estimate_micros(self, data_type: DataType) -> int:
+        """The dearer of the two, so a failover never passes the run's cap."""
+        own = self.primary.estimate_micros(data_type)
+        return max(own, self.secondary.estimate_micros(data_type)) if self.secondary else own
+
+    async def _call(self, method: str, *args: object) -> object:
+        try:
+            return await getattr(self.primary, method)(*args)
+        except MarketDataError as exc:
+            if not (exc.retryable and self.secondary is not None):
+                raise
+            log.warning("market_data_failover", primary=self.primary.name, error=str(exc))
+            return await getattr(self.secondary, method)(*args)
+
+    async def interest_over_time(self, keywords: list[str], country: str) -> InterestResult:
+        result = await self._call("interest_over_time", keywords, country)
+        assert isinstance(result, InterestResult)
+        return result
+
+    async def related_queries(self, keyword: str, country: str) -> RelatedResult:
+        result = await self._call("related_queries", keyword, country)
+        assert isinstance(result, RelatedResult)
+        return result
+
+    async def serp_overview(self, keyword: str, country: str) -> SerpOverview:
+        result = await self._call("serp_overview", keyword, country)
+        assert isinstance(result, SerpOverview)
+        return result
+
+
 class ProviderRegistry:
     def __init__(self, settings: Settings, redis: Redis, http: httpx.AsyncClient) -> None:
         self._s = settings
@@ -143,6 +203,16 @@ class ProviderRegistry:
                 s.provider_ocr_secondary,
                 mode,
                 s.provider_ocr_failover,
+                "env",
+                CATEGORIES[category],
+            )
+        if category == "market_data":
+            return ResolvedProvider(
+                category,
+                s.provider_market_data,
+                s.provider_market_data_secondary,
+                mode,
+                s.provider_market_data_failover,
                 "env",
                 CATEGORIES[category],
             )
@@ -186,6 +256,72 @@ class ProviderRegistry:
         if resolved.mode == "mock":
             return MockHolidaysAdapter()
         return NagerHolidaysAdapter(self._http, self._s.nager_base_url)
+
+    # --- Market data (critical category: two adapters, auto failover) -----------------
+
+    def _market_costs(self, name: str) -> dict[DataType, int]:
+        s = self._s
+        if name == "dataforseo":
+            return {
+                "trends_series": s.cost_dataforseo_trends_micros,
+                "related_queries": s.cost_dataforseo_trends_micros,
+                "serp_overview": s.cost_dataforseo_serp_micros,
+            }
+        if name == "serpapi":
+            c = s.cost_serpapi_search_micros
+            return {"trends_series": c, "related_queries": c, "serp_overview": c}
+        raise ProviderConfigError(f"unknown market data provider {name!r}")
+
+    def _market_adapter(self, name: str) -> MarketDataPort:
+        s = self._s
+        costs = self._market_costs(name)
+        if name == "dataforseo":
+            if not (s.dataforseo_login and _secret(s.dataforseo_password)):
+                raise ProviderConfigError("DATAFORSEO_LOGIN / DATAFORSEO_PASSWORD are not set")
+            from momentsales.adapters.market_data.dataforseo import DataForSeoAdapter
+
+            return DataForSeoAdapter(
+                self._http,
+                s.dataforseo_login,
+                _secret(s.dataforseo_password),
+                trends_micros=costs["trends_series"],
+                serp_micros=costs["serp_overview"],
+                base_url=s.dataforseo_base_url,
+            )
+        if not _secret(s.serpapi_api_key):
+            raise ProviderConfigError("SERPAPI_API_KEY is not set")
+        from momentsales.adapters.market_data.serpapi import SerpApiAdapter
+
+        return SerpApiAdapter(
+            self._http,
+            _secret(s.serpapi_api_key),
+            search_micros=costs["serp_overview"],
+            base_url=s.serpapi_base_url,
+        )
+
+    async def market_data(self, session: AsyncSession) -> FailoverMarketData:
+        cfg = await self.resolve(session, "market_data")
+        if cfg.primary is None:
+            raise ProviderConfigError("market_data: no primary provider configured")
+        auto = cfg.failover == "auto"
+        secondary_name = cfg.secondary if cfg.secondary != cfg.primary else None
+        if cfg.mode == "mock":
+            # Mocks carry the configured names and costs so switching and failover are testable.
+            return FailoverMarketData(
+                MockMarketDataAdapter(cfg.primary, self._market_costs(cfg.primary)),
+                MockMarketDataAdapter(secondary_name, self._market_costs(secondary_name))
+                if secondary_name
+                else None,
+                auto=auto,
+            )
+        primary = self._market_adapter(cfg.primary)
+        secondary = None
+        if secondary_name:
+            try:
+                secondary = self._market_adapter(secondary_name)
+            except ProviderConfigError:
+                log.warning("market_data_secondary_unconfigured", secondary=secondary_name)
+        return FailoverMarketData(primary, secondary, auto=auto)
 
     # --- Email -------------------------------------------------------------------------
 

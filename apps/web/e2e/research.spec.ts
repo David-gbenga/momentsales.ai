@@ -9,7 +9,7 @@ async function expectNoSeriousViolations(page: Page) {
   expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
 }
 
-test("J2 (Phase 2a): season calendar on Home, then a seasonal run with live progress", async ({ page }) => {
+test("J2 (Phases 2a-2b): season calendar on Home, then a seasonal run with rising searches", async ({ page }) => {
   test.setTimeout(120_000);
   await signInWithMagicLink(page, uniqueEmail("research"));
   await createWorkspace(page, "Research Shop");
@@ -30,12 +30,27 @@ test("J2 (Phase 2a): season calendar on Home, then a seasonal run with live prog
   await expect(page.getByText("Saved.")).toBeVisible();
 
   await page.getByLabel("Look-ahead window").selectOption("8");
+  await page.getByLabel("Category (optional)").fill("gifts");
   await page.getByRole("button", { name: "Run research" }).click();
   await page.waitForURL(/\/app\/research\?run=/);
   await expect(page.getByTestId("run-status")).toHaveText("Completed", { timeout: 30_000 });
   await expect(page.getByTestId("run-steps")).toContainText("Season and retail calendar");
   await expect(page.getByTestId("season-summary")).toContainText("Now:");
   await expect(page.getByTestId("run-spend")).toContainText("of £1.00");
+
+  // Rising searches (Phase 2b, AC-25 data part): growth, competition, and a "Crowded"
+  // badge on a search already at its high (mock data, labelled as such).
+  const demand = page.getByTestId("demand-results");
+  await expect(demand.getByRole("heading", { name: "Rising searches" })).toBeVisible();
+  await expect(demand).toContainText("Mock data");
+  await expect(demand.getByTestId("demand-row").first()).toBeVisible();
+  await expect(
+    demand.locator('[data-keyword="advent calendar"]').getByTestId("badge-crowded"),
+  ).toHaveText("Crowded");
+  // Fastest growing first: the top row is rising.
+  await expect(demand.getByTestId("demand-row").first().locator("td").nth(1)).toContainText("+");
+  await expect(page.getByTestId("run-steps")).toContainText("Search trends");
+  await expect(page.getByTestId("run-steps")).toContainText("Competition");
   await expect(page.getByTestId("recent-runs").getByRole("listitem")).toHaveCount(1);
   await expectNoSeriousViolations(page);
 });

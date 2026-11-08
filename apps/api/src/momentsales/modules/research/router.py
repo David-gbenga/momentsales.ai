@@ -86,6 +86,77 @@ class StepOut(BaseModel):
     finished_at: datetime | None
 
 
+class OfferOut(BaseModel):
+    """A shopping offer seen on Google: demand evidence and a purchase link only."""
+
+    title: str
+    merchant: str | None
+    price_minor: int | None
+    currency: str | None
+    url: str | None
+    snapshot_id: uuid.UUID
+
+
+class TrendOut(BaseModel):
+    growth_rate: float | None
+    peak: bool
+    last_year_lift: float | None
+    recent_mean: float | None
+    baseline_mean: float | None
+    max_52w: int | None
+    insufficient: bool
+    points: int
+    provider: str
+    snapshot_id: uuid.UUID
+    url: str
+    fetched_at: datetime
+
+
+class MarketOut(BaseModel):
+    total_results: int | None
+    paid_ads: int
+    shopping_ads: int
+    merchants: int
+    price_min_minor: int | None
+    price_max_minor: int | None
+    currency: str | None
+    offers: list[OfferOut]
+    offers_outside_band: int = 0
+    # 0-100, lower is better; None when nothing could be measured.
+    competition_score: int | None
+    competition_parts: dict[str, float]
+    competition_missing: list[str]
+    provider: str
+    snapshot_id: uuid.UUID
+    url: str
+    fetched_at: datetime
+
+
+class CandidateOut(BaseModel):
+    keyword: str
+    # seed: a starting term for a retail moment; rising: a rising related search;
+    # category / audience: from the run form or the audience profile.
+    source: Literal["seed", "rising", "category", "audience"]
+    category: str
+    rising_from: str | None = None
+    rising_value: int | None = None
+    breakout: bool = False
+    trend: TrendOut | None  # None: not available
+    market: MarketOut | None = None  # None: not checked or not available
+
+
+class DemandOut(BaseModel):
+    """Demand intelligence (FR-12, ADR-0019). Every number links to a source snapshot."""
+
+    as_of: date
+    window_end: date
+    candidates: list[CandidateOut]
+    mock: bool
+    stopped_at_cap: bool
+    trend_available: bool
+    market_available: bool
+
+
 class RunOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -98,6 +169,7 @@ class RunOut(BaseModel):
     window_weeks: int
     as_of: datetime
     season: dict[str, Any] | None
+    demand: DemandOut | None = None
     cost_minor: int
     cost_cap_minor: int
     cost_currency: str
