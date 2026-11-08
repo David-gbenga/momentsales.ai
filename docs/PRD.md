@@ -38,12 +38,15 @@ Goals for the prototype:
 - A seller goes from sign-up to a published Top 10 listing in under 15 minutes.
 - Every recommended product shows source links, image, price range, sizes, estimated delivery and a demand score with the evidence behind it.
 - Sales flow through Stripe and are counted automatically; spends, interventions and receipts form a complete audit ledger exportable to CSV/PDF.
-- **momentsales.ai is sold as a subscription SaaS:** any seller can self-serve sign up, start a free trial, pick a plan (Starter, Growth, Pro) and pay monthly or annually through Stripe Billing (FR-10).
+- **momentsales.ai is sold as a subscription SaaS:** any seller can self-serve sign up, start a free trial, pick a plan (Lite, Starter, Growth, Pro) and pay monthly or annually through Stripe Billing (FR-10).
 - The architecture supports a later mobile app (React Native/Expo) on the same API with no backend rewrite.
 
 ### Target customer, promise and launch scope
 
-- **Target customer:** UK side-hustlers and small online shops who want to run a seasonal product line without holding stock. Not experienced Amazon sellers or large brands.
+- **Target customer (confirmed 2026-11-08, to validate with 5–10 interviews before launch):**
+  - **Primary:** existing small UK online sellers (1–5 people) already selling on Etsy, eBay, Shopify or TikTok Shop who want to add a seasonal product line without holding stock. They already have buyers, so a research run pays off sooner, and they churn less and cause fewer disputes.
+  - **Secondary:** beginners and side-hustlers, served by the Lite plan and pay-per-report.
+  - Not experienced Amazon sellers or large brands.
 - **Promise (one line, used on the landing page and in onboarding):** *Find what's about to sell, launch a shop in a weekend, and keep books your accountant will accept.*
 - **Edge over existing tools:** early and local. momentsales.ai recommends products whose demand is *rising* (not already peaking), 6–10 weeks before a retail moment, that a supplier can deliver inside the UK in 2–7 days, with a profit forecast, a marketing kit and audit-ready books in one place.
 - **Launch scope (MVP):** UK only, seasonal research only, one live dropship supplier with UK stock (a second adapter built and switchable), the native storefront with Stripe, SaaS billing and the ledger. Everything else is on the **Later roadmap** (see *Implementation constraints, deliverables and build phases*).
@@ -243,14 +246,20 @@ Email and in-app: research finished, product went stale or out of stock, sale re
 
 momentsales.ai is a **multi-tenant SaaS from day one**: any seller can sign up, start a free trial, subscribe to a plan and manage their own workspace. Subscription billing uses **Stripe Billing**, which is separate from Stripe Connect: Billing is how sellers pay momentsales.ai; Connect (FR-6) is how shoppers pay sellers.
 
-Plans (placeholder values, all stored in a `plans` config table and editable by Platform admin without a code change):
+Plans (launch values confirmed by the product owner on 2026-11-08; all stored in a `plans` config table and editable by Platform admin without a code change):
+
+| Limit or feature | Lite | Starter | Growth | Pro |
+| --- | --- | --- | --- | --- |
+| Price (monthly / annual) | £12 / £120 | £29 / £290 | £79 / £790 | £199 / £1,990 |
+| Research runs per month | 3 | 10 | 40 | 120 |
+| Live listings | 10 | 25 | 100 | Unlimited |
+| Team seats | 1 | 1 | 3 | 10 |
+| Platform fee on seller sales | 2% | 0% | 0% | 0% |
+
+The rest of this table applies to Starter, Growth and Pro; Lite is described under *Pricing and retention additions*.
 
 | Limit or feature | Starter | Growth | Pro |
 | --- | --- | --- | --- |
-| Price (monthly / annual) | £29 / £290 | £79 / £790 | £199 / £1,990 |
-| Research runs per month | 10 | 40 | 120 |
-| Live listings | 25 | 100 | Unlimited |
-| Team seats | 1 | 3 | 10 |
 | Seasonal research | Yes | Yes | Yes |
 | Audience research | No | Yes | Yes |
 | Shopify connector | No | Yes | Yes |
@@ -259,23 +268,23 @@ Plans (placeholder values, all stored in a `plans` config table and editable by 
 
 Business rules:
 
-- **Free trial:** 14 days on Growth features, capped at 3 research runs; card required at sign-up via Stripe Checkout (mode `subscription`, `trial_period_days`). Trial reminder emails at day 10 and day 13.
+- **Free trial:** 14 days on Growth features, capped at 3 research runs and 5 live listings (the caps keep a trial's cost to a few pounds); card required at sign-up via Stripe Checkout (mode `subscription`, `trial_period_days`). Trial reminder emails at day 10 and day 13.
 - **Prices:** create Stripe Products and Prices in GBP, USD, EUR and AUD; show the price in the visitor's currency on the pricing page. Annual = 10 × monthly (2 months free).
 - **Self-serve management:** upgrade, downgrade, cancel, change card and download invoices through the Stripe Customer Portal. Upgrades apply immediately with proration; downgrades and cancellations take effect at period end.
 - **Entitlements:** a single `EntitlementService` checks the workspace's plan before every limited action (start research run, publish listing, invite user, connect Shopify, start audience run). Over the limit → the API returns `402 plan_limit_reached` with the limit name, and the UI shows an upgrade prompt. Checks are server-side only.
 - **Usage metering:** count research runs and live listings per workspace per billing period in `UsageCounter`; reset on `invoice.paid` for the new period. Show usage bars on the dashboard and on the Billing page.
-- **Add-on packs:** extra research runs sold as one-off packs (placeholder: 10 runs for £15) via Stripe Checkout `mode=payment`; packs do not expire while the subscription is active.
+- **Add-on packs:** extra research runs sold as one-off packs (10 runs for £15) via Stripe Checkout `mode=payment`; packs do not expire while the subscription is active.
 - **Failed payments (dunning):** on `invoice.payment_failed`, email the Owner and show a banner; Stripe Smart Retries run for 14 days. After that, set the workspace to `past_due` → read-only (no new runs, listings stay live, storefront keeps selling). After 30 days unpaid, set `suspended` → storefront paused; data kept for 90 days, then deleted per retention rules after notice.
-- **Unit economics guard:** each plan's monthly price must exceed (included runs × run cost cap) × 3. Platform admin sees a warning if a plan breaks this rule after cost caps or prices change.
+- **Unit economics guard:** each plan's monthly price must exceed (included runs × run cost cap) × 3. The run cost cap is **£1 per research run** (provider and LLM spend combined); a run that would exceed it stops and reports partial results. Platform admin sees a warning if a plan breaks this rule after cost caps or prices change.
 - **Billing webhooks** (`customer.subscription.created/updated/deleted`, `invoice.paid`, `invoice.payment_failed`, `checkout.session.completed` for packs) are verified, stored in `WebhookEvent` and processed idempotently, like FR-6.
 - **Tax and invoices:** enable Stripe Tax for subscription invoices (UK VAT, EU VAT/OSS, AU GST, US sales tax where registered); collect business name and VAT number for B2B reverse charge. Invoices come from Stripe and are listed in the Billing page.
-- **Platform fee on seller sales** (Stripe Connect application fee) is off by default (0%) and configurable per plan by Platform admin.
+- **Platform fee on seller sales** (Stripe Connect application fee), configurable per plan by Platform admin: **0% on Starter, Growth and Pro; 2% on Lite and for pay-per-report users** (a workspace with no subscription). The fee covers Stripe Connect costs on the cheapest tiers; "no cut of your sales" is the message for the paid plans.
 - **Platform admin console:** tenants list with plan, status, MRR, trial end, usage vs limits; ability to extend a trial or apply a coupon (logged as /touch); SaaS metrics: MRR, ARR, active subscribers, trial-to-paid conversion, churn, ARPA.
 - **Public marketing site:** home, pricing (from the `plans` table), features, FAQ, SaaS terms of service, privacy policy, DPA for business customers, sign-up. Server-rendered for SEO.
 
 Pricing and retention additions (from the business-model review):
 
-- **Lite tier** (placeholder £12/month): 3 research runs, 10 live listings, 1 seat, Fulfilment queue, no marketing kit generation beyond 3 per month. Also **pay-per-report**: a single research run for £9 without a subscription (Stripe Checkout `mode=payment`).
+- **Lite tier** (£12/month, £120/year): 3 research runs, 10 live listings, 1 seat, Fulfilment queue, no marketing kit generation beyond 3 per month. Also **pay-per-report**: a single research run for £9 without a subscription (Stripe Checkout `mode=payment`).
 - **Annual push:** annual plans shown first on the pricing page with the saving in £; annual plans get 2 extra research runs per month.
 - **Until Later-roadmap features ship,** Growth and Pro differ by limits, marketing-kit volume, auto-approve of supplier orders and support, not by audience research or Shopify (those columns in the plan table activate when built).
 - **Pause instead of cancel:** Owner can pause for 1–3 months (via Stripe subscription pause); storefront paused, data kept, research disabled.
@@ -288,8 +297,9 @@ The default fulfilment model is **dropshipping**: the shopper pays the seller, m
 
 Supplier matching (new **Supplier agent** in the FR-1 pipeline, runs after the Marketplace agent):
 
-- For each candidate product, search connected supplier catalogues (CJ Dropshipping, Spocket, Zendrop, AliExpress via DSers; via official APIs only) for a matching item, using title, image similarity (embeddings) and attributes.
+- For each candidate product, search connected supplier catalogues (MVP: CJ Dropshipping filtered to its UK warehouse as the primary adapter, Avasam as the switchable second adapter; later options: Spocket, Zendrop, AliExpress via DSers; via official APIs only) for a matching item, using title, image similarity (embeddings) and attributes.
 - Prefer suppliers with a warehouse in the shopper's region (UK, EU, US, AU). Record per match: supplier, product URL, unit cost, shipping cost to each region, delivery time range, warehouse country, stock, variants/sizes, supplier rating, returns policy.
+- **Verified UK supplier rule (MVP, confirmed 2026-11-08):** only suppliers that hold stock in the UK and are verified during onboarding can be matched. Every verified supplier must offer all of these, recorded with a source and timestamp: (1) dropshipping, so it ships to the shopper under the seller's name with no minimum order; (2) automatic stock and cost updates; (3) tracked UK delivery; (4) a UK returns address and a returns policy at least as generous as the seller's 14-day cancellation policy; (5) enough margin, meaning the forecast net margin after supplier cost, shipping, Stripe fees, the platform fee and a returns allowance is at least **25% of the selling price** (configurable by Platform admin). A supplier that fails any check cannot be matched, and a product whose only matches fail is flagged "no verified supplier".
 - **No supplier match → the product is flagged "no supplier" and cannot be converted to a listing** until the seller adds a supplier manually.
 - **Season fit:** if the supplier's maximum delivery time ends after the season or retail-moment window, the product is ranked down and flagged "arrives too late".
 - Margin in FR-3 scoring is computed from supplier unit cost + supplier shipping + Stripe fees, not from retail prices.
@@ -341,7 +351,15 @@ Goal: keep sellers, shoppers, momentsales.ai's Stripe platform account and the l
 - **Per-product compliance check (Compliance agent, UK for MVP):** flags product categories that need UKCA/CE marking or safety documents (electricals, toys, cosmetics, PPE, products for children), restricted or prohibited items, trademark/counterfeit risk, and unsupported health claims. If the supplier cannot supply required documents, the product is blocked from listing. Flags and decisions are stored with the product.
 - **Import VAT awareness:** for goods shipped from outside the UK to UK consumers, show a notice in the report and listing that the seller may need to charge and account for UK VAT on low-value imports, and prefer UK-warehouse suppliers. EU sales stay *Later* until IOSS and EU product-safety ("EU responsible person") handling are built.
 - **Proactive shopper notifications:** order confirmation with the supplier-based delivery range; shipped email with tracking; automatic delay email if tracking shows no movement for 3 days; delivered email asking for feedback. This reduces "item not received" disputes.
-- **Dispute and refund monitor:** per-seller dispute rate and refund rate over 30 and 90 days on Home and in the admin console. Warn the seller at 0.5% dispute rate; at 0.75% pause new checkouts until the Platform admin reviews (thresholds configurable; set below Stripe's published limits after checking current Stripe guidance).
+- **Dispute and refund monitor:** per-seller dispute, refund and late-shipment rates over 30 and 90 days on Home and in the admin console. Thresholds (confirmed 2026-11-08, configurable by Platform admin), per seller over a rolling 30 days:
+
+  | Metric | Warn the seller | Pause new checkouts until Platform admin review |
+  | --- | --- | --- |
+  | Dispute activity (every dispute counts, won or lost) | 0.5% and at least 2 disputes | 0.75% and at least 3 disputes |
+  | Refund rate | 8% | 15% |
+  | Late-shipment rate | 10% | 20% |
+
+  The minimum counts stop one bad order at low volume from pausing a new seller. Stripe treats dispute activity above 0.75% as excessive and can start monitoring before that, so these sit at or below that line. **Platform-wide alert:** notify the Platform admin when dispute activity across all sellers reaches 0.4%, because it puts momentsales.ai's own Stripe platform account at risk.
 - **Acceptable-use policy enforcement:** no counterfeit, prohibited, unsafe or misleadingly described goods; the Compliance agent blocks, the Platform admin can suspend repeat offenders; every action logged.
 
 ### FR-15 Provider redundancy
@@ -604,11 +622,11 @@ External integrations (each behind an adapter with a mock):
 | Purpose | Provider options | Notes |
 | --- | --- | --- |
 | LLM | Anthropic Claude API | Use a smaller model for extraction, a stronger one for planning and reports |
-| Search and Google Trends | SerpAPI, DataForSEO or similar | Google has no official Trends API for this; use a licensed SERP provider |
+| Search and Google Trends | MVP: DataForSEO (primary) and SerpApi (secondary). Later: Google's official Trends API once out of alpha | Google has no official Trends API for this; use a licensed SERP provider |
 | Amazon data | Amazon's official affiliate product API (check current program and eligibility) or a licensed provider (Keepa, Rainforest-type) | No direct scraping |
 | eBay | eBay Browse API | Official |
 | Shein, Temu, others | Licensed data provider or manual links only | No scraping |
-| Suppliers | Dropship: CJ Dropshipping, Spocket, Zendrop, AliExpress via DSers (official APIs). Later: Printful/Printify (print on demand), ShipBob or Amazon MCF (own stock) | Cost, stock, variants, warehouse location, shipping times, order placement, tracking |
+| Suppliers | Dropship, MVP: CJ Dropshipping (UK warehouse only, primary) and Avasam (UK suppliers, secondary). Later: Spocket, Zendrop, AliExpress via DSers (official APIs). Later: Printful/Printify (print on demand), ShipBob or Amazon MCF (own stock) | Cost, stock, variants, warehouse location, shipping times, order placement, tracking |
 | Weather/season | Open-Meteo or similar; public-holiday API (e.g. Nager.Date) | Free tiers available |
 | Social | Meta Graph API (owned IG/FB business accounts), YouTube Data API, TikTok official APIs where access granted | Seller-owned or consented data only |
 | Payments | Stripe Connect (seller sales), Stripe Billing + Customer Portal (SaaS subscriptions), Checkout, Webhooks, Stripe Tax | Test mode by default |
@@ -793,11 +811,16 @@ Build phases (each ends with tests green and a demo):
 - **L6 Native mobile app** (React Native/Expo) on the same API.
 - **L7 Referral programme and white-label custom domains.**
 
-Open questions to confirm with the product owner before Phase 2:
+Product-owner decisions (2026-11-08):
 
-- Confirm the target customer (UK side-hustlers and small online shops) after landing-page and interview feedback.
-- Which two market-data providers and two UK-stock dropship suppliers to integrate first, and their budgets?
-- Final plan prices, limits, trial length and pay-per-report price (FR-10 values are placeholders).
-- Dispute and refund warning/pause thresholds, checked against Stripe's current guidance.
-- Platform fee on Stripe Connect sales: keep at 0%, or charge a percentage on some plans?
-- Which legal entity momentsales.ai bills from (UK company assumed; sets VAT registration and Stripe account country)?
+- **Target customer:** existing small UK online sellers (primary) and beginners on Lite or pay-per-report (secondary); see *Target customer, promise and launch scope*. Validate with 5–10 interviews before launch.
+- **Prices, limits and trial:** see FR-10 (Lite £12, Starter £29, Growth £79, Pro £199; annual = 10 × monthly; pay-per-report £9; run pack 10 runs for £15; 14-day card-required trial on Growth features capped at 3 runs and 5 listings; run cost cap £1).
+- **Dispute, refund and late-shipment thresholds:** see FR-14.
+- **Platform fee:** 0% on Starter, Growth and Pro; 2% on Lite and pay-per-report (FR-10).
+- **Billing entity:** a UK private limited company with a UK business bank account and a UK Stripe account. VAT registration waits until turnover nears the £90,000 threshold; prices are set as if VAT-inclusive, so registering later does not force a price rise. Pay the ICO data protection fee before launch. Confirm the company setup and VAT timing with an accountant.
+- **Market data provider 1 (main):** DataForSEO (pay-as-you-go, $50 minimum deposit; Google Trends about $0.0027 per standard task and $0.011 live, up to 5 keywords per task). Budget: cap about £40/month.
+- **Market data provider 2 (switchable, FR-15):** SerpApi (Google Trends and other engines from one monthly search pool; free tier for development, then about $25/month for 1,000 searches; unused searches do not roll over). Chosen because it runs on infrastructure separate from DataForSEO. Confirm current pricing at serpapi.com/pricing in its integration note. Also apply for Google's official Trends API alpha; keep the trends port provider-neutral so it can be added later without a rewrite.
+- **Dropship suppliers (FR-11, FR-15):** supplier 1 (primary) is **CJ Dropshipping, UK warehouse stock only**; supplier 2 (switchable by config) is **Avasam** (UK-only suppliers). Both must pass the *Verified UK supplier rule*. Budget: no platform fee assumed (£0) plus product costs; confirm each platform's current pricing in its integration note.
+- **Minimum net margin:** 25% of the selling price, after supplier cost, shipping, Stripe fees, the platform fee and a returns allowance (FR-11).
+
+All open questions for Phase 2 are answered.
