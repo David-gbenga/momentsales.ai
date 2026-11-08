@@ -221,12 +221,12 @@ SERP_TRENDS = {
     "interest_over_time": {
         "timeline_data": [
             {
-                "date": "Oct 25 – 31, 2026",
+                "date": "Oct 25 - 31, 2026",
                 "timestamp": "1792886400",
                 "values": [{"query": "heated throw", "value": "40", "extracted_value": 40}],
             },
             {
-                "date": "Nov 1 – 7, 2026",
+                "date": "Nov 1 - 7, 2026",
                 "timestamp": "1793491200",
                 "partial_data": True,
                 "values": [{"query": "heated throw", "value": "60", "extracted_value": 60}],
