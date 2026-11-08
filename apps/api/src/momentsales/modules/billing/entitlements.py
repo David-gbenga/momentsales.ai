@@ -270,10 +270,12 @@ async def refund_run(session: AsyncSession, workspace_id: uuid.UUID, key: str) -
 
 
 async def platform_fee_bps(session: AsyncSession, workspace_id: uuid.UUID) -> int:
-    """The platform fee rate on seller sales (ADR-0017): the plan's rate while trialing
-    (the trial plan) or active, otherwise the no-plan rate (pay-per-report)."""
+    """The platform fee rate on seller sales (ADR-0017): the plan's rate for any current
+    subscriber (trialing, active, or past due, paused or suspended, so a failed card
+    retry never raises a paying seller's fee), otherwise the no-plan rate
+    (pay-per-report, cancelled or never subscribed)."""
     state = await plan_state(session, workspace_id)
-    if state.status in FULL_ACCESS and state.plan is not None:
+    if state.status in FULL_ACCESS | READ_ONLY and state.plan is not None:
         return state.plan.platform_fee_bps
     return get_settings().platform_fee_bps_no_plan
 

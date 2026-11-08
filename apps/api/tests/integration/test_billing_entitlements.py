@@ -211,7 +211,11 @@ async def _fee_bps(ws: uuid.UUID) -> int:
         ("pro", "active", 0),
         ("growth", "trialing", 0),
         (None, "active", 200),  # pay-per-report: no subscription
-        ("starter", "past_due", 200),  # no active plan
+        ("starter", "past_due", 0),  # a failed card retry keeps the plan's rate
+        ("pro", "paused", 0),
+        ("lite", "suspended", 200),
+        ("growth", "canceled", 200),  # no longer subscribed: pay-per-report rate
+        ("growth", "incomplete", 200),
     ],
 )
 async def test_platform_fee_rate(
