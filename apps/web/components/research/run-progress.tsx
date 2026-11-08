@@ -3,11 +3,12 @@
 import { formatMoney } from "@momentsales/shared";
 import { useTranslations } from "next-intl";
 
+import { DemandResults } from "@/components/research/demand-results";
 import { Badge, Card, Notice } from "@/components/ui/primitives";
 import { DataTable, Td } from "@/components/ui/table";
 import { formatDay, seasonOf, TERMINAL, useRun, type Run } from "@/lib/research";
 
-const KNOWN_AGENTS = new Set(["season"]);
+const KNOWN_AGENTS = new Set(["season", "trend", "marketplace"]);
 
 /** One run: live status and steps, spend against the cap, then the season results. */
 export function RunProgress({ runId }: { runId: string }) {
@@ -37,6 +38,7 @@ export function RunProgress({ runId }: { runId: string }) {
         </Notice>
       ) : null}
       <SeasonResults run={run} />
+      <DemandResults run={run} />
       {TERMINAL.has(run.status) && run.status !== "failed" ? <Notice>{t("reportSoon")}</Notice> : null}
     </section>
   );

@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 
-import { formatDay, seasonOf, TERMINAL, type Run } from "@/lib/research";
+import {
+  demandOf,
+  formatDay,
+  formatGrowth,
+  isStale,
+  measured,
+  seasonOf,
+  STALE_AFTER_MS,
+  TERMINAL,
+  type Demand,
+  type Run,
+} from "@/lib/research";
 
 describe("research helpers", () => {
   it("formats ISO days in UK style without shifting the date", () => {
@@ -17,5 +28,34 @@ describe("research helpers", () => {
 
   it("treats completed, partial and failed runs as finished", () => {
     expect([...TERMINAL].sort()).toEqual(["completed", "failed", "partial"]);
+  });
+
+  it("formats growth with a sign, and null as not available", () => {
+    expect(formatGrowth(0.6585)).toBe("+66%");
+    expect(formatGrowth(-0.124)).toBe("−12%");
+    expect(formatGrowth(0.001)).toBe("0%");
+    expect(formatGrowth(null)).toBeNull();
+    expect(formatGrowth(Number.NaN)).toBeNull();
+  });
+
+  it("marks data older than 24 hours as stale", () => {
+    const now = Date.parse("2026-11-08T12:00:00Z");
+    expect(isStale(new Date(now - STALE_AFTER_MS + 1000).toISOString(), now)).toBe(false);
+    expect(isStale(new Date(now - STALE_AFTER_MS - 1000).toISOString(), now)).toBe(true);
+    expect(isStale("not a date", now)).toBe(false);
+  });
+
+  it("shows only searches with enough data", () => {
+    expect(demandOf(undefined)).toBeNull();
+    const trend = (insufficient: boolean) => ({ insufficient, growth_rate: 0.1, peak: false });
+    const demand = {
+      candidates: [
+        { keyword: "a", trend: trend(false) },
+        { keyword: "b", trend: trend(true) },
+        { keyword: "c", trend: null },
+      ],
+    } as unknown as Demand;
+    expect(measured(demand).map((c) => c.keyword)).toEqual(["a"]);
+    expect(measured(null)).toEqual([]);
   });
 });

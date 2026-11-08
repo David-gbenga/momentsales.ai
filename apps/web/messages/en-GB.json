@@ -556,7 +556,9 @@
       "failed": "Failed"
     },
     "agents": {
-      "season": "Season and retail calendar"
+      "season": "Season and retail calendar",
+      "trend": "Search trends",
+      "marketplace": "Competition"
     },
     "progress": "Progress",
     "spend": "Spent {spent} of {cap}",
@@ -583,7 +585,28 @@
     "holidaysNone": "None in this window.",
     "notAvailable": "Not available",
     "source": "Source: {provider}, fetched {when}",
-    "reportSoon": "Product research and the Top 10 report are being added next. This run shows the season and retail calendar."
+    "reportSoon": "Supplier matching, scoring and the Top 10 report are being added next. This run shows the season, rising searches and competition.",
+    "demand": {
+      "title": "Rising searches",
+      "intro": "UK Google searches for the moments in your window, ranked by how fast interest is growing.",
+      "caption": "Rising searches, fastest growing first",
+      "search": "Search",
+      "growth": "Growth (last 3 weeks)",
+      "competition": "Competition",
+      "prices": "Prices seen",
+      "source": "Source",
+      "crowded": "Crowded",
+      "risingSearch": "Rising search",
+      "score": "{score}/100",
+      "ads": "{ads} ads, {sellers} sellers",
+      "notAvailable": "Not available",
+      "from": "{provider}, {when}",
+      "stale": "Stale",
+      "mock": "Mock data: these numbers are made up for testing. Live market data is switched on once the providers confirm their terms.",
+      "unavailable": "Search trends were not available for this run.",
+      "unmeasured": "{count, plural, one {# more search had} other {# more searches had}} too little data to measure.",
+      "method": "Growth compares the last 3 weeks with the 6 weeks before. \"Crowded\" means interest is already near its 12-month high. Competition is 0–100 (lower is better), from Google ads, shopping sellers and price spread. Prices are what shoppers see on Google, not supplier costs."
+    }
   },
   "audience": {
     "title": "Describe your audience (optional)",

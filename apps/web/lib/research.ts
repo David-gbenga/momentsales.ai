@@ -16,6 +16,8 @@ export type Calendar = S["CalendarOut"];
 export type Moment = S["MomentOut"];
 export type Audience = S["AudienceOut"];
 export type AudienceIn = S["AudienceIn"];
+export type Demand = S["DemandOut"];
+export type Candidate = S["CandidateOut"];
 
 export const TERMINAL: ReadonlySet<Run["status"]> = new Set(["completed", "partial", "failed"]);
 export const SEASONS = ["spring", "summer", "autumn", "winter"] as const;
@@ -37,6 +39,31 @@ export interface SeasonResult {
 
 export function seasonOf(run: Run | undefined): SeasonResult | null {
   return (run?.season as SeasonResult | null | undefined) ?? null;
+}
+
+/** Data older than this gets a "stale" badge (FR-1). */
+export const STALE_AFTER_MS = 24 * 60 * 60 * 1000;
+
+export function demandOf(run: Run | undefined): Demand | null {
+  return run?.demand ?? null;
+}
+
+/** 0.66 -> "+66%", -0.12 -> "−12%", null -> null (shown as "not available"). */
+export function formatGrowth(rate: number | null | undefined): string | null {
+  if (rate === null || rate === undefined || !Number.isFinite(rate)) return null;
+  const pct = Math.round(rate * 100);
+  if (pct === 0) return "0%";
+  return pct > 0 ? `+${pct}%` : `−${Math.abs(pct)}%`;
+}
+
+export function isStale(fetchedAt: string, now: number = Date.now()): boolean {
+  const t = Date.parse(fetchedAt);
+  return Number.isFinite(t) && now - t > STALE_AFTER_MS;
+}
+
+/** Candidates with enough search data to show, in the Trend agent's order. */
+export function measured(demand: Demand | null): Candidate[] {
+  return (demand?.candidates ?? []).filter((c) => c.trend && !c.trend.insufficient);
 }
 
 export function useRuns() {

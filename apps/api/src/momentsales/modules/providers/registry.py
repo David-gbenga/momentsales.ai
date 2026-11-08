@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass
 from typing import Literal
 
 import httpx
+from pydantic import SecretStr
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -64,6 +65,11 @@ CATEGORIES: dict[str, tuple[str, ...]] = {
 
 class ProviderConfigError(Exception):
     pass
+
+
+def _secret(value: SecretStr | None) -> str:
+    """An empty `KEY=` line in .env counts as not set."""
+    return value.get_secret_value().strip() if value else ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -270,25 +276,25 @@ class ProviderRegistry:
         s = self._s
         costs = self._market_costs(name)
         if name == "dataforseo":
-            if not (s.dataforseo_login and s.dataforseo_password):
+            if not (s.dataforseo_login and _secret(s.dataforseo_password)):
                 raise ProviderConfigError("DATAFORSEO_LOGIN / DATAFORSEO_PASSWORD are not set")
             from momentsales.adapters.market_data.dataforseo import DataForSeoAdapter
 
             return DataForSeoAdapter(
                 self._http,
                 s.dataforseo_login,
-                s.dataforseo_password.get_secret_value(),
+                _secret(s.dataforseo_password),
                 trends_micros=costs["trends_series"],
                 serp_micros=costs["serp_overview"],
                 base_url=s.dataforseo_base_url,
             )
-        if not s.serpapi_api_key:
+        if not _secret(s.serpapi_api_key):
             raise ProviderConfigError("SERPAPI_API_KEY is not set")
         from momentsales.adapters.market_data.serpapi import SerpApiAdapter
 
         return SerpApiAdapter(
             self._http,
-            s.serpapi_api_key.get_secret_value(),
+            _secret(s.serpapi_api_key),
             search_micros=costs["serp_overview"],
             base_url=s.serpapi_base_url,
         )
