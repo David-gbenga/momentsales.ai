@@ -297,4 +297,6 @@ class AuditLog(UUIDPk, Base):
 
 
 # Register Phase 1 tables (kept in their own module; imported last to avoid a cycle).
+# Phase 1B SaaS billing tables (db/billing.py).
+from momentsales.db import billing as billing  # noqa: E402
 from momentsales.db import ledger as ledger  # noqa: E402
