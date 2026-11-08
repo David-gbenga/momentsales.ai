@@ -181,3 +181,47 @@ async def test_seat_limit_on_invite(client: httpx.AsyncClient) -> None:
         await set_tenant_context(s, workspace_id=ws)
         usage = await ent.PlanPolicy().usage(s, ws, Limit.LIVE_LISTINGS)
     assert (usage.used, usage.allowed) == (0, 25)
+
+
+async def _listing_allowance(ws: uuid.UUID) -> int | None:
+    async with get_sessionmaker()() as s, s.begin():
+        await set_tenant_context(s, workspace_id=ws)
+        return (await ent.PlanPolicy().usage(s, ws, Limit.LIVE_LISTINGS)).allowed
+
+
+async def test_trial_is_capped_at_five_live_listings(client: httpx.AsyncClient) -> None:
+    ws, _ = await _ws(client, plan="growth", status="trialing")
+    assert await _listing_allowance(ws) == 5
+    await set_subscription(ws, plan="growth", status="active")
+    assert await _listing_allowance(ws) == 100
+
+
+async def _fee_bps(ws: uuid.UUID) -> int:
+    async with get_sessionmaker()() as s, s.begin():
+        await set_tenant_context(s, workspace_id=ws)
+        return await ent.platform_fee_bps(s, ws)
+
+
+@pytest.mark.parametrize(
+    ("plan", "status", "bps"),
+    [
+        ("lite", "active", 200),
+        ("starter", "active", 0),
+        ("growth", "active", 0),
+        ("pro", "active", 0),
+        ("growth", "trialing", 0),
+        (None, "active", 200),  # pay-per-report: no subscription
+        ("starter", "past_due", 200),  # no active plan
+    ],
+)
+async def test_platform_fee_rate(
+    client: httpx.AsyncClient, plan: str | None, status: str, bps: int
+) -> None:
+    ws, _ = await _ws(client, plan=plan, status=status)
+    assert await _fee_bps(ws) == bps
+
+
+def test_platform_fee_rounds_down() -> None:
+    assert ent.platform_fee_minor(2500, 200) == 50
+    assert ent.platform_fee_minor(1249, 200) == 24  # 24.98p -> 24p, never over-charged
+    assert ent.platform_fee_minor(2500, 0) == 0

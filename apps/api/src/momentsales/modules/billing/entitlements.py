@@ -269,6 +269,20 @@ async def refund_run(session: AsyncSession, workspace_id: uuid.UUID, key: str) -
     return True
 
 
+async def platform_fee_bps(session: AsyncSession, workspace_id: uuid.UUID) -> int:
+    """The platform fee rate on seller sales (ADR-0017): the plan's rate while trialing
+    (the trial plan) or active, otherwise the no-plan rate (pay-per-report)."""
+    state = await plan_state(session, workspace_id)
+    if state.status in FULL_ACCESS and state.plan is not None:
+        return state.plan.platform_fee_bps
+    return get_settings().platform_fee_bps_no_plan
+
+
+def platform_fee_minor(gross_minor: int, bps: int) -> int:
+    """Rounded down, so a seller is never over-charged."""
+    return max(gross_minor, 0) * bps // 10_000
+
+
 async def seats_used(session: AsyncSession, workspace_id: uuid.UUID) -> int:
     members = await session.scalar(
         select(func.count())
@@ -305,8 +319,10 @@ class PlanPolicy:
             return Usage(used=used, allowed=allowed)
         if limit is Limit.LIVE_LISTINGS:
             # Listings arrive in Phase 3; the count starts at 0 until then.
-            allowed = plan.live_listings if plan and state.status in FULL_ACCESS else 0
-            return Usage(used=0, allowed=allowed)
+            if state.status is SubscriptionStatus.TRIALING:
+                return Usage(used=0, allowed=get_settings().trial_live_listings)
+            listings = plan.live_listings if plan and state.status in FULL_ACCESS else 0
+            return Usage(used=0, allowed=listings)
         usage = await run_usage(session, workspace_id)
         allowed_total = (
             None

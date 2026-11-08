@@ -200,6 +200,15 @@ class Order(UUIDPk, Timestamps, Base):
     tax_minor: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     fees_minor: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
     refunded_minor: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0)
+    # Platform fee (ADR-0017): part of fees_minor, from Stripe's fee_details; refunded in
+    # proportion to refunds through the application fee `platform_fee_id`.
+    platform_fee_minor: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default="0"
+    )
+    platform_fee_refunded_minor: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default="0"
+    )
+    platform_fee_id: Mapped[str | None] = mapped_column(String(100))
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     charge_id: Mapped[str | None] = mapped_column(String(100))
     created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
@@ -209,6 +218,11 @@ class Order(UUIDPk, Timestamps, Base):
         UniqueConstraint("workspace_id", "channel", "external_id"),
         CheckConstraint("gross_minor >= 0", name="gross_non_negative"),
         CheckConstraint("refunded_minor >= 0", name="refunded_non_negative"),
+        CheckConstraint(
+            "platform_fee_minor >= 0 AND platform_fee_refunded_minor BETWEEN 0 AND "
+            "platform_fee_minor",
+            name="platform_fee_refund_range",
+        ),
         Index("ix_orders_workspace_paid_at", "workspace_id", "paid_at"),
     )
 
@@ -245,8 +259,16 @@ class CheckoutSession(UUIDPk, Timestamps, Base):
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     items: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False)
     url: Mapped[str | None] = mapped_column(Text)
+    # Platform fee requested at checkout (ADR-0017); the ledger uses Stripe's figure.
+    application_fee_minor: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default="0"
+    )
     order_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("orders.id"))
     created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+
+    __table_args__ = (
+        CheckConstraint("application_fee_minor >= 0", name="application_fee_non_negative"),
+    )
 
 
 # --- Ledger ------------------------------------------------------------------------------
