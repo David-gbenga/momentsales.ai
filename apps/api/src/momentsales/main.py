@@ -30,6 +30,7 @@ from momentsales.modules.providers.registry import ProviderRegistry
 from momentsales.modules.providers.router import router as providers_router
 from momentsales.modules.receipts.router import files_router
 from momentsales.modules.receipts.router import router as receipts_router
+from momentsales.modules.research.router import router as research_router
 from momentsales.modules.waitlist.router import router as waitlist_router
 from momentsales.modules.workspaces.router import router as workspaces_router
 
@@ -50,6 +51,7 @@ ROUTERS: tuple[APIRouter, ...] = (
     exports_router,
     billing_router,
     billing_admin_router,
+    research_router,
 )
 log = get_logger(__name__)
 

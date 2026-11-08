@@ -93,6 +93,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/audience-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Audience Profile */
+        get: operations["get_audience_profile_api_v1_audience_profile_get"];
+        /**
+         * Put Audience Profile
+         * @description Save the optional 'describe your audience' preferences used by seasonal runs.
+         */
+        put: operations["put_audience_profile_api_v1_audience_profile_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/2fa/challenge": {
         parameters: {
             query?: never;
@@ -978,6 +999,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/research-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Research Runs */
+        get: operations["list_research_runs_api_v1_research_runs_get"];
+        put?: never;
+        /**
+         * Create Research Run
+         * @description Start a research run. Spends one research run (402 plan_limit_reached when none are
+         *     left); a run that fails before spending anything on providers gives it back.
+         */
+        post: operations["create_research_run_api_v1_research_runs_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research-runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Research Run */
+        get: operations["get_research_run_api_v1_research_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/research-runs/{run_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Research Run Events
+         * @description Server-Sent Events: a `run` event with the whole run (status, steps, spend) whenever
+         *     it changes, then `end` once it finishes. Clients may poll GET /research-runs/{id}.
+         */
+        get: operations["research_run_events_api_v1_research_runs__run_id__events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sales": {
         parameters: {
             query?: never;
@@ -1024,6 +1105,26 @@ export interface paths {
         };
         /** Sales Summary */
         get: operations["sales_summary_api_v1_sales_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/season-calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Season Calendar
+         * @description The next three retail moments for the workspace's country, with act-by dates.
+         */
+        get: operations["get_season_calendar_api_v1_season_calendar_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1350,6 +1451,37 @@ export interface components {
             stripe_price_id: string | null;
         };
         /**
+         * AudienceIn
+         * @description Preferences only (FR-12): no names, emails or other personal data.
+         */
+        AudienceIn: {
+            /** Age Range */
+            age_range?: ("18-24" | "25-34" | "35-44" | "45-54" | "55-64" | "65+") | null;
+            /** Budget Band */
+            budget_band?: ("budget" | "mid" | "premium") | null;
+            /** Gender Focus */
+            gender_focus?: ("any" | "women" | "men") | null;
+            /** Interests */
+            interests?: string[];
+            /** Style */
+            style?: string | null;
+        };
+        /** AudienceOut */
+        AudienceOut: {
+            /** Age Range */
+            age_range?: ("18-24" | "25-34" | "35-44" | "45-54" | "55-64" | "65+") | null;
+            /** Budget Band */
+            budget_band?: ("budget" | "mid" | "premium") | null;
+            /** Gender Focus */
+            gender_focus?: ("any" | "women" | "men") | null;
+            /** Interests */
+            interests?: string[];
+            /** Style */
+            style?: string | null;
+            /** Updated At */
+            updated_at?: string | null;
+        };
+        /**
          * BillingInterval
          * @enum {string}
          */
@@ -1368,6 +1500,25 @@ export interface components {
         Body_upload_receipt_api_v1_receipts_post: {
             /** File */
             file: string;
+        };
+        /** CalendarOut */
+        CalendarOut: {
+            /**
+             * As Of
+             * Format: date
+             */
+            as_of: string;
+            /** Country */
+            country: string;
+            /** Delivery Days */
+            delivery_days: number;
+            /**
+             * Delivery Source
+             * @enum {string}
+             */
+            delivery_source: "assumed" | "supplier";
+            /** Moments */
+            moments: components["schemas"]["MomentOut"][];
         };
         /** CancelSurveyIn */
         CancelSurveyIn: {
@@ -1757,6 +1908,29 @@ export interface components {
              */
             status: "mfa_required";
         };
+        /** MomentOut */
+        MomentOut: {
+            /**
+             * Act By
+             * Format: date
+             */
+            act_by: string;
+            /** Act By Passed */
+            act_by_passed: boolean;
+            /** Category Hints */
+            category_hints: string[];
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Days Away */
+            days_away: number;
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+        };
         /** MyWorkspaceOut */
         MyWorkspaceOut: {
             /** Base Currency */
@@ -1979,6 +2153,19 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** PriceBand */
+        PriceBand: {
+            /**
+             * Currency
+             * @default GBP
+             * @constant
+             */
+            currency: "GBP";
+            /** Max Minor */
+            max_minor: number;
+            /** Min Minor */
+            min_minor: number;
+        };
         /** PriceIn */
         PriceIn: {
             /** Amount Minor */
@@ -2082,6 +2269,102 @@ export interface components {
         RoleChangeIn: {
             role: components["schemas"]["Role"];
         };
+        /** RunCreate */
+        RunCreate: {
+            /** As Of */
+            as_of?: string | null;
+            /** Audience Source Ids */
+            audience_source_ids?: string[];
+            /** Category */
+            category?: string | null;
+            /** Cost Cap Minor */
+            cost_cap_minor?: number | null;
+            /** Country */
+            country: string;
+            /** @default seasonal */
+            mode: components["schemas"]["RunMode"];
+            price_band?: components["schemas"]["PriceBand"] | null;
+            /** Region */
+            region?: string | null;
+            season_override?: components["schemas"]["Season"] | null;
+            /**
+             * Use Audience Profile
+             * @default true
+             */
+            use_audience_profile: boolean;
+            /**
+             * Window Weeks
+             * @default 8
+             */
+            window_weeks: number;
+        };
+        /**
+         * RunMode
+         * @enum {string}
+         */
+        RunMode: "seasonal" | "audience";
+        /** RunOut */
+        RunOut: {
+            /**
+             * As Of
+             * Format: date-time
+             */
+            as_of: string;
+            /** Cost Cap Minor */
+            cost_cap_minor: number;
+            /** Cost Currency */
+            cost_currency: string;
+            /** Cost Minor */
+            cost_minor: number;
+            /** Country */
+            country: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            mode: components["schemas"]["RunMode"];
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** Region */
+            region: string | null;
+            /** Run Refunded */
+            run_refunded: boolean;
+            /** Season */
+            season: {
+                [key: string]: unknown;
+            } | null;
+            /** Started At */
+            started_at: string | null;
+            status: components["schemas"]["RunStatus"];
+            /** Steps */
+            steps?: components["schemas"]["StepOut"][];
+            /** Window Weeks */
+            window_weeks: number;
+        };
+        /** RunPage */
+        RunPage: {
+            /** Items */
+            items: components["schemas"]["RunOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * RunStatus
+         * @enum {string}
+         */
+        RunStatus: "queued" | "running" | "completed" | "partial" | "failed";
         /** RunsOut */
         RunsOut: {
             /** Allowed */
@@ -2178,6 +2461,11 @@ export interface components {
             start: string;
             totals: components["schemas"]["SalesBucket"];
         };
+        /**
+         * Season
+         * @enum {string}
+         */
+        Season: "spring" | "summer" | "autumn" | "winter";
         /** SessionOut */
         SessionOut: {
             /** Access Token */
@@ -2321,6 +2609,34 @@ export interface components {
              */
             status: "check_your_email" | "confirmed" | "unsubscribed";
         };
+        /** StepOut */
+        StepOut: {
+            /** Agent */
+            agent: string;
+            /** Cost Minor */
+            cost_minor: number;
+            /** Duration Ms */
+            duration_ms: number | null;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Position */
+            position: number;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            status: components["schemas"]["StepStatus"];
+            /** Summary */
+            summary: string | null;
+        };
+        /**
+         * StepStatus
+         * @enum {string}
+         */
+        StepStatus: "running" | "completed" | "degraded" | "failed";
         /** StripeStatusOut */
         StripeStatusOut: {
             /** Account Id */
@@ -2812,6 +3128,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TrialExtensionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_audience_profile_api_v1_audience_profile_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AudienceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    put_audience_profile_api_v1_audience_profile_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AudienceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AudienceOut"];
                 };
             };
             /** @description Validation Error */
@@ -4538,6 +4922,146 @@ export interface operations {
             };
         };
     };
+    list_research_runs_api_v1_research_runs_get: {
+        parameters: {
+            query?: {
+                cursor?: string | null;
+                limit?: number;
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_research_run_api_v1_research_runs_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "idempotency-key"?: string | null;
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RunCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_research_run_api_v1_research_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    research_run_events_api_v1_research_runs__run_id__events_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     record_sale_api_v1_sales_post: {
         parameters: {
             query?: never;
@@ -4635,6 +5159,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SalesSummaryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_season_calendar_api_v1_season_calendar_get: {
+        parameters: {
+            query?: {
+                as_of?: string | null;
+            };
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarOut"];
                 };
             };
             /** @description Validation Error */

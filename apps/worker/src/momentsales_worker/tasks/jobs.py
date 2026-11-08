@@ -45,8 +45,9 @@ def run(name: str, payload: dict[str, Any]) -> None:
 @app.task(name="momentsales_worker.tasks.jobs.sweep")
 def sweep() -> dict[str, int]:
     from momentsales.modules.payments.jobs import sweep as do_sweep
+    from momentsales.modules.research.jobs import sweep as do_research_sweep
 
-    counts = _run(do_sweep)
+    counts = {**_run(do_sweep), **_run(do_research_sweep)}
     if any(counts.values()):
         log.info("sweep_requeued", **counts)
     return counts

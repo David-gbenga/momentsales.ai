@@ -216,6 +216,177 @@
         "title": "AdminPriceOut",
         "type": "object"
       },
+      "AudienceIn": {
+        "description": "Preferences only (FR-12): no names, emails or other personal data.",
+        "properties": {
+          "age_range": {
+            "anyOf": [
+              {
+                "enum": [
+                  "18-24",
+                  "25-34",
+                  "35-44",
+                  "45-54",
+                  "55-64",
+                  "65+"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Range"
+          },
+          "budget_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "budget",
+                  "mid",
+                  "premium"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Band"
+          },
+          "gender_focus": {
+            "anyOf": [
+              {
+                "enum": [
+                  "any",
+                  "women",
+                  "men"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender Focus"
+          },
+          "interests": {
+            "items": {
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Interests",
+            "type": "array"
+          },
+          "style": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style"
+          }
+        },
+        "title": "AudienceIn",
+        "type": "object"
+      },
+      "AudienceOut": {
+        "properties": {
+          "age_range": {
+            "anyOf": [
+              {
+                "enum": [
+                  "18-24",
+                  "25-34",
+                  "35-44",
+                  "45-54",
+                  "55-64",
+                  "65+"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Range"
+          },
+          "budget_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "budget",
+                  "mid",
+                  "premium"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Band"
+          },
+          "gender_focus": {
+            "anyOf": [
+              {
+                "enum": [
+                  "any",
+                  "women",
+                  "men"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender Focus"
+          },
+          "interests": {
+            "items": {
+              "maxLength": 40,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Interests",
+            "type": "array"
+          },
+          "style": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "title": "AudienceOut",
+        "type": "object"
+      },
       "BillingInterval": {
         "enum": [
           "month",
@@ -264,6 +435,47 @@
           "file"
         ],
         "title": "Body_upload_receipt_api_v1_receipts_post",
+        "type": "object"
+      },
+      "CalendarOut": {
+        "properties": {
+          "as_of": {
+            "format": "date",
+            "title": "As Of",
+            "type": "string"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "delivery_days": {
+            "title": "Delivery Days",
+            "type": "integer"
+          },
+          "delivery_source": {
+            "enum": [
+              "assumed",
+              "supplier"
+            ],
+            "title": "Delivery Source",
+            "type": "string"
+          },
+          "moments": {
+            "items": {
+              "$ref": "#/components/schemas/MomentOut"
+            },
+            "title": "Moments",
+            "type": "array"
+          }
+        },
+        "required": [
+          "country",
+          "as_of",
+          "delivery_days",
+          "delivery_source",
+          "moments"
+        ],
+        "title": "CalendarOut",
         "type": "object"
       },
       "CancelSurveyIn": {
@@ -1238,6 +1450,54 @@
         "title": "MfaRequiredOut",
         "type": "object"
       },
+      "MomentOut": {
+        "properties": {
+          "act_by": {
+            "format": "date",
+            "title": "Act By",
+            "type": "string"
+          },
+          "act_by_passed": {
+            "title": "Act By Passed",
+            "type": "boolean"
+          },
+          "category_hints": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Category Hints",
+            "type": "array"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "days_away": {
+            "title": "Days Away",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "date",
+          "days_away",
+          "act_by",
+          "act_by_passed",
+          "category_hints"
+        ],
+        "title": "MomentOut",
+        "type": "object"
+      },
       "MyWorkspaceOut": {
         "properties": {
           "base_currency": {
@@ -1906,6 +2166,32 @@
         "title": "PreviewOut",
         "type": "object"
       },
+      "PriceBand": {
+        "properties": {
+          "currency": {
+            "const": "GBP",
+            "default": "GBP",
+            "title": "Currency",
+            "type": "string"
+          },
+          "max_minor": {
+            "minimum": 0.0,
+            "title": "Max Minor",
+            "type": "integer"
+          },
+          "min_minor": {
+            "minimum": 0.0,
+            "title": "Min Minor",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "min_minor",
+          "max_minor"
+        ],
+        "title": "PriceBand",
+        "type": "object"
+      },
       "PriceIn": {
         "properties": {
           "amount_minor": {
@@ -2219,6 +2505,300 @@
         "title": "RoleChangeIn",
         "type": "object"
       },
+      "RunCreate": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "audience_source_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Audience Source Ids",
+            "type": "array"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "cost_cap_minor": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Cap Minor"
+          },
+          "country": {
+            "pattern": "^[A-Z]{2}$",
+            "title": "Country",
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/RunMode",
+            "default": "seasonal"
+          },
+          "price_band": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PriceBand"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "region": {
+            "anyOf": [
+              {
+                "maxLength": 40,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "season_override": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Season"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "use_audience_profile": {
+            "default": true,
+            "title": "Use Audience Profile",
+            "type": "boolean"
+          },
+          "window_weeks": {
+            "default": 8,
+            "maximum": 12.0,
+            "minimum": 2.0,
+            "title": "Window Weeks",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "country"
+        ],
+        "title": "RunCreate",
+        "type": "object"
+      },
+      "RunMode": {
+        "enum": [
+          "seasonal",
+          "audience"
+        ],
+        "title": "RunMode",
+        "type": "string"
+      },
+      "RunOut": {
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "cost_cap_minor": {
+            "title": "Cost Cap Minor",
+            "type": "integer"
+          },
+          "cost_currency": {
+            "title": "Cost Currency",
+            "type": "string"
+          },
+          "cost_minor": {
+            "title": "Cost Minor",
+            "type": "integer"
+          },
+          "country": {
+            "title": "Country",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/RunMode"
+          },
+          "params": {
+            "additionalProperties": true,
+            "title": "Params",
+            "type": "object"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "run_refunded": {
+            "title": "Run Refunded",
+            "type": "boolean"
+          },
+          "season": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Season"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RunStatus"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/StepOut"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "window_weeks": {
+            "title": "Window Weeks",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "status",
+          "country",
+          "region",
+          "params",
+          "window_weeks",
+          "as_of",
+          "season",
+          "cost_minor",
+          "cost_cap_minor",
+          "cost_currency",
+          "run_refunded",
+          "error",
+          "started_at",
+          "finished_at",
+          "created_at"
+        ],
+        "title": "RunOut",
+        "type": "object"
+      },
+      "RunPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RunOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "RunPage",
+        "type": "object"
+      },
+      "RunStatus": {
+        "enum": [
+          "queued",
+          "running",
+          "completed",
+          "partial",
+          "failed"
+        ],
+        "title": "RunStatus",
+        "type": "string"
+      },
       "RunsOut": {
         "properties": {
           "allowed": {
@@ -2447,6 +3027,16 @@
         ],
         "title": "SalesSummaryOut",
         "type": "object"
+      },
+      "Season": {
+        "enum": [
+          "spring",
+          "summer",
+          "autumn",
+          "winter"
+        ],
+        "title": "Season",
+        "type": "string"
       },
       "SessionOut": {
         "properties": {
@@ -2825,6 +3415,98 @@
         ],
         "title": "StatusOut",
         "type": "object"
+      },
+      "StepOut": {
+        "properties": {
+          "agent": {
+            "title": "Agent",
+            "type": "string"
+          },
+          "cost_minor": {
+            "title": "Cost Minor",
+            "type": "integer"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StepStatus"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary"
+          }
+        },
+        "required": [
+          "agent",
+          "position",
+          "status",
+          "summary",
+          "cost_minor",
+          "duration_ms",
+          "error",
+          "started_at",
+          "finished_at"
+        ],
+        "title": "StepOut",
+        "type": "object"
+      },
+      "StepStatus": {
+        "enum": [
+          "running",
+          "completed",
+          "degraded",
+          "failed"
+        ],
+        "title": "StepStatus",
+        "type": "string"
       },
       "StripeStatusOut": {
         "properties": {
@@ -4050,6 +4732,145 @@
         "summary": "Extend Trial",
         "tags": [
           "admin"
+        ]
+      }
+    },
+    "/api/v1/audience-profile": {
+      "get": {
+        "operationId": "get_audience_profile_api_v1_audience_profile_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-workspace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudienceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Audience Profile",
+        "tags": [
+          "research"
+        ]
+      },
+      "put": {
+        "description": "Save the optional 'describe your audience' preferences used by seasonal runs.",
+        "operationId": "put_audience_profile_api_v1_audience_profile_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-workspace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AudienceIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AudienceOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Audience Profile",
+        "tags": [
+          "research"
         ]
       }
     },
@@ -7570,6 +8391,335 @@
         ]
       }
     },
+    "/api/v1/research-runs": {
+      "get": {
+        "operationId": "list_research_runs_api_v1_research_runs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-workspace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Research Runs",
+        "tags": [
+          "research"
+        ]
+      },
+      "post": {
+        "description": "Start a research run. Spends one research run (402 plan_limit_reached when none are\nleft); a run that fails before spending anything on providers gives it back.",
+        "operationId": "create_research_run_api_v1_research_runs_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "idempotency-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-workspace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Research Run",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/v1/research-runs/{run_id}": {
+      "get": {
+        "operationId": "get_research_run_api_v1_research_runs__run_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-workspace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Research Run",
+        "tags": [
+          "research"
+        ]
+      }
+    },
+    "/api/v1/research-runs/{run_id}/events": {
+      "get": {
+        "description": "Server-Sent Events: a `run` event with the whole run (status, steps, spend) whenever\nit changes, then `end` once it finishes. Clients may poll GET /research-runs/{id}.",
+        "operationId": "research_run_events_api_v1_research_runs__run_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "run_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Run Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-workspace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Research Run Events",
+        "tags": [
+          "research"
+        ]
+      }
+    },
     "/api/v1/sales": {
       "post": {
         "operationId": "record_sale_api_v1_sales_post",
@@ -7864,6 +9014,89 @@
         "summary": "Sales Summary",
         "tags": [
           "ledger"
+        ]
+      }
+    },
+    "/api/v1/season-calendar": {
+      "get": {
+        "description": "The next three retail moments for the workspace's country, with act-by dates.",
+        "operationId": "get_season_calendar_api_v1_season_calendar_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "as_of",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "As Of"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-workspace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Season Calendar",
+        "tags": [
+          "research"
         ]
       }
     },

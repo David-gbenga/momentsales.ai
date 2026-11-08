@@ -1,8 +1,8 @@
 """Celery application (ADR-0005).
 
 `momentsales.run_job` runs the API package's job handlers (webhook processing, receipt OCR,
-audit exports). Beat runs the heartbeat and the stuck-work sweeper every minute, and the
-billing sweep (trial reminders, dunning, pause resumption) hourly.
+audit exports, research runs). Beat runs the heartbeat and the stuck-work sweeper every
+minute, and the billing sweep (trial reminders, dunning, pause resumption) hourly.
 """
 
 from __future__ import annotations
