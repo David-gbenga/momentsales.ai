@@ -113,6 +113,7 @@ class MockPaymentsAdapter:
         cancel_url: str,
         metadata: dict[str, str],
         idempotency_key: str,
+        application_fee_minor: int = 0,
     ) -> CheckoutCreated:
         existing = await self._redis.get(f"mockstripe:idem:{idempotency_key}")
         if existing:
@@ -131,6 +132,7 @@ class MockPaymentsAdapter:
             "amount_total": sum(i.quantity * i.unit_amount_minor for i in items),
             "line_items": [dataclasses.asdict(i) for i in items],
             "metadata": metadata,
+            "application_fee_amount": application_fee_minor,
             "status": "open",
             "payment_status": "unpaid",
             "success_url": success_url,
@@ -155,7 +157,33 @@ class MockPaymentsAdapter:
             currency=charge["currency"].upper(),
             fee_minor=charge["fee"],
             amount_refunded_minor=charge["amount_refunded"],
+            platform_fee_minor=int(charge.get("application_fee_amount") or 0),
+            application_fee_id=charge.get("application_fee"),
         )
+
+    async def refund_application_fee(
+        self, fee_id: str, amount_minor: int, *, idempotency_key: str
+    ) -> None:
+        if await self._redis.get(f"mockstripe:idem:{idempotency_key}"):
+            return
+        fee = await self._get(fee_id)
+        if fee is None:
+            raise PaymentsError("mock", "no such application fee", retryable=False)
+        if amount_minor <= 0 or fee["amount_refunded"] + amount_minor > fee["amount"]:
+            raise PaymentsError("mock", "refund exceeds the application fee", retryable=False)
+        fee["amount_refunded"] += amount_minor
+        await self._put(fee_id, fee)
+        await self._redis.set(f"mockstripe:idem:{idempotency_key}", fee_id, ex=_TTL)
+
+    async def application_fee_refunded(self, fee_id: str) -> int:
+        fee = await self._get(fee_id)
+        if fee is None:
+            raise PaymentsError("mock", "no such application fee", retryable=False)
+        return int(fee["amount_refunded"])
+
+    async def application_fee(self, fee_id: str) -> dict[str, Any] | None:
+        """Dev and test helper: the stored application fee."""
+        return await self._get(fee_id)
 
     def verify_webhook(self, payload: bytes, signature: str | None, secret: str) -> dict[str, Any]:
         return verify_signature(payload, signature, secret)
@@ -183,6 +211,13 @@ class MockPaymentsAdapter:
         if session is None or session["status"] != "open":
             raise PaymentsError("mock", "session is not open", retryable=False)
         charge_id, intent_id = _id("ch"), _id("pi")
+        app_fee = int(session.get("application_fee_amount") or 0)
+        fee_id = _id("fee") if app_fee else None
+        if fee_id:
+            await self._put(
+                fee_id,
+                {"id": fee_id, "amount": app_fee, "amount_refunded": 0, "charge": charge_id},
+            )
         await self._put(
             charge_id,
             {
@@ -190,7 +225,11 @@ class MockPaymentsAdapter:
                 "account": session["account"],
                 "amount": session["amount_total"],
                 "currency": session["currency"],
+                # Stripe's own (fake) fee; the application fee is reported apart, as
+                # charge_info does with a real balance transaction's fee_details.
                 "fee": MOCK_FEE_MINOR,
+                "application_fee_amount": app_fee,
+                "application_fee": fee_id,
                 "amount_refunded": 0,
                 "payment_intent": intent_id,
             },
@@ -233,6 +272,8 @@ class MockPaymentsAdapter:
             "currency": charge["currency"],
             "refunded": charge["amount_refunded"] >= charge["amount"],
             "payment_intent": charge["payment_intent"],
+            "application_fee": charge.get("application_fee"),
+            "application_fee_amount": charge.get("application_fee_amount") or None,
         }
         return build_event("charge.refunded", obj, account=charge["account"])
 

@@ -45,8 +45,12 @@ class ChargeInfo:
     charge_id: str
     amount_minor: int
     currency: str
-    fee_minor: int  # Stripe's fee, from the balance transaction
+    fee_minor: int  # Stripe's own fee, from the balance transaction's fee_details
     amount_refunded_minor: int = 0
+    # Platform fee (ADR-0017): the `application_fee` part of fee_details, and the
+    # application fee object (created asynchronously, so it may not exist yet).
+    platform_fee_minor: int = 0
+    application_fee_id: str | None = None
 
 
 class PaymentsPort(Protocol):
@@ -68,11 +72,22 @@ class PaymentsPort(Protocol):
         cancel_url: str,
         metadata: dict[str, str],
         idempotency_key: str,
+        application_fee_minor: int = 0,
     ) -> CheckoutCreated: ...
 
     async def charge_for_payment_intent(
         self, account_id: str, payment_intent_id: str
     ) -> ChargeInfo: ...
+
+    async def refund_application_fee(
+        self, fee_id: str, amount_minor: int, *, idempotency_key: str
+    ) -> None:
+        """Refund part of a platform fee to the seller (platform account call)."""
+        ...
+
+    async def application_fee_refunded(self, fee_id: str) -> int:
+        """How much of a platform fee has already been refunded, per the provider."""
+        ...
 
     def verify_webhook(self, payload: bytes, signature: str | None, secret: str) -> dict[str, Any]:
         """Return the event as a dict, or raise WebhookSignatureError."""

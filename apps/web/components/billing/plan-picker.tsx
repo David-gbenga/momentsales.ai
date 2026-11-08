@@ -149,6 +149,11 @@ export function PlanFeatures({ plan }: { plan: CatalogPlan }) {
       {plan.seats !== null ? (
         <li>{t("seats", { count: plan.seats })}</li>
       ) : null}
+      <li>
+        {plan.platform_fee_bps > 0
+          ? t("platformFee", { percent: plan.platform_fee_bps / 100 })
+          : t("noPlatformFee")}
+      </li>
       {features.export_level ? (
         <li>{t(`export.${features.export_level}` as "export.monthly_csv")}</li>
       ) : null}

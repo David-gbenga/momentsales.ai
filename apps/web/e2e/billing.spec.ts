@@ -28,6 +28,8 @@ test("public pricing page lists the plans from the plans table @mobile", async (
   }
   await expect(page.getByTestId("price-growth")).toContainText("£790.00/year");
   await expect(page.getByTestId("price-growth")).toContainText("Save £158.00 a year");
+  await expect(page.getByTestId("price-lite")).toContainText("2% fee on your sales");
+  await expect(page.getByTestId("price-growth")).toContainText("No fee on your sales");
   await expect(page.getByText(/single research report is £9\.00/)).toBeVisible();
   await expectNoSeriousViolations(page);
 });

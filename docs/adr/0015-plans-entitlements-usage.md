@@ -25,8 +25,8 @@ FR-10 needs plan limits (research runs, live listings, seats), a 14-day trial ca
   - Is idempotent per `key`: a stored `run_consumptions` row records which pool paid.
   - `refund_run(key)` returns the run to that pool, for runs that fail before producing a result.
   - Over the limit, `402 plan_limit_reached` (existing shape).
-- **Unit-economics guard:** an admin plan edit returns a warning when monthly price ≤ runs × `RUN_COST_CAP_MINOR` × 3. The cap is configured until Phase 2 measures real costs.
-- **Platform fee:** Connect checkouts send `application_fee_amount = gross × platform_fee_bps / 10 000` only when the plan's fee is above 0 (default 0).
+- **Unit-economics guard:** an admin plan edit returns a warning when monthly price ≤ runs × `RUN_COST_CAP_MINOR` × 3. The cap is £1.00 per run (`RUN_COST_CAP_MINOR=100`, `GBP`, product-owner decision 2026-11-08); Phase 2 stops a run that would exceed it.
+- **Platform fee:** see ADR-0017 (2% on Lite and without a plan; refunded in proportion).
 
 ## Consequences
 - Phase 2 calls `consume_run` / `refund_run`; Phase 3 adds a listings count to `PlanPolicy`. Neither changes the API contract.

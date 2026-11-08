@@ -84,14 +84,18 @@ class Settings(BaseSettings):
     # SaaS billing (FR-10, ADR-0015). Trial: card required, Growth features, capped runs.
     trial_days: int = Field(default=14, ge=1, le=60)
     trial_runs: int = Field(default=3, ge=0)
+    trial_live_listings: int = Field(default=5, ge=0)
     trial_plan_code: str = "growth"
     # Stripe Tax on SaaS invoices; needs registrations in the Stripe account first.
     stripe_tax_enabled: bool = False
     # Portal configuration id from tools/stripe_billing_seed.py (Stripe's default if unset).
     stripe_portal_configuration_id: str | None = None
-    # Unit-economics guard (FR-10): price must exceed runs x cap x 3. PRD default $2.00/run.
-    run_cost_cap_minor: int = Field(default=200, ge=0)
-    run_cost_cap_currency: str = "USD"
+    # Unit-economics guard (FR-10): price must exceed runs x cap x 3. Cap is £1.00 per run.
+    run_cost_cap_minor: int = Field(default=100, ge=0)
+    run_cost_cap_currency: str = "GBP"
+    # Platform fee (ADR-0017) for workspaces without a trialing or active plan
+    # (pay-per-report). Plans carry their own rate in plans.platform_fee_bps.
+    platform_fee_bps_no_plan: int = Field(default=200, ge=0, le=5000)
     # Dunning (FR-10): past_due -> suspended after this many days.
     suspend_after_days: int = Field(default=30, ge=1)
 

@@ -109,6 +109,7 @@ class StripePaymentsAdapter:
         cancel_url: str,
         metadata: dict[str, str],
         idempotency_key: str,
+        application_fee_minor: int = 0,
     ) -> CheckoutCreated:
         params: dict[str, Any] = {
             "mode": "payment",
@@ -127,6 +128,9 @@ class StripePaymentsAdapter:
             "cancel_url": cancel_url,
             "metadata": metadata,
         }
+        if application_fee_minor > 0:
+            # Direct charge: the fee moves from the seller's account to the platform.
+            params["payment_intent_data"] = {"application_fee_amount": application_fee_minor}
         try:
             session = await self._client.v1.checkout.sessions.create_async(
                 params,  # type: ignore[arg-type]
@@ -158,6 +162,24 @@ class StripePaymentsAdapter:
             raise _wrap(exc) from exc
         return charge_info(charge.to_dict())
 
+    async def refund_application_fee(
+        self, fee_id: str, amount_minor: int, *, idempotency_key: str
+    ) -> None:
+        # Application fees live on the platform account: no Stripe-Account header.
+        try:
+            await self._client.v1.application_fees.refunds.create_async(
+                fee_id, {"amount": amount_minor}, options={"idempotency_key": idempotency_key}
+            )
+        except stripe.StripeError as exc:
+            raise _wrap(exc) from exc
+
+    async def application_fee_refunded(self, fee_id: str) -> int:
+        try:
+            fee = await self._client.v1.application_fees.retrieve_async(fee_id)
+        except stripe.StripeError as exc:
+            raise _wrap(exc) from exc
+        return int(fee.amount_refunded or 0)
+
     def verify_webhook(self, payload: bytes, signature: str | None, secret: str) -> dict[str, Any]:
         return verify_signature(payload, signature, secret)
 
@@ -185,14 +207,27 @@ def state_from_account(account: dict[str, Any]) -> AccountState:
 
 
 def charge_info(charge: dict[str, Any]) -> ChargeInfo:
-    """Fee from the expanded balance transaction; never computed."""
+    """Fees from the expanded balance transaction; never computed. On a direct charge the
+    connected account's `fee` includes the application fee, so `fee_details` splits it
+    into the platform fee and Stripe's own fees (ADR-0017)."""
     txn = charge.get("balance_transaction")
     if not isinstance(txn, dict):
         raise PaymentsError("stripe", "balance transaction not available yet", retryable=True)
+    total = int(txn.get("fee", 0))
+    platform = sum(
+        int(d.get("amount", 0))
+        for d in txn.get("fee_details") or []
+        if d.get("type") == "application_fee"
+    )
+    fee_id = charge.get("application_fee")
+    if isinstance(fee_id, dict):
+        fee_id = fee_id.get("id")
     return ChargeInfo(
         charge_id=str(charge["id"]),
         amount_minor=int(charge["amount"]),
         currency=str(charge["currency"]).upper(),
-        fee_minor=int(txn.get("fee", 0)),
+        fee_minor=total - platform,
         amount_refunded_minor=int(charge.get("amount_refunded", 0)),
+        platform_fee_minor=platform,
+        application_fee_id=str(fee_id) if fee_id else None,
     )

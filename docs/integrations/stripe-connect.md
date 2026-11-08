@@ -44,3 +44,22 @@ Our status mapping: `pending` (no details submitted), `restricted` (details subm
 The docs' v1 examples use `Stripe-Version: 2026-10-28.endive`. The adapter pins the version that the installed `stripe` SDK release targets and records it in `STRIPE_API_VERSION` (see `.env.example`); webhook endpoints must be created with the same version.
 
 Not verified on the pages read: rate limits for account creation, and whether `country` can be omitted.
+
+## Platform fee (application fee, ADR-0017)
+
+Checked on 2026-11-08 against:
+- https://docs.stripe.com/api/checkout/sessions/create
+- https://docs.stripe.com/connect/direct-charges
+- https://docs.stripe.com/api/balance_transactions/object
+- https://docs.stripe.com/api/charges/object
+- https://docs.stripe.com/api/fee_refunds/create
+
+| Item | Value |
+| --- | --- |
+| Request the fee | `payment_intent_data[application_fee_amount]` (integer, minor units) on `POST /v1/checkout/sessions` with `mode=payment` and the `Stripe-Account` header (direct charge). It must be positive and below the charge amount, and is capped at the captured amount |
+| Fee on the charge | `charge.application_fee` (ID, expandable, nullable) and `charge.application_fee_amount` (integer, nullable). The application fee object is created asynchronously, so the ID can be missing at first |
+| Fee split | The connected account's balance transaction has `fee_details[]` with `amount`, `application`, `currency`, `description` and `type`. `type` is one of `application_fee`, `payment_method_passthrough_fee`, `stripe_fee`, `tax` or `withheld_tax`. We treat `application_fee` as the platform fee and everything else in `fee` as Stripe's |
+| Refunds | Refunding a direct charge does **not** refund the application fee. We call `POST /v1/application_fees/{id}/refunds` with `amount` on the platform account (no `Stripe-Account` header). Partial refunds are allowed until the fee is fully refunded. We send an `Idempotency-Key` (Stripe's general rule for POST requests; the page doesn't mention it) |
+| Alternative | `refund_application_fee=true` on `POST /v1/refunds` refunds the fee in proportion, but only when we create the refund. Sellers refund in their own Dashboard, so we don't use it |
+
+Not verified on the pages read: rate limits for fee refunds.
