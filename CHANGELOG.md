@@ -2,6 +2,38 @@
 
 All notable changes are recorded here, by phase.
 
+## [Phase 1B follow-up — product-owner decisions] — 2026-11-08
+
+### Added
+- **Platform fee on seller sales (ADR-0017):**
+  - Rates: 2% on Lite and for workspaces without a trialing or active plan (pay-per-report); 0% on Starter, Growth, Pro and during the trial.
+  - Checkout sends the fee as the Connect application fee, rounded down.
+  - The ledger splits Stripe's `fee_details` into separate "Stripe fee" and "Platform fee" entries.
+  - When a seller refunds a shopper, the fee is given back in proportion through Stripe's application-fee refunds. This is idempotent and safe to replay.
+- **Migration `0004`:** `checkout_sessions.application_fee_minor`, plus `orders.platform_fee_minor`, `platform_fee_refunded_minor` and `platform_fee_id`. Lite's `platform_fee_bps` is set to 200.
+- **API:** `GET /plans` now returns each plan's `platform_fee_bps`, `no_plan_platform_fee_bps` and `trial.live_listings`.
+- **Settings:** `TRIAL_LIVE_LISTINGS=5` and `PLATFORM_FEE_BPS_NO_PLAN=200`.
+
+### Changed
+- **The trial is capped at 5 live listings** as well as 3 runs. Listings arrive in Phase 3; the limit is in `PlanPolicy` now.
+- **Run cost cap is £1.00 per run** (`RUN_COST_CAP_MINOR=100`, `RUN_COST_CAP_CURRENCY=GBP`; was $2.00). The unit-economics guard now compares against the GBP prices, and all four plans pass.
+- **Pricing page and plan picker:** each plan shows "2% fee on your sales" or "No fee on your sales". The pay-per-report line mentions the fee, and the trial copy mentions the listing cap.
+- **Docs:** PRD decisions (PR #5), ADR-0017, ADR-0015 notes, and the application-fee fields in `docs/integrations/stripe-connect.md`.
+
+### Tests
+- pytest:
+  - trial listing allowance
+  - fee rate per plan and status, and rounding
+  - Lite checkout pays 2%, with separate ledger lines
+  - a partial then full refund gives back 20p then 50p, and a replayed refund event changes nothing
+  - Pro and trial pay nothing
+  - Stripe contract tests for the fee parameter, the `fee_details` split and platform-account fee refunds
+  - the guard in GBP
+- Playwright: the pricing page fee wording.
+
+### Still mocked
+- The mock Stripe stores application fees and their refunds in Redis. No live charges are made.
+
 ## [Phase 1B — SaaS subscriptions and billing] — 2026-11-08
 
 ### Added
