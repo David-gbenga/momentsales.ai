@@ -13,6 +13,7 @@ from helpers import (
     create_workspace,
     seed_billing_rows,
     seed_phase1_rows,
+    seed_research_rows,
     sign_in,
 )
 from sqlalchemy import text
@@ -39,6 +40,7 @@ async def tenants(client: httpx.AsyncClient) -> Tenants:
     await add_member(owner_a, a, "analyst")  # creates invitations + more rows in A
     await seed_phase1_rows(uuid.UUID(a), uuid.UUID(owner_a.user_id))
     await seed_billing_rows(uuid.UUID(a), uuid.UUID(owner_a.user_id))
+    await seed_research_rows(uuid.UUID(a), uuid.UUID(owner_a.user_id))
     return Tenants(
         uuid.UUID(a), uuid.UUID(b), uuid.UUID(owner_a.user_id), uuid.UUID(owner_b.user_id)
     )
