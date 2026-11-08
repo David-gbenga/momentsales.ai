@@ -285,7 +285,7 @@
     "reading": "Reading the receipt…",
     "ocrFailed": "We couldn't read this receipt automatically. Enter the details yourself.",
     "ocrDone": "Check the details we read from the receipt, then save.",
-    "ocrSkipped": "HEIC receipts are stored but not read automatically yet. Enter the details yourself.",
+    "ocrSkipped": "We stored this receipt but can't read this file type automatically here. Enter the details yourself.",
     "confirmReceipt": "Save spend with this receipt",
     "linkToSpend": "Or attach to an existing spend",
     "download": "Download",

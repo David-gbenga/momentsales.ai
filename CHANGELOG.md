@@ -4,6 +4,9 @@ All notable changes are recorded here, by phase.
 
 ## [Unreleased] — Phase 1 follow-ups
 
+### Added
+- **HEIC receipt OCR (ADR-0014):** HEIC receipts are converted to JPEG with libheif's decoder (`heif-dec`) before OCR; the original stays stored unaltered. The api and worker images install Debian's libheif tools with only the LGPL libde265 decoder, and the build fails if the GPL x265 encoder is present (pillow-heif was not used because its wheels bundle x265 and are GPLv2). Hosts without the decoder fall back to manual entry. CI installs the decoder so the conversion tests run.
+
 ### Fixed
 - **Storage credentials:** file storage and Textract both read `AWS_REGION`, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`, so storage on Cloudflare R2 (region `auto`, R2 token) and OCR on AWS Textract (`eu-west-2`, AWS keys) could not run together. Storage now has its own `S3_REGION` (default `auto`), `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY`; the `AWS_*` settings are Textract's only. **If you deploy with S3/R2, set the new `S3_*` keys.**
 - **E2E:** the receipt step waits up to 30 s for OCR, which runs in the Celery worker; Playwright's 5 s default was tight on slow Docker hosts.
