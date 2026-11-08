@@ -82,6 +82,11 @@ function PlanCard({
         {plan.seats !== null ? (
           <li>{t("seats", { count: plan.seats })}</li>
         ) : null}
+        <li>
+          {plan.platform_fee_bps > 0
+            ? t("platformFee", { percent: plan.platform_fee_bps / 100 })
+            : t("noPlatformFee")}
+        </li>
         {features.export_level ? (
           <li>
             {t(`export.${features.export_level}` as "export.monthly_csv")}
@@ -125,7 +130,10 @@ export default async function PricingPage() {
             {t("title")}
           </h1>
           <p className="text-muted-foreground">
-            {t("intro", { runs: catalog?.trial.runs ?? 3 })}
+            {t("intro", {
+              runs: catalog?.trial.runs ?? 3,
+              listings: catalog?.trial.live_listings ?? 5,
+            })}
           </p>
         </div>
         {catalog ? (
@@ -148,6 +156,7 @@ export default async function PricingPage() {
                 <p>
                   {t("report", {
                     price: formatMoney(report.amount_minor, report.currency),
+                    percent: (catalog?.no_plan_platform_fee_bps ?? 0) / 100,
                   })}
                 </p>
               ) : null}

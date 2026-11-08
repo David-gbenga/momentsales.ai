@@ -1396,6 +1396,8 @@ export interface components {
         CatalogOut: {
             /** Addons */
             addons: components["schemas"]["AddonOut"][];
+            /** No Plan Platform Fee Bps */
+            no_plan_platform_fee_bps: number;
             /** Plans */
             plans: components["schemas"]["PlanOut"][];
             trial: components["schemas"]["TrialOut"];
@@ -1870,6 +1872,8 @@ export interface components {
             live_listings: number | null;
             /** Name */
             name: string;
+            /** Platform Fee Bps */
+            platform_fee_bps: number;
             /** Prices */
             prices: components["schemas"]["PriceOut"][];
             /** Research Runs */
@@ -2531,6 +2535,8 @@ export interface components {
         TrialOut: {
             /** Days */
             days: number;
+            /** Live Listings */
+            live_listings: number;
             /** Plan Code */
             plan_code: string;
             /** Runs */

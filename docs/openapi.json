@@ -356,6 +356,10 @@
             "title": "Addons",
             "type": "array"
           },
+          "no_plan_platform_fee_bps": {
+            "title": "No Plan Platform Fee Bps",
+            "type": "integer"
+          },
           "plans": {
             "items": {
               "$ref": "#/components/schemas/PlanOut"
@@ -370,7 +374,8 @@
         "required": [
           "plans",
           "addons",
-          "trial"
+          "trial",
+          "no_plan_platform_fee_bps"
         ],
         "title": "CatalogOut",
         "type": "object"
@@ -1529,6 +1534,10 @@
             "title": "Name",
             "type": "string"
           },
+          "platform_fee_bps": {
+            "title": "Platform Fee Bps",
+            "type": "integer"
+          },
           "prices": {
             "items": {
               "$ref": "#/components/schemas/PriceOut"
@@ -1566,6 +1575,7 @@
           "live_listings",
           "seats",
           "annual_bonus_runs",
+          "platform_fee_bps",
           "features",
           "prices"
         ],
@@ -3420,6 +3430,10 @@
             "title": "Days",
             "type": "integer"
           },
+          "live_listings": {
+            "title": "Live Listings",
+            "type": "integer"
+          },
           "plan_code": {
             "title": "Plan Code",
             "type": "string"
@@ -3432,6 +3446,7 @@
         "required": [
           "days",
           "runs",
+          "live_listings",
           "plan_code"
         ],
         "title": "TrialOut",

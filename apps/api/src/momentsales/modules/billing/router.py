@@ -30,6 +30,7 @@ class PlanOut(BaseModel):
     live_listings: int | None
     seats: int | None
     annual_bonus_runs: int
+    platform_fee_bps: int
     features: dict[str, Any]
     prices: list[PriceOut]
 
@@ -45,6 +46,7 @@ class AddonOut(BaseModel):
 class TrialOut(BaseModel):
     days: int
     runs: int
+    live_listings: int
     plan_code: str
 
 
@@ -52,6 +54,8 @@ class CatalogOut(BaseModel):
     plans: list[PlanOut]
     addons: list[AddonOut]
     trial: TrialOut
+    # Platform fee on sales for workspaces without a plan (pay-per-report), ADR-0017
+    no_plan_platform_fee_bps: int
 
 
 @router.get("/plans", response_model=CatalogOut)
@@ -67,6 +71,7 @@ async def list_plans(session: DbSession, settings: AppSettings) -> CatalogOut:
                 live_listings=c.plan.live_listings,
                 seats=c.plan.seats,
                 annual_bonus_runs=c.plan.annual_bonus_runs,
+                platform_fee_bps=c.plan.platform_fee_bps,
                 features=c.plan.features,
                 prices=[
                     PriceOut(currency=p.currency, interval=p.interval, amount_minor=p.amount_minor)
@@ -86,8 +91,12 @@ async def list_plans(session: DbSession, settings: AppSettings) -> CatalogOut:
             for a in await service.addons(session)
         ],
         trial=TrialOut(
-            days=settings.trial_days, runs=settings.trial_runs, plan_code=settings.trial_plan_code
+            days=settings.trial_days,
+            runs=settings.trial_runs,
+            live_listings=settings.trial_live_listings,
+            plan_code=settings.trial_plan_code,
         ),
+        no_plan_platform_fee_bps=settings.platform_fee_bps_no_plan,
     )
 
 

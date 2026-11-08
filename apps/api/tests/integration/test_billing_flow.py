@@ -78,7 +78,14 @@ async def test_public_plans_from_the_table(client: httpx.AsyncClient) -> None:
         ("month", 7900),
         ("year", 79000),
     }
-    assert body["trial"] == {"days": 14, "runs": 3, "plan_code": "growth"}
+    assert body["trial"] == {"days": 14, "runs": 3, "live_listings": 5, "plan_code": "growth"}
+    assert body["no_plan_platform_fee_bps"] == 200
+    assert {p["code"]: p["platform_fee_bps"] for p in body["plans"]} == {
+        "lite": 200,
+        "starter": 0,
+        "growth": 0,
+        "pro": 0,
+    }
     assert {a["kind"]: a["amount_minor"] for a in body["addons"]} == {
         "run_pack": 1500,
         "single_report": 900,
@@ -378,8 +385,15 @@ async def test_admin_plan_edit_and_unit_economics_guard(client: httpx.AsyncClien
     await _make_platform_admin(staff.email)
     r = await client.get(f"{API}/admin/plans", headers=staff.headers())
     lite = next(p for p in r.json() if p["code"] == "lite")
-    # PRD cap is $2.00/run but prices are GBP: compared only when currencies match
-    assert any("not checked" in w for w in lite["warnings"])
+    # Cap is £1.00/run (GBP, like the prices): Lite £12 > 3 runs x £1 x 3 = £9
+    assert lite["warnings"] == []
+    breaking = {
+        "research_runs": 5,
+        "prices": [{"currency": "GBP", "interval": "month", "amount_minor": 1200}],
+    }
+    r = await client.patch(f"{API}/admin/plans/lite", json=breaking, headers=staff.headers())
+    assert r.status_code == 200, r.text
+    assert any("1500" in w or "x 3" in w for w in r.json()["warnings"]), r.json()
     try:
         r = await client.patch(
             f"{API}/admin/plans/lite",

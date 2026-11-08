@@ -72,6 +72,7 @@ export function BillingView() {
                       ? t("afterTrial")
                       : t("choosePlanHelp", {
                           runs: catalog.data?.trial.runs ?? 3,
+                          listings: catalog.data?.trial.live_listings ?? 5,
                         })}
                   </p>
                   {catalog.data ? (
