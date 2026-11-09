@@ -188,3 +188,23 @@ def verify_totp(secret: str, code: str) -> bool:
         return False
     ok: bool = pyotp.TOTP(secret).verify(code, valid_window=1)
     return ok
+
+
+# --- Integration credentials (ADR-0020) -------------------------------------------------
+
+
+def encrypt_credentials(data: dict[str, str], settings: Settings | None = None) -> str:
+    """Seller API keys, Fernet-encrypted with INTEGRATION_ENCRYPTION_KEY."""
+    s = settings or get_settings()
+    box = Fernet(s.integration_encryption_key.get_secret_value().encode())
+    return box.encrypt(json.dumps(data, sort_keys=True).encode()).decode()
+
+
+def decrypt_credentials(token: str, settings: Settings | None = None) -> dict[str, str] | None:
+    s = settings or get_settings()
+    box = Fernet(s.integration_encryption_key.get_secret_value().encode())
+    try:
+        value = json.loads(box.decrypt(token.encode()))
+    except (InvalidToken, ValueError):
+        return None
+    return {str(k): str(v) for k, v in value.items()} if isinstance(value, dict) else None

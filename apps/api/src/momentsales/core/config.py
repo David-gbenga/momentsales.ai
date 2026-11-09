@@ -16,6 +16,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _REPO_ROOT = Path(__file__).resolve().parents[5]
 _DEV_TOTP_KEY = "xb5Yb0bcm4o0r9bK0wQ1Zc5i8iX0b2S3dE4fG5hI6jY="
+_DEV_INTEGRATION_KEY = "NzxpdScn8PA1JHjPuy6TrWIDMhgbsvNyzHyHonBntVg="
 
 
 class Env(StrEnum):
@@ -52,6 +53,8 @@ class Settings(BaseSettings):
     jwt_secret: SecretStr = SecretStr("change-me-jwt-secret-at-least-32-characters-long")
     signing_secret: SecretStr = SecretStr("change-me-signing-secret-at-least-32-characters")
     totp_encryption_key: SecretStr = SecretStr(_DEV_TOTP_KEY)
+    # Fernet key for seller integration credentials (e.g. Avasam keys), ADR-0020.
+    integration_encryption_key: SecretStr = SecretStr(_DEV_INTEGRATION_KEY)
     access_token_ttl_seconds: int = Field(default=900, ge=60, le=3600)
     refresh_token_ttl_days: int = Field(default=30, ge=1, le=90)
     magic_link_ttl_minutes: int = Field(default=15, ge=5, le=60)
@@ -137,6 +140,26 @@ class Settings(BaseSettings):
         default_factory=lambda: {"results": 0.25, "ads": 0.35, "merchants": 0.2, "spread": 0.2}
     )
 
+    # --- Suppliers (FR-11, FR-15, ADR-0020): manual switch only, never auto failover ----
+    provider_supplier: Literal["cj", "avasam"] = "cj"
+    provider_supplier_secondary: Literal["cj", "avasam"] | None = "avasam"
+    cj_api_key: SecretStr | None = None
+    cj_base_url: str = "https://developers.cjdropshipping.com/api2.0/v1"
+    cost_cj_call_micros: int = Field(default=0, ge=0)
+    avasam_base_url: str = "https://app.avasam.com"
+    avasam_max_pages: int = Field(default=5, ge=1, le=50)
+    provider_fx: Literal["frankfurter"] = "frankfurter"
+    frankfurter_base_url: str = "https://api.frankfurter.dev/v1"
+    research_supplier_top_n: int = Field(default=10, ge=1, le=30)
+    supplier_match_min_score: float = Field(default=0.5, gt=0, le=1)
+    supplier_freight_candidates: int = Field(default=3, ge=1, le=5)
+    # Verified UK supplier rule, check 5 (FR-11): net margin floor and its inputs.
+    supplier_min_margin_bps: int = Field(default=2500, ge=0, le=9000)
+    supplier_returns_allowance_bps: int = Field(default=500, ge=0, le=5000)
+    # Stripe's published fee for standard UK cards: 1.5% + 20p (stripe.com/gb/pricing).
+    stripe_fee_bps: int = Field(default=150, ge=0, le=1000)
+    stripe_fee_fixed_minor: int = Field(default=20, ge=0, le=500)
+
     provider_ocr: Literal["claude", "textract"] = "claude"
     provider_ocr_secondary: Literal["claude", "textract"] | None = "textract"
     provider_ocr_failover: Literal["auto", "manual"] = "auto"
@@ -200,6 +223,8 @@ class Settings(BaseSettings):
                 problems.append(f"{name} must be a real secret of 32+ characters")
         if self.totp_encryption_key.get_secret_value() == _DEV_TOTP_KEY:
             problems.append("totp_encryption_key must not be the development key")
+        if self.integration_encryption_key.get_secret_value() == _DEV_INTEGRATION_KEY:
+            problems.append("integration_encryption_key must not be the development key")
         if "change-me" in self.database_url:
             problems.append("database_url uses a development password")
         if not self.cookie_secure:
