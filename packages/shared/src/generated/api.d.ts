@@ -1002,6 +1002,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/reports/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Public Report
+         * @description A shared report, read-only, without run cost or workspace details.
+         */
+        get: operations["public_report_api_v1_public_reports__token__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ready": {
         parameters: {
             query?: never;
@@ -1070,6 +1090,109 @@ export interface paths {
          */
         post: operations["confirm_receipt_api_v1_receipts__receipt_id__confirm_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Reports */
+        get: operations["list_reports_api_v1_reports_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Report */
+        get: operations["get_report_api_v1_reports__report_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/export.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Csv */
+        get: operations["export_csv_api_v1_reports__report_id__export_csv_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/export.pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Pdf */
+        get: operations["export_pdf_api_v1_reports__report_id__export_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Shares */
+        get: operations["list_shares_api_v1_reports__report_id__shares_get"];
+        put?: never;
+        /** Create Share */
+        post: operations["create_share_api_v1_reports__report_id__shares_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/shares/{share_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke Share */
+        delete: operations["revoke_share_api_v1_reports__report_id__shares__share_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1646,13 +1769,32 @@ export interface components {
             breakout: boolean;
             /** Category */
             category: string;
+            /** Compliance */
+            compliance?: {
+                [key: string]: unknown;
+            } | null;
             /** Keyword */
             keyword: string;
             market?: components["schemas"]["MarketOut"] | null;
+            /**
+             * Merged
+             * @default []
+             */
+            merged: string[];
+            /** Merged Into */
+            merged_into?: string | null;
+            /** Profit */
+            profit?: {
+                [key: string]: unknown;
+            } | null;
             /** Rising From */
             rising_from?: string | null;
             /** Rising Value */
             rising_value?: number | null;
+            /** Score */
+            score?: {
+                [key: string]: unknown;
+            } | null;
             /**
              * Source
              * @enum {string}
@@ -1758,6 +1900,13 @@ export interface components {
             market_available: boolean;
             /** Mock */
             mock: boolean;
+            /**
+             * Ranking
+             * @default []
+             */
+            ranking: string[];
+            /** Report Id */
+            report_id?: string | null;
             /** Stopped At Cap */
             stopped_at_cap: boolean;
             /**
@@ -2504,6 +2653,24 @@ export interface components {
              */
             source: "env" | "db";
         };
+        /** PublicReportOut */
+        PublicReportOut: {
+            /** Excluded */
+            excluded: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Items */
+            items: components["schemas"]["ReportItemOut"][];
+            /** Summary */
+            summary: {
+                [key: string]: unknown;
+            };
+        };
         /**
          * ReceiptConfirm
          * @description Either the user-checked spend details (creates the spend) or an existing spend.
@@ -2555,6 +2722,113 @@ export interface components {
             items: components["schemas"]["ReceiptOut"][];
             /** Next Cursor */
             next_cursor: string | null;
+        };
+        /** ReportItemOut */
+        ReportItemOut: {
+            /** Best Offer */
+            best_offer: {
+                [key: string]: unknown;
+            } | null;
+            /** Category */
+            category: string | null;
+            /** Compliance */
+            compliance: {
+                [key: string]: unknown;
+            };
+            /** Fetched At */
+            fetched_at: string | null;
+            /** Flags */
+            flags: string[];
+            /** Image Url */
+            image_url: string | null;
+            /** Keyword */
+            keyword: string;
+            /** Market */
+            market: {
+                [key: string]: unknown;
+            } | null;
+            /** Offers */
+            offers: {
+                [key: string]: unknown;
+            }[];
+            /** Profit */
+            profit: {
+                [key: string]: unknown;
+            } | null;
+            /** Rank */
+            rank: number;
+            /** Score */
+            score: number;
+            /** Score Breakdown */
+            score_breakdown: {
+                [key: string]: unknown;
+            };
+            /** Sizes */
+            sizes: string[];
+            /** Supplier */
+            supplier: {
+                [key: string]: unknown;
+            } | null;
+            /** Trend */
+            trend: {
+                [key: string]: unknown;
+            } | null;
+            /** Why */
+            why: string;
+            /** Why Source */
+            why_source: string;
+        };
+        /** ReportListItem */
+        ReportListItem: {
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Item Count */
+            item_count: number;
+            /** Mock */
+            mock: boolean;
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Top */
+            top: string | null;
+        };
+        /** ReportOut */
+        ReportOut: {
+            /** Excluded */
+            excluded: {
+                [key: string]: unknown;
+            }[];
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Items */
+            items: components["schemas"]["ReportItemOut"][];
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /** Summary */
+            summary: {
+                [key: string]: unknown;
+            };
         };
         /**
          * Role
@@ -2782,6 +3056,61 @@ export interface components {
              */
             token_type: "bearer";
             user: components["schemas"]["UserOut"];
+        };
+        /** ShareCreatedOut */
+        ShareCreatedOut: {
+            /** Active */
+            active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Viewed At */
+            last_viewed_at: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
+            /** Url */
+            url: string;
+        };
+        /** ShareIn */
+        ShareIn: {
+            /** Days */
+            days?: number | null;
+        };
+        /** ShareOut */
+        ShareOut: {
+            /** Active */
+            active: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Viewed At */
+            last_viewed_at: string | null;
+            /** Revoked At */
+            revoked_at: string | null;
         };
         /** ShippingOut */
         ShippingOut: {
@@ -5440,6 +5769,37 @@ export interface operations {
             };
         };
     };
+    public_report_api_v1_public_reports__token__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     ready_api_v1_ready_get: {
         parameters: {
             query?: never;
@@ -5592,6 +5952,241 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reports_api_v1_reports_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportListItem"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_report_api_v1_reports__report_id__get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_csv_api_v1_reports__report_id__export_csv_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_pdf_api_v1_reports__report_id__export_pdf_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_shares_api_v1_reports__report_id__shares_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_share_api_v1_reports__report_id__shares_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareCreatedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revoke_share_api_v1_reports__report_id__shares__share_id__delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path: {
+                report_id: string;
+                share_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

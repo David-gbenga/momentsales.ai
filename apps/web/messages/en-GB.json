@@ -567,7 +567,10 @@
       "season": "Season and retail calendar",
       "trend": "Search trends",
       "marketplace": "Competition",
-      "supplier": "UK suppliers"
+      "supplier": "UK suppliers",
+      "scoring": "Scoring",
+      "compliance": "UK compliance checks",
+      "report": "Top 10 report"
     },
     "progress": "Progress",
     "spend": "Spent {spent} of {cap}",
@@ -594,7 +597,6 @@
     "holidaysNone": "None in this window.",
     "notAvailable": "Not available",
     "source": "Source: {provider}, fetched {when}",
-    "reportSoon": "Scoring, compliance checks and the Top 10 report are being added next. This run shows the season, rising searches, competition and UK suppliers.",
     "demand": {
       "title": "Rising searches",
       "intro": "UK Google searches for the moments in your window, ranked by how fast interest is growing.",
@@ -645,7 +647,9 @@
         },
         "notConnected": "Connect your Avasam account on the Integrations page to match suppliers."
       }
-    }
+    },
+    "viewReport": "View the Top 10 report",
+    "noReport": "No report was written for this run."
   },
   "audience": {
     "title": "Describe your audience (optional)",
@@ -680,5 +684,78 @@
     "start": "Start seasonal research",
     "empty": "No upcoming retail moments.",
     "supplier": "Act-by dates use your matched suppliers' delivery time ({days} days) plus 21 days to sell."
+  },
+  "reports": {
+    "pageTitle": "Top 10 report",
+    "title": "Top {count} seasonal products",
+    "loading": "Loading the report…",
+    "asOf": "As of {date}",
+    "season": "Season: {now}, next {next}",
+    "cost": "Run cost {cost}",
+    "mock": "Mock data: these products and numbers are made up for testing. Live data is switched on once the providers confirm their terms.",
+    "fewer": "Only {count} products had enough data to recommend; nothing has been padded.",
+    "excluded": "Excluded by compliance",
+    "excludedReason": "restricted or prohibited for a UK online shop",
+    "method": "How we scored these",
+    "sources": "{count, plural, one {# stored source} other {# stored sources}} back every number in this report.",
+    "noImage": "No image",
+    "score": "{score}/100",
+    "stale": "Stale",
+    "bestPrice": "Best price",
+    "priceRange": "Prices seen",
+    "sizes": "Sizes",
+    "supplier": "Supplier",
+    "delivery": "Delivery",
+    "days": "{days} days",
+    "landed": "Landed cost",
+    "profit": "Profit per sale (estimate)",
+    "breakEven": "Break-even ad cost",
+    "growth": "Growth",
+    "competition": "Competition",
+    "compliance": "Compliance",
+    "buyAt": "Seen for sale at (demand evidence, not suppliers)",
+    "link": "Link {n}",
+    "notAvailable": "Not available",
+    "downloadCsv": "Download CSV",
+    "downloadPdf": "Download PDF",
+    "backToRun": "Back to the research run",
+    "sharedNote": "A read-only report shared from momentsales.ai.",
+    "linkInvalid": "This link has expired or been turned off.",
+    "flags": {
+      "crowded": "Crowded",
+      "arrives_too_late": "Arrives too late",
+      "no_supplier": "No supplier",
+      "no_verified_supplier": "No verified supplier",
+      "needs_documents": "Needs safety documents",
+      "import_vat_notice": "Import VAT may apply"
+    },
+    "supplierStatus": {
+      "matched": "verified",
+      "no_verified_supplier": "no verified supplier",
+      "no_supplier": "no supplier",
+      "not_checked": "not checked",
+      "not_available": "not available"
+    },
+    "complianceStatus": {
+      "ok": "No flags",
+      "needs_documents": "Needs safety documents before listing",
+      "blocked": "Blocked",
+      "not_checked": "Not checked"
+    },
+    "share": {
+      "title": "Share a read-only link",
+      "help": "Anyone with the link can view this report without signing in. Run costs and your workspace details are not shown.",
+      "expires": "Link expires after",
+      "days": "{days} days",
+      "create": "Create link",
+      "created": "Copy this link now; it is shown only once:",
+      "active": "Active",
+      "until": "until {date}",
+      "revoke": "Turn off"
+    },
+    "recent": "Reports",
+    "recentEmpty": "No reports yet.",
+    "items": "{count} products",
+    "mockBadge": "Mock data"
   }
 }

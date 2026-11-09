@@ -2,13 +2,14 @@
 
 import { formatMoney } from "@momentsales/shared";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { DemandResults } from "@/components/research/demand-results";
 import { Badge, Card, Notice } from "@/components/ui/primitives";
 import { DataTable, Td } from "@/components/ui/table";
 import { formatDay, seasonOf, TERMINAL, useRun, type Run } from "@/lib/research";
 
-const KNOWN_AGENTS = new Set(["season", "trend", "marketplace", "supplier"]);
+const KNOWN_AGENTS = new Set(["season", "trend", "marketplace", "supplier", "scoring", "compliance", "report"]);
 
 /** One run: live status and steps, spend against the cap, then the season results. */
 export function RunProgress({ runId }: { runId: string }) {
@@ -39,7 +40,17 @@ export function RunProgress({ runId }: { runId: string }) {
       ) : null}
       <SeasonResults run={run} />
       <DemandResults run={run} />
-      {TERMINAL.has(run.status) && run.status !== "failed" ? <Notice>{t("reportSoon")}</Notice> : null}
+      {run.demand?.report_id ? (
+        <Link
+          href={`/app/reports/${run.demand.report_id}`}
+          className="w-fit rounded-md border px-4 py-2 text-sm font-medium underline-offset-4 hover:underline"
+          data-testid="view-report"
+        >
+          {t("viewReport")}
+        </Link>
+      ) : TERMINAL.has(run.status) && run.status !== "failed" ? (
+        <Notice>{t("noReport")}</Notice>
+      ) : null}
     </section>
   );
 }

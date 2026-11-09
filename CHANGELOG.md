@@ -2,6 +2,61 @@
 
 All notable changes are recorded here, by phase.
 
+## [Phase 2d — scoring, compliance and the Top 10 report] — 2026-11-09
+
+### Added
+- **Pipeline:** `season → trend → marketplace → supplier → scoring → compliance → report`. The three finishing agents also run after the cost cap, so a `partial` run still gets a report from what was gathered.
+- **Scoring (FR-3):**
+  - Each part is scored 0–1: rising demand (halved when crowded, AC-25), low competition, seasonal fit (0 when the supplier arrives too late, AC-21), forecast profit, and supplier delivery speed.
+  - Marketplace sales rank has no data source, so it's dropped and the other weights are rescaled.
+  - A missing part counts as 0.
+  - Audience fit adds up to ±10 points.
+  - Near-duplicate searches are merged.
+- **Profit forecast (FR-13):** selling price − unit cost − shipping − Stripe fee − platform fee − ad cost, plus a break-even ad cost. All figures are in minor units. The selling price and the ad cost are labelled estimates.
+- **Compliance agent (FR-14):**
+  - A versioned UK rules list: restricted items are blocked; electrical, toy, cosmetic, PPE and children's products need documents; trademark and health claims are flagged.
+  - Plus one Claude classification. The LLM can add flags but never remove a rule's flag.
+  - Blocked products are excluded from the report.
+  - If the LLM is unavailable, the rules alone decide.
+- **Report agent (FR-4):**
+  - The top 10 products that aren't blocked are stored as an immutable `Report` with `ReportItem`s.
+  - Each item has the score breakdown, best price and purchase links (with snapshot ids), sizes, supplier and delivery, profit, compliance and flags.
+  - One-line reasons are written by Claude from stored facts only. A guard rejects any number or £ amount that isn't in the facts and falls back to a template line.
+- **Claude LLM adapter (`llm` category):** structured outputs and a cached system prompt. Cost is metered in GBP micros against the £1 run cap. There's a deterministic mock.
+- **Migration `0008`:** `reports`, `report_items` and `report_shares`, all with RLS forced. Reports are immutable; share links can be revoked but not deleted.
+- **API:**
+  - `GET /reports` and `GET /reports/{id}`.
+  - `GET /reports/{id}/export.csv` and `export.pdf` (WeasyPrint).
+  - `GET/POST/DELETE /reports/{id}/shares`, with the new gated `reports.share` permission (Owner, Admin, Analyst).
+  - `GET /public/reports/{token}`: read-only, rate-limited and `no-store`. It doesn't show the run cost or workspace details.
+- **Web:**
+  - A Top 10 report page with item cards, CSV and PDF downloads, and a share panel.
+  - A public `/r/{token}` page.
+  - A Reports page and list.
+  - A "View the Top 10 report" link on each run.
+- **Settings:** `PROVIDER_LLM`, `LLM_MODEL`, `LLM_PRICE_*`, `RESEARCH_SCORE_WEIGHTS`, `RESEARCH_AD_COST_BPS*`, `RESEARCH_COMPLIANCE_TOP_N`, `RESEARCH_REPORT_SIZE` and `REPORT_SHARE_*`. `RESEARCH_SUPPLIER_TOP_N` now defaults to 12.
+- **Docs:** ADR-0021 and `docs/integrations/anthropic-llm.md`.
+
+### Tests
+- **Contract:** the Claude request shape (model, structured output, effort, cached system prompt), the cost from usage, and refusal, max_tokens, 429/529/400 and non-JSON responses.
+- **Unit:** score parts, the crowded and late penalties, the dropped sales-rank part, missing data, audience fit, dedup, profit maths, compliance rules and the LLM merge, the reason guard, and Top 10 selection.
+- **Integration:**
+  - AC-1: ten complete items
+  - AC-3 traceability
+  - AC-21 and AC-25 ranking
+  - the compliance veto and its replacement
+  - LLM down → rules and templates
+  - invented numbers replaced
+  - CSV and PDF exports
+  - share links: create, public view, revoke, expiry, roles
+  - AC-19 isolation for reports
+- **Playwright:** the run → the report → CSV → a share link opened without signing in, with axe.
+
+### Still mocked
+- The research LLM until live mode. Market data and suppliers are as in 2b and 2c.
+- The ad cost per sale and the selling price are configured estimates, labelled in the report.
+- The PDF export needs WeasyPrint's native libraries. They're in the Docker images and CI; on Windows without GTK the API answers 503 and the CSV still works.
+
 ## [Phase 2c — UK supplier matching] — 2026-11-09
 
 ### Added

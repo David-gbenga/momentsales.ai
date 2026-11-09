@@ -89,6 +89,11 @@
     "analyst",
     "owner"
   ],
+  "reports.share": [
+    "admin",
+    "analyst",
+    "owner"
+  ],
   "research.run": [
     "admin",
     "analyst",

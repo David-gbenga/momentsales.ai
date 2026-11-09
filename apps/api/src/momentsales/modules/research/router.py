@@ -229,6 +229,12 @@ class CandidateOut(BaseModel):
     trend: TrendOut | None  # None: not available
     market: MarketOut | None = None  # None: not checked or not available
     supplier: SupplierResultOut | None = None  # None: runs from before Phase 2c
+    # Phase 2d: demand score, profit forecast and compliance (ADR-0021).
+    score: dict[str, Any] | None = None
+    profit: dict[str, Any] | None = None
+    compliance: dict[str, Any] | None = None
+    merged: list[str] = []
+    merged_into: str | None = None
 
 
 class DemandOut(BaseModel):
@@ -243,6 +249,8 @@ class DemandOut(BaseModel):
     market_available: bool
     supplier_available: bool = False
     supplier_provider: str | None = None
+    report_id: uuid.UUID | None = None  # the Top 10 report (Phase 2d)
+    ranking: list[str] = []
 
 
 class RunOut(BaseModel):

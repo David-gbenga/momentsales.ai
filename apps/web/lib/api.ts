@@ -85,6 +85,8 @@ export interface RequestOptions {
   headers?: Record<string, string>;
   workspace?: string | null | false;
   auth?: boolean;
+  /** Return the body as a Blob (file downloads such as CSV or PDF exports). */
+  blob?: boolean;
 }
 
 /** A fresh key per user action; reuse it when retrying the same action. */
@@ -111,5 +113,19 @@ export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T
     res = await doFetch();
   }
   if (!res.ok) throw await toError(res);
+  if (opts.blob) return (await res.blob()) as T;
   return (await parse(res)) as T;
+}
+
+/** Download an authenticated file (the API needs the bearer token, so a plain link won't do). */
+export async function downloadFile(path: string, filename: string): Promise<void> {
+  const blob = await api<Blob>(path, { blob: true });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

@@ -85,5 +85,9 @@ TENANT_TABLES: frozenset[str] = frozenset(
         "agent_steps",
         "source_snapshots",
         "audience_profiles",
+        # Phase 2d reports (0008)
+        "reports",
+        "report_items",
+        "report_shares",
     }
 )

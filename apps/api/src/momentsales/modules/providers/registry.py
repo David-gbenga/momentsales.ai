@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import asdict, dataclass
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 import httpx
 from pydantic import SecretStr
@@ -30,6 +30,8 @@ from momentsales.adapters.holidays.nager import NagerHolidaysAdapter
 from momentsales.adapters.identity.base import IdentityPort
 from momentsales.adapters.identity.google import GoogleIdentityAdapter
 from momentsales.adapters.identity.mock import MockIdentityAdapter
+from momentsales.adapters.llm.base import LlmPort, LlmPrices
+from momentsales.adapters.llm.mock import MockLlmAdapter
 from momentsales.adapters.market_data.base import (
     DataType,
     InterestResult,
@@ -69,7 +71,7 @@ CATEGORIES: dict[str, tuple[str, ...]] = {
     "fx": ("frankfurter",),
     "ocr": ("claude", "textract"),
     "payments": ("stripe",),
-    "llm": (),  # Phase 2
+    "llm": ("claude",),  # one adapter + mock; not a critical category (ADR-0021)
     "holidays": ("nager",),
 }
 
@@ -189,6 +191,7 @@ class ProviderRegistry:
         self._http = http
         self._google: GoogleIdentityAdapter | None = None
         self._storage: StoragePort | None = None
+        self._anthropic: Any = None  # one AsyncAnthropic client, reused across runs
 
     def _env(self, category: str) -> ResolvedProvider:
         s = self._s
@@ -236,6 +239,10 @@ class ProviderRegistry:
                 "manual",
                 "env",
                 CATEGORIES[category],
+            )
+        if category == "llm":
+            return ResolvedProvider(
+                category, s.provider_llm, None, mode, "manual", "env", CATEGORIES[category]
             )
         if category == "fx":
             return ResolvedProvider(
@@ -343,6 +350,26 @@ class ProviderRegistry:
         if not keys or not keys.get("consumer_key") or not keys.get("secret_key"):
             return None
         return keys
+
+    async def llm(self, session: AsyncSession) -> LlmPort:
+        cfg = await self.resolve(session, "llm")
+        if cfg.mode == "mock":
+            return MockLlmAdapter(self._s.llm_model)
+        if not _secret(self._s.anthropic_api_key):
+            raise ProviderConfigError("ANTHROPIC_API_KEY is not set")
+        import anthropic
+
+        from momentsales.adapters.llm.claude import ClaudeLlmAdapter
+
+        if self._anthropic is None:
+            self._anthropic = anthropic.AsyncAnthropic(api_key=_secret(self._s.anthropic_api_key))
+        return ClaudeLlmAdapter(
+            self._anthropic,
+            self._s.llm_model,
+            LlmPrices(
+                self._s.llm_price_input_micros_per_mtok, self._s.llm_price_output_micros_per_mtok
+            ),
+        )
 
     async def fx(self, session: AsyncSession) -> FxPort:
         cfg = await self.resolve(session, "fx")

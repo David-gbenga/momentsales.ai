@@ -249,6 +249,16 @@ _RESEARCH_SEED_SQL = (
     "INSERT INTO audience_profiles (id, workspace_id, interests, updated_by, created_at,"
     " updated_at) VALUES (gen_random_uuid(), :w, '[]', :u, now(), now())"
     " ON CONFLICT (workspace_id) DO NOTHING",
+    # Phase 2d reports
+    "INSERT INTO reports (id, workspace_id, run_id, summary, excluded, generated_at, created_at)"
+    " VALUES (:p, :w, :r, '{}', '[]', now(), now())",
+    "INSERT INTO report_items (id, workspace_id, report_id, rank, keyword, score,"
+    " score_breakdown, why, why_source, offers, sizes, compliance, flags, created_at)"
+    " VALUES (gen_random_uuid(), :w, :p, 1, 'seed', 50, '{}', 'seed', 'template', '[]', '[]',"
+    " '{}', '[]', now())",
+    "INSERT INTO report_shares (id, workspace_id, report_id, token_hash, expires_at, created_at)"
+    " VALUES (gen_random_uuid(), :w, :p, md5(random()::text) || md5(random()::text),"
+    " now() + interval '1 day', now())",
 )
 
 
@@ -262,6 +272,7 @@ async def seed_research_rows(workspace_id: uuid.UUID, user_id: uuid.UUID) -> Non
         "w": str(workspace_id),
         "u": str(user_id),
         "r": str(uuid.uuid4()),
+        "p": str(uuid.uuid4()),
         "k": f"seed-{uuid.uuid4()}",
     }
     async with get_sessionmaker()() as s, s.begin():

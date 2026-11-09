@@ -52,6 +52,8 @@ class Action(StrEnum):
     BILLING_INVOICES_READ = "billing.invoices.read"
     # Phase 2c: connect a seller's own supplier account (Avasam)
     INTEGRATIONS_SUPPLIERS_MANAGE = "integrations.suppliers.manage"
+    # Phase 2d: shareable read-only report links
+    REPORTS_SHARE = "reports.share"
 
 
 PERMISSIONS: dict[Action, frozenset[Role]] = {
@@ -85,6 +87,7 @@ PERMISSIONS: dict[Action, frozenset[Role]] = {
     # PRD: only the Owner sees billing details; Admins see usage and limits.
     Action.BILLING_INVOICES_READ: frozenset({OW}),
     Action.INTEGRATIONS_SUPPLIERS_MANAGE: frozenset({OW, AD}),
+    Action.REPORTS_SHARE: frozenset({OW, AD, AN}),
 }
 
 assert set(PERMISSIONS) == set(Action), "every action needs a role set"

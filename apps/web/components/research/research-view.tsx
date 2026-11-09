@@ -7,6 +7,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { ReportsList } from "@/components/reports/reports-list";
 import { AudienceForm } from "@/components/research/audience-form";
 import { RunProgress } from "@/components/research/run-progress";
 import { Button } from "@/components/ui/button";
@@ -204,6 +205,8 @@ export function ResearchView() {
           <p className="text-sm text-muted-foreground">{t("noRuns")}</p>
         )}
       </section>
+
+      <ReportsList />
 
       <Card className="p-4">
         <AudienceForm />

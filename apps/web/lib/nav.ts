@@ -48,7 +48,6 @@ export const NAV: readonly NavItem[] = [
 ];
 
 export const PLACEHOLDER_SECTIONS = new Set<SectionKey>([
-  "reports",
   "listings",
   "store",
 ]);

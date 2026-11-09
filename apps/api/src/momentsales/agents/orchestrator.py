@@ -4,8 +4,8 @@ Runs the agents in order, one transaction per step, so progress is visible and a
 job resumes after the last finished step (steps are unique per run and agent). It enforces
 the run's cost cap: reaching it stops the run as `partial`, with what was found so far.
 
-Phase 2c runs the Season, Trend, Marketplace and Supplier agents. Phase 2d adds the
-scoring, compliance and report agents to `PIPELINE`.
+The pipeline: Season, Trend, Marketplace, Supplier, then the finishing agents (Scoring,
+Compliance, Report), which also run after the cost cap on what was gathered (ADR-0021).
 """
 
 from __future__ import annotations
@@ -28,7 +28,10 @@ from momentsales.agents.base import (
     BudgetExceededError,
     CostMeter,
 )
+from momentsales.agents.compliance import ComplianceAgent
 from momentsales.agents.marketplace import MarketplaceAgent
+from momentsales.agents.report import ReportAgent
+from momentsales.agents.scoring import ScoringAgent
 from momentsales.agents.season import SeasonAgent
 from momentsales.agents.supplier import SupplierAgent
 from momentsales.agents.trend import TrendAgent
@@ -49,7 +52,15 @@ from momentsales.modules.research.events import publish
 
 log = get_logger(__name__)
 
-PIPELINE: tuple[Agent, ...] = (SeasonAgent(), TrendAgent(), MarketplaceAgent(), SupplierAgent())
+PIPELINE: tuple[Agent, ...] = (
+    SeasonAgent(),
+    TrendAgent(),
+    MarketplaceAgent(),
+    SupplierAgent(),
+    ScoringAgent(),
+    ComplianceAgent(),
+    ReportAgent(),
+)
 DONE_STEPS = frozenset({StepStatus.COMPLETED, StepStatus.DEGRADED})
 
 
@@ -85,7 +96,12 @@ async def execute(
 
     outputs: dict[str, dict[str, Any]] = {}
     pipeline = PIPELINE if pipeline is None else pipeline
+    # At the cost cap, paid data gathering stops but the finishing agents (scoring,
+    # compliance, report) still run on what was gathered, then the run ends `partial`.
+    capped: str | None = None
     for position, agent in enumerate(pipeline):
+        if capped and not getattr(agent, "runs_after_cap", False):
+            continue
         try:
             outcome, exhausted = await _run_step(
                 maker,
@@ -100,7 +116,8 @@ async def execute(
                 redis,
             )
         except BudgetExceededError as exc:
-            return await _finish(maker, redis, run_id, workspace_id, RunStatus.PARTIAL, str(exc))
+            capped = capped or str(exc)
+            continue
         except Exception as exc:
             log.error("research_step_failed", run_id=str(run_id), agent=agent.name, error=str(exc))
             await _record_failure(maker, run_id, workspace_id, position, agent, exc)
@@ -119,15 +136,10 @@ async def execute(
                 "cost_minor": meter.spent_minor,
             },
         )
-        if exhausted:
-            return await _finish(
-                maker,
-                redis,
-                run_id,
-                workspace_id,
-                RunStatus.PARTIAL,
-                f"{agent.name}: cost cap reached; results so far are kept",
-            )
+        if exhausted and not capped:
+            capped = f"{agent.name}: cost cap reached; results so far are kept"
+    if capped:
+        return await _finish(maker, redis, run_id, workspace_id, RunStatus.PARTIAL, capped)
     return await _finish(maker, redis, run_id, workspace_id, RunStatus.COMPLETED, None)
 
 

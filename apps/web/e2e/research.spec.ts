@@ -9,8 +9,8 @@ async function expectNoSeriousViolations(page: Page) {
   expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
 }
 
-test("J2 (Phases 2a-2c): season calendar on Home, then a seasonal run with rising searches and UK suppliers", async ({ page }) => {
-  test.setTimeout(120_000);
+test("J2 (Phase 2): season calendar, a seasonal run, UK suppliers and the Top 10 report", async ({ page, browser }) => {
+  test.setTimeout(180_000);
   // Mock evidence for the Verified UK supplier rule (a Platform admin records real evidence).
   expect((await page.request.post("/api/v1/dev/mock-suppliers/verify")).ok()).toBeTruthy();
   await signInWithMagicLink(page, uniqueEmail("research"));
@@ -63,4 +63,31 @@ test("J2 (Phases 2a-2c): season calendar on Home, then a seasonal run with risin
   await expect(demand.locator('[data-status="no_verified_supplier"], [data-status="no_supplier"]').first()).toContainText("Why:");
   await expect(page.getByTestId("recent-runs").getByRole("listitem")).toHaveCount(1);
   await expectNoSeriousViolations(page);
+
+  // Top 10 report (Phase 2d, AC-1): ten products, each with a reason, links and a score.
+  await expect(page.getByTestId("run-steps")).toContainText("Top 10 report");
+  await page.getByTestId("view-report").click();
+  await page.waitForURL(/\/app\/reports\//);
+  const items = page.getByTestId("report-item");
+  await expect(items).toHaveCount(10);
+  await expect(items.first().getByTestId("item-why")).not.toBeEmpty();
+  await expect(items.first().getByTestId("item-links").getByRole("link")).not.toHaveCount(0);
+  await expect(page.getByText("How we scored these")).toBeVisible();
+  await expectNoSeriousViolations(page);
+
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Download CSV" }).click();
+  expect((await download).suggestedFilename()).toMatch(/^top10-.*\.csv$/);
+
+  // A read-only share link works without signing in and hides the run cost.
+  await page.getByRole("button", { name: "Create link" }).click();
+  const shareUrl = await page.getByTestId("share-url").getAttribute("href");
+  expect(shareUrl).toContain("/r/");
+  const visitor = await browser.newContext();
+  const shared = await visitor.newPage();
+  await shared.goto(new URL(shareUrl!).pathname);
+  await expect(shared.getByTestId("report-item")).toHaveCount(10);
+  await expect(shared.getByTestId("report-summary")).not.toContainText("Run cost");
+  await expectNoSeriousViolations(shared);
+  await visitor.close();
 });

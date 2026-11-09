@@ -51,6 +51,7 @@ GATED_ACTIONS = frozenset(
         Action.RECEIPTS_UPLOAD,
         Action.INTEGRATIONS_PAYMENTS_MANAGE,
         Action.INTEGRATIONS_SUPPLIERS_MANAGE,
+        Action.REPORTS_SHARE,
         Action.CHECKOUT_TEST,
         Action.SALES_RECORD,
         Action.TOUCHES_WRITE,

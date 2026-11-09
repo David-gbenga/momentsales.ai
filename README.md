@@ -2,7 +2,7 @@
 
 Agentic commerce assistant for **UK side-hustlers and small online shops**: *find what's about to sell, launch a shop in a weekend, and keep books your accountant will accept.*
 
-The source of truth for scope and phases is [`docs/PRD.md`](docs/PRD.md). **Status: Phases 0, 1 and 1B (with its follow-up) are merged. Phase 2 is approved and in progress: 2a (season engine, research runs, season calendar), 2b (market data, rising searches, competition, shared cache) and 2c (UK supplier matching) are in review.**
+The source of truth for scope and phases is [`docs/PRD.md`](docs/PRD.md). **Status: Phases 0, 1 and 1B (with its follow-up) are merged. Phase 2 is approved and in progress: 2a (season engine, research runs, season calendar), 2b (market data, rising searches, competition, shared cache) and 2c (UK supplier matching) are merged; 2d (scoring, compliance, the Top 10 report) is in review.**
 
 ## Quick start (no paid keys needed)
 
@@ -80,7 +80,7 @@ docs/          PRD, ADRs, ERD, OpenAPI spec, integration notes, runbooks, compli
 - Stripe runs in test mode only; settings refuse live keys and live events ([ADR-0011](docs/adr/0011-stripe-connect.md)).
 - Every plan-limited action goes through `EntitlementService`; writes need a trialing or active subscription ([ADR-0015](docs/adr/0015-plans-entitlements-usage.md), [ADR-0016](docs/adr/0016-subscription-state-and-access.md)).
 
-## What is mocked (as of Phase 2c)
+## What is mocked (as of Phase 2d)
 
 | Area | Mock | Live adapter | To go live |
 | --- | --- | --- | --- |
@@ -92,7 +92,7 @@ docs/          PRD, ADRs, ERD, OpenAPI spec, integration notes, runbooks, compli
 | SaaS billing (trial, subscriptions, Portal, packs, reports, dunning) | Mock Stripe Billing: mock Checkout and Customer Portal pages; signed Stripe-shaped events posted to the real platform webhook endpoint; test tools for renewals and failed/paid invoices | Stripe Billing (test mode only) | `STRIPE_SECRET_KEY` (test), then `uv run python -m momentsales.tools.stripe_billing_seed` to create Products, Prices, the retention coupon and the Portal configuration (`STRIPE_PORTAL_CONFIGURATION_ID`). In the Stripe dashboard set Smart Retries to "Leave the subscription past-due". `STRIPE_TAX_ENABLED=true` once tax registrations exist |
 | Plan prices and limits | Final launch values (product owner, 2026-11-08) in the `plans` tables (GBP only) | Edited by a Platform admin through `/api/v1/admin/plans` | Other currencies when other countries open |
 | Platform fee (2% on Lite and pay-per-report, ADR-0017) | Mock Stripe stores application fees and fee refunds | Stripe Connect application fees (test mode only) | Nothing extra beyond the Stripe Connect keys |
-| Research runs | Real runs through `POST /research-runs`, metered by `consume_run`. Four steps: the Season agent, the Trend agent (rising searches, growth rate, "crowded" flag), the Marketplace agent (competition score) and the Supplier agent (UK dropship supplier, Verified UK supplier rule). The mock-only "Use one research run" billing tool stays for billing tests | — | Phase 2d adds the scoring, compliance and report agents |
+| Research runs | Real runs through `POST /research-runs`, metered by `consume_run`. Seven steps: Season, Trend (rising searches, growth rate, "crowded" flag), Marketplace (competition score), Supplier (UK dropship supplier, Verified UK supplier rule), then Scoring, Compliance and Report, which also run after the cost cap on what was gathered. The mock-only "Use one research run" billing tool stays for billing tests | — | — |
 | Public holidays (Season agent) | Mock computes the England and Wales bank holidays locally | Nager.Date v4 (no key) | `PROVIDER_MODE=live`; nothing else needed |
 | Act-by dates (season calendar) | Use the median delivery time of matched suppliers from the workspace's latest run (AC-26); before any run, an assumed delivery time (`RESEARCH_ASSUMED_DELIVERY_DAYS`, default 5), labelled as an assumption | — | — |
 | Listings | Count 0 against the trial and plan caps | — | Phase 3 |
@@ -102,7 +102,9 @@ docs/          PRD, ADRs, ERD, OpenAPI spec, integration notes, runbooks, compli
 | Suppliers (CJ, Avasam) | Deterministic mock items (UK stock, untracked, slow, low-margin, non-UK, no match) with `mock://` URLs. CJ's mock prices in USD to exercise FX; Avasam's mock, like the real adapter, has no shipping cost, so its matches show "no verified supplier" | CJ Dropshipping (primary, one platform account), Avasam (secondary, each seller's own keys), manual switch only ([ADR-0020](docs/adr/0020-supplier-matching.md)) | **Get written confirmation from CJ and Avasam** (draft emails in `docs/integrations/cj-dropshipping.md` and `avasam.md`), then set `CJ_API_KEY`, check a live sample (GB stock, tracking, `logisticAging`) against the parser, and have a Platform admin record evidence for checks 1–4 |
 | Verified UK supplier evidence | Real (Postgres, append-only), recorded by a Platform admin through `POST /admin/supplier-verifications`. Locally, `POST /api/v1/dev/mock-suppliers/verify` adds `mock://` evidence so mock matches can be verified | — | Real evidence for CJ and Avasam (dropshipping, stock and cost updates, tracked UK delivery, UK returns) |
 | FX rates | Fixed mock rate (1 USD = £0.75), labelled `mock://` | Frankfurter (ECB reference rates, no key) | Set `PROVIDER_MODE=live` |
-| Research LLM | Registered in the provider registry, no adapter yet | — | Phase 2d (Claude) |
+| Research LLM (compliance check, one-line reasons) | Deterministic mock answers, labelled; £0 | Claude Opus 5.5 ([ADR-0021](docs/adr/0021-scoring-compliance-report.md), [note](docs/integrations/anthropic-llm.md)) | Set `ANTHROPIC_API_KEY` and `PROVIDER_MODE=live`; check `LLM_PRICE_*` against the current price list |
+| Top 10 report, CSV/PDF export, share links | Real (Postgres, RLS). Built from the mocked research data above | — | — |
+| Ad cost per sale, selling price | Estimates: a configured share of the price (`RESEARCH_AD_COST_BPS`) and the middle price seen on Google, labelled in the report | — | A licensed benchmark source, if one is chosen later |
 
 Dev endpoints (`/api/v1/dev/*`) exist only when `ENV` is `local` or `test` **and** `PROVIDER_MODE=mock`. Settings refuse mock providers and placeholder secrets in production.
 
@@ -115,6 +117,6 @@ Dev endpoints (`/api/v1/dev/*`) exist only when `ENV` is `local` or `test` **and
   - **2a — season engine, research runs and calendar:** in review. Covers the season parts of AC-1, AC-2 (engine level, since only the UK is selectable), AC-3 for holiday facts, AC-15 on real runs, and the calendar part of AC-26 (with an assumed delivery time).
   - **2b — market data, rising searches and competition:** in review. Covers the data part of AC-25 (growth rate, "crowded" badge and competition score for each search), AC-3 for every trend and market number, and the market-data half of AC-34 (provider switch and automatic failover). Ranking a crowded product below an otherwise equal rising one is part of scoring in 2d.
   - **2c — UK supplier matching:** in review. Covers AC-20 (each checked search shows a verified UK supplier with unit cost, shipping, warehouse and delivery range, or a "no supplier" / "no verified supplier" flag), the data part of AC-21 ("arrives too late"), AC-26 (act-by dates follow the matched suppliers' delivery time) and the supplier half of AC-34 (switch to Avasam, no automatic failover). Blocking listing for "no supplier" products comes with listings in Phase 3, and ranking late products down with scoring in 2d.
-  - **2d:** scoring, compliance and the Top 10 report.
+  - **2d — scoring, compliance and the Top 10 report:** in review. Covers AC-1 (ten products, each with an image, purchase links, best price, sizes or "not available", delivery estimate and a reason), AC-3 for report facts, the ranking halves of AC-21 and AC-25, the profit part of AC-27, the flag part of AC-29, and AC-19 for reports. Marketplace sales rank is not scored (no licensed source). The marketing kit, listings and the "Why this product?" follow-up come in Phase 3.
 
 See [CHANGELOG.md](CHANGELOG.md) for details. The landing page and waitlist are built but **not deployed**. Publishing them is a separate step that needs approval.
