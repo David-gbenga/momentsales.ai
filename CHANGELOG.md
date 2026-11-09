@@ -2,6 +2,53 @@
 
 All notable changes are recorded here, by phase.
 
+## [Phase 2b — market data, rising searches and competition] — 2026-11-08
+
+### Added
+- **Market data (ADR-0019):**
+  - A provider-neutral `MarketDataPort`: Google Trends interest over time, rising related queries, and a Google results overview.
+  - DataForSEO (primary) and SerpApi (secondary) adapters, with automatic failover on retryable errors (FR-15, AC-34), plus a deterministic mock.
+  - The SerpApi key is never stored in snapshots.
+- **Trend agent:**
+  - Candidates come from the run's category, the audience interests and UK seed terms for the moments in the window, plus rising related searches.
+  - It works out a growth rate (last 3 weeks against the 6 before), a "crowded" flag (at or near the 12-month high) and last year's lift over the window.
+- **Marketplace agent:** a competition score from 0 to 100 (lower is better), from Google ads, shopping ads, distinct sellers, price spread and the results count. Shopping offers are kept as demand evidence and purchase links only.
+- **Shared market-data cache:** global and append-only, with no workspace data. A result is reused for 24 hours across workspaces at no cost, and each run still gets its own source snapshots (AC-3).
+- **Cost metering in GBP micros:**
+  - New columns `cost_micros` and `cost_by_provider`. `cost_minor` is still the total rounded up.
+  - An agent that reaches the £1.00 cap keeps the data it already paid for, and the run ends as `partial`.
+  - A platform-wide monthly market-data budget (£40) switches runs to cache only once it's reached.
+- **Migration `0006`:** `market_data_cache`, `category_seed_terms` (seeded with UK terms), `research_runs.demand`, `cost_micros` and `cost_by_provider`.
+- **API:** `RunOut.demand` is typed (`DemandOut`, `CandidateOut`, `TrendOut`, `MarketOut`, `OfferOut`). The OpenAPI spec and TS client are regenerated.
+- **Web:** a "Rising searches" table on the Research page. It shows:
+  - growth and a Crowded badge
+  - the competition score and the prices seen
+  - the source and fetch time, with a Stale badge after 24 hours
+  - "Not available" for missing data, and a "Mock data" notice
+- **Settings:** `PROVIDER_MARKET_DATA*`, `DATAFORSEO_*`, `SERPAPI_*`, `COST_*_MICROS`, `MARKET_DATA_MONTHLY_BUDGET_MICROS`, `MARKET_CACHE_MAX_AGE_HOURS` and `RESEARCH_*`, all in `.env.example`. An empty secret in `.env` counts as not set.
+- **Docs:** ADR-0019, `docs/integrations/dataforseo.md`, `serpapi.md` and `ebay-browse.md`.
+
+### Changed
+- **eBay is dropped from the MVP** (owner decision). Its API licence forbids deriving average prices, aggregated seller data or site-wide statistics without written permission, and Browse production access is a Limited Release. The `marketplace` provider category stays registered with no adapters.
+- **Amazon is left out** for now (owner decision).
+
+### Tests
+- **Contract:** DataForSEO and SerpApi request shapes, parsing, retryable and non-retryable errors, and that the key is never stored. Also failover and the mock.
+- **Unit:** growth, peak, last-year lift, too little data, competition score with missing parts, price spread, the micros meter, seed ordering, the rising-query filter and cache keys.
+- **Integration:**
+  - The UK run on 6 Nov finds rising and crowded searches, every number traceable to a snapshot.
+  - Provider switch and automatic failover (AC-34).
+  - Both providers down gives degraded steps, not a failed run.
+  - Cache: a hit costs nothing for a second workspace, which can't see the first one's snapshots. Entries older than 24 hours are fetched again, and the cache holds no workspace data.
+  - Partial at the cap, the monthly budget, cost by provider, and price-band filtering.
+- **Vitest and Playwright:** the J2 flow shows rising searches with a Crowded badge, checked with axe.
+
+### Still mocked
+- Market data stays on the mock until DataForSEO and SerpApi confirm their terms in writing. Draft emails are in the integration notes.
+- Per-call cost estimates are settings converted from the providers' USD prices. Check them against real invoices.
+- The DataForSEO shopping and popular-products fields follow the documented field list. Check them against a live sample before going live.
+- Suppliers, scoring, compliance and the Top 10 report arrive in Phases 2c–2d.
+
 ## [Phase 2a — season engine, research runs and calendar] — 2026-11-08
 
 ### Added

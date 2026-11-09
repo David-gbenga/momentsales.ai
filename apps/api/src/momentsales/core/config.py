@@ -108,6 +108,35 @@ class Settings(BaseSettings):
     # Runs stuck in queued/running longer than this are resumed by the sweeper.
     research_stuck_after_minutes: int = Field(default=10, ge=1)
 
+    # Market data (Phase 2b, ADR-0019). DataForSEO primary, SerpApi switchable (FR-15).
+    provider_market_data: Literal["dataforseo", "serpapi"] = "dataforseo"
+    provider_market_data_secondary: Literal["dataforseo", "serpapi"] | None = "serpapi"
+    provider_market_data_failover: Literal["auto", "manual"] = "auto"
+    dataforseo_login: str | None = None
+    dataforseo_password: SecretStr | None = None
+    dataforseo_base_url: str = "https://api.dataforseo.com/v3"
+    serpapi_api_key: SecretStr | None = None
+    serpapi_base_url: str = "https://serpapi.com"
+    # Per-call cost estimates in GBP micros (1,000,000 = £1), for the run cost cap only.
+    # From the providers' USD prices (integration notes); update from real invoices.
+    cost_dataforseo_trends_micros: int = Field(default=9_000, ge=0)
+    cost_dataforseo_serp_micros: int = Field(default=2_000, ge=0)
+    cost_serpapi_search_micros: int = Field(default=20_000, ge=0)
+    # Platform-wide paid market-data spend per calendar month; past it, cache only.
+    market_data_monthly_budget_micros: int = Field(default=40_000_000, ge=0)
+    # Shared cache reuse window (owner decision: 24 h, matching the stale badge).
+    market_cache_max_age_hours: int = Field(default=24, ge=1, le=168)
+    research_max_anchors: int = Field(default=4, ge=1, le=10)
+    research_max_candidates: int = Field(default=20, ge=1, le=50)
+    research_marketplace_top_n: int = Field(default=12, ge=1, le=30)
+    research_growth_recent_weeks: int = Field(default=3, ge=2, le=4)
+    research_growth_baseline_weeks: int = Field(default=6, ge=4, le=8)
+    research_peak_ratio: float = Field(default=0.9, gt=0, le=1)
+    research_min_interest: int = Field(default=5, ge=0, le=100)
+    research_competition_weights: dict[str, float] = Field(
+        default_factory=lambda: {"results": 0.25, "ads": 0.35, "merchants": 0.2, "spread": 0.2}
+    )
+
     provider_ocr: Literal["claude", "textract"] = "claude"
     provider_ocr_secondary: Literal["claude", "textract"] | None = "textract"
     provider_ocr_failover: Literal["auto", "manual"] = "auto"
