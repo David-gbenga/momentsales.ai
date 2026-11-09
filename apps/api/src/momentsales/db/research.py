@@ -258,3 +258,69 @@ class SupplierVerification(UUIDPk, Base):
     __table_args__ = (
         Index("ix_supplier_verifications_lookup", "provider", "check", "verified_at"),
     )
+
+
+class Report(UUIDPk, Base):
+    """The Top 10 report of a research run (FR-4, ADR-0021). Immutable once written;
+    prices, links, delivery and supplier details keep their source snapshot ids (AC-3)."""
+
+    __tablename__ = "reports"
+
+    workspace_id: Mapped[uuid.UUID] = _workspace_fk()
+    run_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("research_runs.id", ondelete="CASCADE"), nullable=False, unique=True
+    )
+    # Parameters, season, method note, sources, cost, counts and the mock flag.
+    summary: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    # Products vetoed by the Compliance agent, with the reason.
+    excluded: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False, default=list)
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = _created_at()
+
+
+class ReportItem(UUIDPk, Base):
+    __tablename__ = "report_items"
+
+    workspace_id: Mapped[uuid.UUID] = _workspace_fk()
+    report_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("reports.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    rank: Mapped[int] = mapped_column(Integer, nullable=False)
+    keyword: Mapped[str] = mapped_column(String(200), nullable=False)
+    category: Mapped[str | None] = mapped_column(String(80))
+    score: Mapped[int] = mapped_column(Integer, nullable=False)
+    score_breakdown: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    why: Mapped[str] = mapped_column(Text, nullable=False)
+    why_source: Mapped[str] = mapped_column(String(20), nullable=False)  # llm or template
+    image_url: Mapped[str | None] = mapped_column(String(2000))
+    best_offer: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    offers: Mapped[list[dict[str, Any]]] = mapped_column(JSONB, nullable=False, default=list)
+    sizes: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    trend: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    market: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    supplier: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    profit: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    compliance: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    flags: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    fetched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _created_at()
+
+    __table_args__ = (UniqueConstraint("report_id", "rank", name="uq_report_items_rank"),)
+
+
+class ReportShare(UUIDPk, Base):
+    """A read-only share link (ADR-0021): an opaque token stored as SHA-256, expiring and
+    revocable. The public endpoint finds it by hash in platform context."""
+
+    __tablename__ = "report_shares"
+
+    workspace_id: Mapped[uuid.UUID] = _workspace_fk()
+    report_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("reports.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+    last_viewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _created_at()
