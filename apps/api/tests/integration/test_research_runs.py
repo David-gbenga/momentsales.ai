@@ -67,7 +67,15 @@ async def test_uk_seasonal_run_on_6_november(client: httpx.AsyncClient) -> None:
     assert (season["current"], season["next"]) == ("autumn", "winter")
     names = [m["name"] for m in season["moments"]]
     assert "Black Friday" in names and "Christmas" in names
-    assert [s["agent"] for s in run["steps"]] == ["season", "trend", "marketplace", "supplier"]
+    assert [s["agent"] for s in run["steps"]] == [
+        "season",
+        "trend",
+        "marketplace",
+        "supplier",
+        "scoring",
+        "compliance",
+        "report",
+    ]
     assert {s["status"] for s in run["steps"]} == {"completed"}
     # Mock market data charges the primary's estimates (nothing when the shared cache
     # already holds the results; see test_demand_runs.py).

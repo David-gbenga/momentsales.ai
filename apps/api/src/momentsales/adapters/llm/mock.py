@@ -20,7 +20,8 @@ def _why(facts: dict[str, Any]) -> str:
     if facts.get("crowded"):
         parts.append("interest is already near its yearly high")
     elif facts.get("growth_pct") is not None and facts["growth_pct"] > 0:
-        parts.append(f"UK searches are up {facts['growth_pct']}% in the last 3 weeks")
+        weeks = facts.get("growth_window_weeks") or 3
+        parts.append(f"UK searches are up {facts['growth_pct']}% in the last {weeks} weeks")
     if facts.get("moment"):
         parts.append(f"it fits {facts['moment']}")
     if facts.get("arrives_too_late"):

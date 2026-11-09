@@ -184,6 +184,9 @@ async def test_both_providers_down_degrades_without_failing(
         ("trend", "degraded"),
         ("marketplace", "degraded"),
         ("supplier", "degraded"),
+        ("scoring", "degraded"),
+        ("compliance", "degraded"),
+        ("report", "degraded"),  # no items: nothing could be measured
     ]
     assert run["demand"]["trend_available"] is False
     assert all(c["trend"] is None and c["market"] is None for c in run["demand"]["candidates"])
@@ -234,7 +237,14 @@ async def test_cost_cap_keeps_what_was_paid_for(client: httpx.AsyncClient) -> No
     _, ws, run = await run_once(client, cost_cap_minor=3)
     assert run["status"] == "partial" and "cost cap" in run["error"]
     assert run["cost_minor"] == 2 and run["demand"]["stopped_at_cap"] is True
-    assert [s["agent"] for s in run["steps"]] == ["season", "trend"]  # marketplace not run
+    # Paid data gathering stops at the cap; the finishing agents still run (ADR-0021).
+    assert [s["agent"] for s in run["steps"]] == [
+        "season",
+        "trend",
+        "scoring",
+        "compliance",
+        "report",
+    ]
     snaps = await snapshots(ws, run["id"])
     assert any(s.kind == "related_queries" for s in snaps.values())  # paid data kept
 
