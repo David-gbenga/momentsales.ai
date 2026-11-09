@@ -7,12 +7,14 @@ overrides the environment (`PROVIDER_MODE`, `PROVIDER_<CATEGORY>`, ...).
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import asdict, dataclass
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 import httpx
 from pydantic import SecretStr
 from redis.asyncio import Redis
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from momentsales.adapters.billing.base import BillingPort
@@ -20,6 +22,8 @@ from momentsales.adapters.email.base import EmailMessage, EmailPort, EmailSendEr
 from momentsales.adapters.email.mock import MockEmailAdapter
 from momentsales.adapters.email.postmark import PostmarkEmailAdapter
 from momentsales.adapters.email.resend import ResendEmailAdapter
+from momentsales.adapters.fx.base import FxPort
+from momentsales.adapters.fx.mock import MockFxAdapter
 from momentsales.adapters.holidays.base import HolidaysPort
 from momentsales.adapters.holidays.mock import MockHolidaysAdapter
 from momentsales.adapters.holidays.nager import NagerHolidaysAdapter
@@ -41,9 +45,14 @@ from momentsales.adapters.payments.base import PaymentsPort
 from momentsales.adapters.payments.mock import MockPaymentsAdapter
 from momentsales.adapters.storage.base import StoragePort
 from momentsales.adapters.storage.local import LocalStorageAdapter
+from momentsales.adapters.supplier.base import SupplierNotConnectedError, SupplierPort
+from momentsales.adapters.supplier.mock import MockSupplierAdapter
 from momentsales.core.config import Env, ProviderMode, Settings
 from momentsales.core.logging import get_logger
 from momentsales.db.models import ProviderConfig
+
+if TYPE_CHECKING:
+    from momentsales.adapters.supplier.avasam import AvasamAdapter
 
 log = get_logger(__name__)
 
@@ -55,7 +64,9 @@ CATEGORIES: dict[str, tuple[str, ...]] = {
     "market_data": ("dataforseo", "serpapi"),
     # Marketplace data (eBay, Amazon): no adapters until licence terms allow (ADR-0019).
     "marketplace": (),
-    "supplier": (),  # Phase 2
+    # Suppliers: manual switch only, never automatic failover (FR-15, ADR-0020).
+    "supplier": ("cj", "avasam"),
+    "fx": ("frankfurter",),
     "ocr": ("claude", "textract"),
     "payments": ("stripe",),
     "llm": (),  # Phase 2
@@ -216,6 +227,20 @@ class ProviderRegistry:
                 "env",
                 CATEGORIES[category],
             )
+        if category == "supplier":
+            return ResolvedProvider(
+                category,
+                s.provider_supplier,
+                s.provider_supplier_secondary,
+                mode,
+                "manual",
+                "env",
+                CATEGORIES[category],
+            )
+        if category == "fx":
+            return ResolvedProvider(
+                category, s.provider_fx, None, mode, "manual", "env", CATEGORIES[category]
+            )
         if category == "holidays":
             return ResolvedProvider(
                 category, s.provider_holidays, None, mode, "manual", "env", CATEGORIES[category]
@@ -256,6 +281,76 @@ class ProviderRegistry:
         if resolved.mode == "mock":
             return MockHolidaysAdapter()
         return NagerHolidaysAdapter(self._http, self._s.nager_base_url)
+
+    # --- Suppliers (critical category: two adapters, manual switch only) ---------------
+
+    async def supplier(self, session: AsyncSession, workspace_id: uuid.UUID) -> SupplierPort:
+        """The configured primary supplier. Suppliers never fail over automatically
+        (FR-15): switching is a config change. Avasam uses the workspace's own keys."""
+        cfg = await self.resolve(session, "supplier")
+        if cfg.primary is None:
+            raise ProviderConfigError("supplier: no primary provider configured")
+        if cfg.primary == "avasam":
+            keys = await self._avasam_keys(session, workspace_id)
+            if cfg.mode == "mock":
+                if keys is None:
+                    raise SupplierNotConnectedError("avasam", "Avasam is not connected")
+                return MockSupplierAdapter("avasam")
+            if keys is None:
+                raise SupplierNotConnectedError("avasam", "Avasam is not connected")
+            return self.avasam(keys["consumer_key"], keys["secret_key"])
+        if cfg.mode == "mock":
+            return MockSupplierAdapter(cfg.primary)
+        if not _secret(self._s.cj_api_key):
+            raise ProviderConfigError("CJ_API_KEY is not set")
+        from momentsales.adapters.supplier.cj import CjAdapter
+
+        return CjAdapter(
+            self._http,
+            _secret(self._s.cj_api_key),
+            redis=self._redis,
+            call_micros=self._s.cost_cj_call_micros,
+            base_url=self._s.cj_base_url,
+        )
+
+    def avasam(self, consumer_key: str, secret_key: str) -> AvasamAdapter:
+        from momentsales.adapters.supplier.avasam import AvasamAdapter
+
+        return AvasamAdapter(
+            self._http,
+            consumer_key,
+            secret_key,
+            base_url=self._s.avasam_base_url,
+            max_pages=self._s.avasam_max_pages,
+        )
+
+    async def _avasam_keys(
+        self, session: AsyncSession, workspace_id: uuid.UUID
+    ) -> dict[str, str] | None:
+        from momentsales.core.security import decrypt_credentials
+        from momentsales.db.ledger import Integration, IntegrationStatus, IntegrationType
+
+        row = await session.scalar(
+            select(Integration).where(
+                Integration.workspace_id == workspace_id,
+                Integration.type == IntegrationType.AVASAM,
+                Integration.status == IntegrationStatus.ACTIVE,
+            )
+        )
+        if row is None or not row.credentials_encrypted:
+            return None
+        keys = decrypt_credentials(row.credentials_encrypted, self._s)
+        if not keys or not keys.get("consumer_key") or not keys.get("secret_key"):
+            return None
+        return keys
+
+    async def fx(self, session: AsyncSession) -> FxPort:
+        cfg = await self.resolve(session, "fx")
+        if cfg.mode == "mock":
+            return MockFxAdapter()
+        from momentsales.adapters.fx.frankfurter import FrankfurterAdapter
+
+        return FrankfurterAdapter(self._http, base_url=self._s.frankfurter_base_url)
 
     # --- Market data (critical category: two adapters, auto failover) -----------------
 

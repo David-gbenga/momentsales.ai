@@ -183,6 +183,7 @@ async def test_both_providers_down_degrades_without_failing(
         ("season", "completed"),
         ("trend", "degraded"),
         ("marketplace", "degraded"),
+        ("supplier", "degraded"),
     ]
     assert run["demand"]["trend_available"] is False
     assert all(c["trend"] is None and c["market"] is None for c in run["demand"]["candidates"])

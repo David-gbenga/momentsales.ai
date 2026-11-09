@@ -2,6 +2,67 @@
 
 All notable changes are recorded here, by phase.
 
+## [Phase 2c — UK supplier matching] — 2026-11-09
+
+### Added
+- **Supplier agent (FR-11, ADR-0020):** the fourth pipeline step. For the top 10 measured searches it:
+  - searches the configured supplier
+  - keeps matching items with UK stock in a GB warehouse
+  - quotes GB-to-GB freight and keeps the cheapest tracked option
+  - converts costs to GBP with a stored, dated FX rate
+  - applies the **Verified UK supplier rule**
+- **Statuses:**
+  - Each search shows "verified supplier", "no verified supplier" (with the failed checks), "no supplier", "not checked" or "not available".
+  - "Arrives too late" is flagged when the slowest delivery lands after the search's retail moment.
+- **Verified UK supplier rule:**
+  - **Checks 1–4** (dropshipping with no minimum order, automatic stock and cost updates, tracked UK delivery, UK returns of at least 14 days) come from admin-recorded evidence. With no evidence a check fails.
+  - **Check 5** is a 25% net margin floor. It counts unit cost, shipping, Stripe's UK card fee (1.5% + 20p), the plan's platform fee and a returns allowance, against the median price seen on Google. With any input missing, the check fails.
+- **Adapters:**
+  - `SupplierPort` with CJ Dropshipping (primary: one platform account, Redis-cached token, USD prices) and Avasam (secondary: each seller's own keys, never in the shared cache).
+  - `FxPort` with Frankfurter (ECB rates).
+  - Deterministic mocks for both.
+- **Shared gateway:** the market-data cache gateway is now `CachedGateway`. CJ results and FX rates are reused across workspaces for 24 hours. Avasam data is never cached.
+- **Migration `0007`:**
+  - `suppliers` (global, seeded with CJ and Avasam)
+  - append-only `supplier_verifications`
+  - `integrations.credentials_encrypted`
+  - the `avasam` integration type
+- **API:**
+  - `GET/POST /admin/supplier-verifications` and `GET /admin/suppliers` (Platform admin, audit-logged).
+  - `GET/POST/DELETE /integrations/avasam` (Owner or Admin can connect; keys are Fernet-encrypted with `INTEGRATION_ENCRYPTION_KEY` and never returned).
+  - Typed `SupplierResultOut` and `SupplierMatchOut` on each candidate.
+  - A new permission, `integrations.suppliers.manage`.
+- **Season calendar (AC-26):** act-by dates use the matched suppliers' median delivery time from the latest run (`delivery_source: "supplier"`).
+- **Web:**
+  - A Supplier column in the rising-searches table: landed cost, delivery days, warehouse, estimated margin, FX rate, and badges with reasons.
+  - An Avasam card on Integrations.
+  - The calendar says where its delivery time comes from.
+- **Settings:** `PROVIDER_SUPPLIER*`, `CJ_*`, `AVASAM_*`, `PROVIDER_FX`, `FRANKFURTER_BASE_URL`, `RESEARCH_SUPPLIER_TOP_N`, `SUPPLIER_*`, `STRIPE_FEE_*` and `INTEGRATION_ENCRYPTION_KEY`, all in `.env.example`. Production refuses the development encryption key.
+- **Docs:** ADR-0020, `docs/integrations/cj-dropshipping.md`, `avasam.md` and `frankfurter.md`, with draft emails to CJ and Avasam.
+
+### Changed
+- **Free calls are left out of spend by provider:** supplier, FX and cache hits no longer add zero entries to `cost_by_provider`.
+
+### Tests
+- **Contract:** CJ (token caching, search and GB stock, freight, the envelope and error codes), Avasam (token, local keyword filter, published tier, errors) and Frankfurter.
+- **Unit:** match confidence, qualifying items, the best tracked option, the estimated selling price, the margin maths and its rounding, verification results, the moment deadline and arrives too late.
+- **Integration:**
+  - AC-20 matches with snapshots for the search, freight and FX
+  - untracked, low-margin and non-UK items
+  - no evidence gives "no verified supplier"
+  - AC-34 with Avasam, both not connected and connected, with no cache rows written
+  - a supplier error doesn't fail over
+  - the CJ cache is shared, while each run keeps its own snapshots
+  - admin-only, append-only verifications
+  - encrypted, workspace-scoped Avasam keys
+  - AC-26 calendar
+- **Playwright:** the research journey shows the UK suppliers step and the Supplier column, with axe.
+
+### Still mocked
+- Suppliers (CJ and Avasam) and FX until live mode. Live suppliers wait for written confirmation from CJ and Avasam and for admin-recorded evidence.
+- Avasam's API has no shipping cost, so Avasam matches can't pass the margin check until Avasam confirms a source.
+- Scoring, compliance and the Top 10 report arrive in Phase 2d.
+
 ## [Phase 2b — market data, rising searches and competition] — 2026-11-08
 
 ### Added

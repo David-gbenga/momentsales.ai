@@ -9,8 +9,10 @@ async function expectNoSeriousViolations(page: Page) {
   expect(serious, JSON.stringify(serious, null, 2)).toEqual([]);
 }
 
-test("J2 (Phases 2a-2b): season calendar on Home, then a seasonal run with rising searches", async ({ page }) => {
+test("J2 (Phases 2a-2c): season calendar on Home, then a seasonal run with rising searches and UK suppliers", async ({ page }) => {
   test.setTimeout(120_000);
+  // Mock evidence for the Verified UK supplier rule (a Platform admin records real evidence).
+  expect((await page.request.post("/api/v1/dev/mock-suppliers/verify")).ok()).toBeTruthy();
   await signInWithMagicLink(page, uniqueEmail("research"));
   await createWorkspace(page, "Research Shop");
 
@@ -51,6 +53,14 @@ test("J2 (Phases 2a-2b): season calendar on Home, then a seasonal run with risin
   await expect(demand.getByTestId("demand-row").first().locator("td").nth(1)).toContainText("+");
   await expect(page.getByTestId("run-steps")).toContainText("Search trends");
   await expect(page.getByTestId("run-steps")).toContainText("Competition");
+  // UK suppliers (Phase 2c, AC-20): every checked search shows a supplier result.
+  await expect(page.getByTestId("run-steps")).toContainText("UK suppliers");
+  const cells = demand.getByTestId("supplier-cell");
+  await expect(cells.first()).toBeVisible();
+  await expect(demand.locator('[data-status="matched"]').first()).toContainText("landed");
+  await expect(demand.locator('[data-status="matched"]').first()).toContainText("GB warehouse");
+  // Any search without a usable supplier says so, with a reason.
+  await expect(demand.locator('[data-status="no_verified_supplier"], [data-status="no_supplier"]').first()).toContainText("Why:");
   await expect(page.getByTestId("recent-runs").getByRole("listitem")).toHaveCount(1);
   await expectNoSeriousViolations(page);
 });

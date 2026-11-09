@@ -39,6 +39,10 @@ class _Result(BaseModel):
     cost_micros: int = 0
 
 
+# Public name for other ports whose results are stored as source snapshots (AC-3).
+SourcedResult = _Result
+
+
 class TrendPoint(BaseModel):
     model_config = ConfigDict(frozen=True)
 

@@ -18,6 +18,8 @@ export type Audience = S["AudienceOut"];
 export type AudienceIn = S["AudienceIn"];
 export type Demand = S["DemandOut"];
 export type Candidate = S["CandidateOut"];
+export type SupplierResult = S["SupplierResultOut"];
+export type SupplierMatch = S["SupplierMatchOut"];
 
 export const TERMINAL: ReadonlySet<Run["status"]> = new Set(["completed", "partial", "failed"]);
 export const SEASONS = ["spring", "summer", "autumn", "winter"] as const;
@@ -59,6 +61,26 @@ export function formatGrowth(rate: number | null | undefined): string | null {
 export function isStale(fetchedAt: string, now: number = Date.now()): boolean {
   const t = Date.parse(fetchedAt);
   return Number.isFinite(t) && now - t > STALE_AFTER_MS;
+}
+
+/** "2–4 days", "3 days", or null when the supplier gives no delivery time. */
+export function formatDelivery(min: number | null | undefined, max: number | null | undefined): string | null {
+  if (max === null || max === undefined) return null;
+  if (min === null || min === undefined || min === max) return `${max}`;
+  return `${min}–${max}`;
+}
+
+/** 2500 basis points -> "25%". */
+export function formatBps(bps: number | null | undefined): string | null {
+  if (bps === null || bps === undefined || !Number.isFinite(bps)) return null;
+  return `${Math.round(bps / 100)}%`;
+}
+
+/** Failed or unchecked parts of the Verified UK supplier rule, e.g. ["margin", "uk_returns"]. */
+export function failedChecks(supplier: SupplierResult | null | undefined): string[] {
+  return (supplier?.reasons ?? [])
+    .map((r) => r.split(":")[0] ?? r)
+    .filter((r, i, all) => r && all.indexOf(r) === i);
 }
 
 /** Candidates with enough search data to show, in the Trend agent's order. */

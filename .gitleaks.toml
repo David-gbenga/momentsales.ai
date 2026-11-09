@@ -10,4 +10,7 @@ description = "Public local-development placeholders"
 regexes = [
   # Dev-only Fernet key for TOTP secrets (.env.example, core/config.py _DEV_TOTP_KEY).
   '''xb5Yb0bcm4o0r9bK0wQ1Zc5i8iX0b2S3dE4fG5hI6jY=''',
+  # Dev-only Fernet key for seller integration credentials (.env.example,
+  # core/config.py _DEV_INTEGRATION_KEY); production refuses it.
+  '''NzxpdScn8PA1JHjPuy6TrWIDMhgbsvNyzHyHonBntVg=''',
 ]

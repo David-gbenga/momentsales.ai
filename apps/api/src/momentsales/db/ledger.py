@@ -46,6 +46,7 @@ def _workspace_fk() -> Mapped[uuid.UUID]:
 
 class IntegrationType(enum.StrEnum):
     STRIPE = "stripe"
+    AVASAM = "avasam"  # a seller's own Avasam keys (ADR-0020)
 
 
 class IntegrationStatus(enum.StrEnum):
@@ -142,6 +143,8 @@ class Integration(UUIDPk, Timestamps, Base):
     livemode: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     connected_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Seller API keys, Fernet-encrypted (ADR-0020). Never returned by the API.
+    credentials_encrypted: Mapped[str | None] = mapped_column(Text)
 
     __table_args__ = (UniqueConstraint("workspace_id", "type"),)
 

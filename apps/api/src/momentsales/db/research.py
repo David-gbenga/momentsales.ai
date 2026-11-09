@@ -212,3 +212,49 @@ class AudienceProfile(UUIDPk, Timestamps, Base):
     budget_band: Mapped[str | None] = mapped_column(String(20))
     style: Mapped[str | None] = mapped_column(String(60))
     updated_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
+
+
+class VerificationCheck(enum.StrEnum):
+    """Checks 1-4 of the Verified UK supplier rule (FR-11). Check 5 (margin) is computed
+    per product during research."""
+
+    DROPSHIP_NO_MOQ = "dropship_no_moq"
+    AUTO_STOCK_COST = "auto_stock_cost"
+    TRACKED_UK = "tracked_uk"
+    UK_RETURNS = "uk_returns"
+
+
+class Supplier(UUIDPk, Timestamps, Base):
+    """A dropship supplier platform (FR-11, ADR-0020). Global reference data in 2c;
+    workspace-specific suppliers (manual) arrive with listings."""
+
+    __tablename__ = "suppliers"
+
+    provider: Mapped[str] = mapped_column(String(40), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    warehouse_countries: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    returns_policy_url: Mapped[str | None] = mapped_column(String(2000))
+    notes: Mapped[str | None] = mapped_column(Text)
+
+
+class SupplierVerification(UUIDPk, Base):
+    """Evidence for one check of the Verified UK supplier rule, recorded by a Platform
+    admin (ADR-0020). Global and append-only: the newest row per (provider, check) wins;
+    with no row the check fails."""
+
+    __tablename__ = "supplier_verifications"
+
+    provider: Mapped[str] = mapped_column(String(40), nullable=False)
+    check: Mapped[VerificationCheck] = mapped_column(
+        _enum(VerificationCheck, "verification_check"), nullable=False
+    )
+    passed: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    evidence_url: Mapped[str] = mapped_column(String(2000), nullable=False)
+    evidence_note: Mapped[str | None] = mapped_column(Text)
+    verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    verified_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+    created_at: Mapped[datetime] = _created_at()
+
+    __table_args__ = (
+        Index("ix_supplier_verifications_lookup", "provider", "check", "verified_at"),
+    )

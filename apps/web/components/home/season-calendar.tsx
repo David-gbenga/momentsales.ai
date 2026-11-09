@@ -34,7 +34,9 @@ export function SeasonCalendarCard() {
       ) : (
         <p className="text-sm text-muted-foreground">{t("empty")}</p>
       )}
-      <p className="text-xs text-muted-foreground">{t("assumed", { days: data.delivery_days })}</p>
+      <p className="text-xs text-muted-foreground" data-testid="calendar-delivery">
+        {t(data.delivery_source === "supplier" ? "supplier" : "assumed", { days: data.delivery_days })}
+      </p>
       {ws.can("research.run") ? (
         <Link href="/app/research" className="text-sm underline">
           {t("start")}

@@ -132,6 +132,91 @@ class MarketOut(BaseModel):
     fetched_at: datetime
 
 
+class MoneyOut(BaseModel):
+    amount_minor: int | None
+    currency: str | None
+
+
+class ShippingOut(BaseModel):
+    name: str
+    amount_minor: int | None
+    currency: str | None
+    # api: the supplier's freight quote; published: the supplier's published service tier.
+    source: Literal["api", "published"]
+
+
+class FxOut(BaseModel):
+    base: str
+    quote: str
+    rate: str
+    rate_date: date
+    provider: str
+    snapshot_id: uuid.UUID
+
+
+class MarginOut(BaseModel):
+    result: Literal["passed", "failed", "not_checked"]
+    sell_price_minor: int | None
+    sell_price_source: Literal["market_median_estimate"]
+    unit_cost_minor: int | None
+    shipping_minor: int | None
+    stripe_fee_minor: int | None
+    platform_fee_minor: int | None
+    returns_allowance_minor: int | None
+    net_minor: int | None
+    margin_bps: int | None
+    floor_bps: int
+    missing: list[str]
+    currency: Literal["GBP"]
+
+
+class EvidenceOut(BaseModel):
+    passed: bool
+    evidence_url: str
+    verified_at: datetime
+
+
+class SupplierMatchOut(BaseModel):
+    provider: str
+    external_id: str
+    variant_id: str | None
+    title: str
+    url: str | None
+    image_url: str | None
+    confidence: float
+    unit_cost: MoneyOut
+    unit_cost_gbp_minor: int | None
+    shipping: ShippingOut | None
+    shipping_gbp_minor: int | None
+    landed_cost_minor: int | None
+    fx: FxOut | None
+    delivery_min_days: int | None
+    delivery_max_days: int | None
+    warehouse_country: str | None
+    uk_stock: int | None
+    checks: dict[str, Literal["passed", "failed", "not_checked"]]
+    evidence: dict[str, EvidenceOut]
+    margin: MarginOut
+    verified: bool
+    arrives_too_late: bool | None
+    search_snapshot_id: uuid.UUID
+    freight_snapshot_id: uuid.UUID
+    fetched_at: datetime
+
+
+class SupplierResultOut(BaseModel):
+    """Supplier matching (FR-11, ADR-0020) for one candidate."""
+
+    status: Literal[
+        "matched", "no_verified_supplier", "no_supplier", "not_checked", "not_available"
+    ]
+    match: SupplierMatchOut | None
+    reasons: list[str]
+    arrives_too_late: bool | None
+    deadline: date | None
+    snapshot_ids: list[uuid.UUID]
+
+
 class CandidateOut(BaseModel):
     keyword: str
     # seed: a starting term for a retail moment; rising: a rising related search;
@@ -143,6 +228,7 @@ class CandidateOut(BaseModel):
     breakout: bool = False
     trend: TrendOut | None  # None: not available
     market: MarketOut | None = None  # None: not checked or not available
+    supplier: SupplierResultOut | None = None  # None: runs from before Phase 2c
 
 
 class DemandOut(BaseModel):
@@ -155,6 +241,8 @@ class DemandOut(BaseModel):
     stopped_at_cap: bool
     trend_available: bool
     market_available: bool
+    supplier_available: bool = False
+    supplier_provider: str | None = None
 
 
 class RunOut(BaseModel):
