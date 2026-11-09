@@ -4,7 +4,7 @@ Runs the agents in order, one transaction per step, so progress is visible and a
 job resumes after the last finished step (steps are unique per run and agent). It enforces
 the run's cost cap: reaching it stops the run as `partial`, with what was found so far.
 
-Phase 2b runs the Season, Trend and Marketplace agents. Phases 2c-2d add the supplier,
+Phase 2c runs the Season, Trend, Marketplace and Supplier agents. Phase 2d adds the
 scoring, compliance and report agents to `PIPELINE`.
 """
 
@@ -30,6 +30,7 @@ from momentsales.agents.base import (
 )
 from momentsales.agents.marketplace import MarketplaceAgent
 from momentsales.agents.season import SeasonAgent
+from momentsales.agents.supplier import SupplierAgent
 from momentsales.agents.trend import TrendAgent
 from momentsales.core.config import Settings
 from momentsales.core.db import get_sessionmaker, set_tenant_context
@@ -48,7 +49,7 @@ from momentsales.modules.research.events import publish
 
 log = get_logger(__name__)
 
-PIPELINE: tuple[Agent, ...] = (SeasonAgent(), TrendAgent(), MarketplaceAgent())
+PIPELINE: tuple[Agent, ...] = (SeasonAgent(), TrendAgent(), MarketplaceAgent(), SupplierAgent())
 DONE_STEPS = frozenset({StepStatus.COMPLETED, StepStatus.DEGRADED})
 
 

@@ -69,7 +69,7 @@ class MockSupplierAdapter:
         if case == "none":
             items.append(self._item(f"{h % 1000}-x", "Mock unrelated gadget", 500, 40, country))
         else:
-            cost = 1600 + h % 400 if case == "low_margin" else 300 + h % 300
+            cost = 6000 + h % 400 if case == "low_margin" else 300 + h % 300
             stock_country = "CN" if case == "no_uk_stock" else country
             items.append(
                 self._item(

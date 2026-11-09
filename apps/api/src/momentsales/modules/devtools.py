@@ -17,6 +17,7 @@ from momentsales.core.jobs import schedule
 from momentsales.deps import AppRedis, AppSettings
 from momentsales.modules.payments import service as payments_service
 from momentsales.modules.payments.jobs import PROCESS_JOB
+from momentsales.modules.suppliers import service as suppliers_service
 from momentsales.tenancy.deps import DbSession
 
 router = APIRouter(prefix="/dev", tags=["dev"])
@@ -32,6 +33,17 @@ class MockAuthorizeIn(BaseModel):
 
 class RedirectOut(BaseModel):
     redirect_url: str
+
+
+class SeededOut(BaseModel):
+    added: int
+
+
+@router.post("/mock-suppliers/verify", response_model=SeededOut)
+async def mock_suppliers_verify(session: DbSession) -> SeededOut:
+    """Mock evidence (`mock://` URLs) for every check of every supplier, so matches can be
+    verified locally. Live evidence is recorded by a Platform admin (ADR-0020)."""
+    return SeededOut(added=await suppliers_service.seed_mock_verifications(session))
 
 
 @router.get("/outbox")

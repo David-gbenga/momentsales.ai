@@ -50,6 +50,8 @@ class Action(StrEnum):
     TOUCHES_WRITE = "touches.write"
     # Phase 1B
     BILLING_INVOICES_READ = "billing.invoices.read"
+    # Phase 2c: connect a seller's own supplier account (Avasam)
+    INTEGRATIONS_SUPPLIERS_MANAGE = "integrations.suppliers.manage"
 
 
 PERMISSIONS: dict[Action, frozenset[Role]] = {
@@ -82,6 +84,7 @@ PERMISSIONS: dict[Action, frozenset[Role]] = {
     Action.TOUCHES_WRITE: frozenset({OW, AD}),
     # PRD: only the Owner sees billing details; Admins see usage and limits.
     Action.BILLING_INVOICES_READ: frozenset({OW}),
+    Action.INTEGRATIONS_SUPPLIERS_MANAGE: frozenset({OW, AD}),
 }
 
 assert set(PERMISSIONS) == set(Action), "every action needs a role set"

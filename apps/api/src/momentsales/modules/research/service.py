@@ -3,6 +3,7 @@ the audience profile (FR-1, FR-2, FR-12, ADR-0018)."""
 
 from __future__ import annotations
 
+import statistics
 import uuid
 from datetime import UTC, date, datetime, time
 from typing import Any
@@ -142,13 +143,38 @@ def audience_json(profile: AudienceProfile) -> dict[str, Any]:
     }
 
 
+async def supplier_delivery_days(session: AsyncSession) -> int | None:
+    """Median `delivery_max_days` of matched suppliers in the latest finished run (RLS
+    scopes the query to the current workspace)."""
+    run = await session.scalar(
+        select(ResearchRun)
+        .where(
+            ResearchRun.status.in_([RunStatus.COMPLETED, RunStatus.PARTIAL]),
+            ResearchRun.demand.is_not(None),
+        )
+        .order_by(ResearchRun.finished_at.desc().nulls_last(), ResearchRun.created_at.desc())
+        .limit(1)
+    )
+    if run is None:
+        return None
+    days = [
+        int(c["supplier"]["match"]["delivery_max_days"])
+        for c in (run.demand or {}).get("candidates") or []
+        if (c.get("supplier") or {}).get("status") == "matched"
+        and c["supplier"]["match"].get("delivery_max_days") is not None
+    ]
+    return int(statistics.median_low(days)) if days else None
+
+
 async def season_calendar(
     session: AsyncSession, settings: Settings, *, country: str, on: date | None, count: int = 3
 ) -> dict[str, Any]:
-    """FR-12: the next retail moments with act-by dates. Until a supplier is matched
-    (Phase 2c) the delivery time is the configured assumption, and it is labelled so."""
+    """FR-12, AC-26: the next retail moments with act-by dates. The delivery time is the
+    median slowest delivery of the matched suppliers in the workspace's latest finished run;
+    without one it is the configured assumption, labelled so."""
     today = on or await uk_date(session, datetime.now(UTC))
-    delivery = settings.research_assumed_delivery_days
+    matched = await supplier_delivery_days(session)
+    delivery = matched if matched is not None else settings.research_assumed_delivery_days
     moments = engine.upcoming(
         await load_moments(session, country), today, delivery_max_days=delivery
     )
@@ -156,6 +182,6 @@ async def season_calendar(
         "country": country,
         "as_of": today.isoformat(),
         "delivery_days": delivery,
-        "delivery_source": "assumed",
+        "delivery_source": "supplier" if matched is not None else "assumed",
         "moments": [moment_json(m) for m in moments[:count]],
     }

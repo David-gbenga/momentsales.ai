@@ -97,6 +97,7 @@ def test_production_refuses_mock_providers() -> None:
             jwt_secret=strong,  # type: ignore[arg-type]
             signing_secret=strong,  # type: ignore[arg-type]
             totp_encryption_key="Z" * 43 + "=",  # type: ignore[arg-type]
+            integration_encryption_key="Y" * 43 + "=",  # type: ignore[arg-type]
             database_url="postgresql+psycopg://app_rw:real@db/ms",
             cookie_secure=True,
             stripe_webhook_secret="whsec_real_platform",  # type: ignore[arg-type]
@@ -142,6 +143,7 @@ def test_outside_local_needs_real_webhook_secrets_and_object_storage() -> None:
             jwt_secret=strong,  # type: ignore[arg-type]
             signing_secret=strong,  # type: ignore[arg-type]
             totp_encryption_key="Z" * 43 + "=",  # type: ignore[arg-type]
+            integration_encryption_key="Y" * 43 + "=",  # type: ignore[arg-type]
             database_url="postgresql+psycopg://app_rw:real@db/ms",
             cookie_secure=True,
         )

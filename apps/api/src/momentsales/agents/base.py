@@ -54,6 +54,8 @@ class CostMeter:
             )
 
     def charge(self, provider: str, amount_micros: int) -> None:
+        if amount_micros == 0:
+            return  # free calls (suppliers, FX, cache hits) do not appear in spend by provider
         self.spent_micros += amount_micros
         self.by_provider[provider] = self.by_provider.get(provider, 0) + amount_micros
 

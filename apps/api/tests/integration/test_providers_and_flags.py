@@ -101,7 +101,9 @@ async def test_db_row_overrides_env() -> None:
         listing = {p.category: p for p in await reg.describe_all(s)}
         assert set(listing) >= {"email", "identity", "market_data", "supplier", "ocr", "llm"}
         assert listing["market_data"].built == ("dataforseo", "serpapi")
-        assert listing["supplier"].built == () and listing["marketplace"].built == ()
+        assert listing["supplier"].built == ("cj", "avasam")
+        assert listing["supplier"].failover == "manual"  # suppliers never fail over (FR-15)
+        assert listing["fx"].built == ("frankfurter",) and listing["marketplace"].built == ()
         await s.execute(delete(ProviderConfig))
 
 
@@ -112,6 +114,7 @@ async def test_production_never_resolves_mock_from_db() -> None:
         jwt_secret=strong,  # type: ignore[arg-type]
         signing_secret=strong,  # type: ignore[arg-type]
         totp_encryption_key="Z" * 43 + "=",  # type: ignore[arg-type]
+        integration_encryption_key="Y" * 43 + "=",  # type: ignore[arg-type]
         database_url="postgresql+psycopg://app_rw:real@db/ms",
         cookie_secure=True,
         stripe_webhook_secret="whsec_real_platform",  # type: ignore[arg-type]
