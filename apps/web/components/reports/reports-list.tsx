@@ -8,14 +8,15 @@ import { formatDay } from "@/lib/research";
 import { useReports } from "@/lib/reports";
 
 /** Recent Top 10 reports for this workspace. */
-export function ReportsList() {
+export function ReportsList({ heading = "h2" }: { heading?: "h1" | "h2" }) {
+  const Heading = heading;
   const t = useTranslations("reports");
   const reports = useReports();
   return (
     <section aria-labelledby="reports-title" className="grid gap-2">
-      <h2 id="reports-title" className="text-lg font-semibold">
+      <Heading id="reports-title" className={heading === "h1" ? "text-2xl font-semibold tracking-tight" : "text-lg font-semibold"}>
         {t("recent")}
-      </h2>
+      </Heading>
       {reports.data?.length ? (
         <ul className="grid gap-2" data-testid="recent-reports">
           {reports.data.map((r) => (
