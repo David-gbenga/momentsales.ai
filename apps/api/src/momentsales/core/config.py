@@ -150,7 +150,7 @@ class Settings(BaseSettings):
     avasam_max_pages: int = Field(default=5, ge=1, le=50)
     provider_fx: Literal["frankfurter"] = "frankfurter"
     frankfurter_base_url: str = "https://api.frankfurter.dev/v1"
-    research_supplier_top_n: int = Field(default=10, ge=1, le=30)
+    research_supplier_top_n: int = Field(default=12, ge=1, le=30)
     supplier_match_min_score: float = Field(default=0.5, gt=0, le=1)
     supplier_freight_candidates: int = Field(default=3, ge=1, le=5)
     # Verified UK supplier rule, check 5 (FR-11): net margin floor and its inputs.
@@ -159,6 +159,31 @@ class Settings(BaseSettings):
     # Stripe's published fee for standard UK cards: 1.5% + 20p (stripe.com/gb/pricing).
     stripe_fee_bps: int = Field(default=150, ge=0, le=1000)
     stripe_fee_fixed_minor: int = Field(default=20, ge=0, le=500)
+
+    # --- Scoring, compliance and the Top 10 report (Phase 2d, ADR-0021) ---------------
+    provider_llm: Literal["claude"] = "claude"
+    llm_model: str = "claude-opus-5-5"
+    # GBP micros per million tokens (Opus 5.5: $4 in / $20 out at about $1 = £0.75).
+    llm_price_input_micros_per_mtok: int = Field(default=3_000_000, ge=0)
+    llm_price_output_micros_per_mtok: int = Field(default=15_000_000, ge=0)
+    # FR-3 weights; "sales_rank" has no data source and is dropped (weights rescaled).
+    research_score_weights: dict[str, float] = Field(
+        default_factory=lambda: {
+            "rising": 0.25,
+            "competition": 0.15,
+            "sales_rank": 0.15,
+            "seasonal": 0.15,
+            "profit": 0.20,
+            "supplier": 0.10,
+        }
+    )
+    # Estimated ad cost per sale as basis points of the selling price (labelled estimate).
+    research_ad_cost_bps: int = Field(default=2000, ge=0, le=9000)
+    research_ad_cost_bps_by_category: dict[str, int] = Field(default_factory=dict)
+    research_compliance_top_n: int = Field(default=16, ge=1, le=40)
+    research_report_size: int = Field(default=10, ge=1, le=20)
+    report_share_default_days: int = Field(default=30, ge=1, le=90)
+    report_share_max_days: int = Field(default=90, ge=1, le=365)
 
     provider_ocr: Literal["claude", "textract"] = "claude"
     provider_ocr_secondary: Literal["claude", "textract"] | None = "textract"
