@@ -8,7 +8,7 @@ import { Badge, Card, Notice } from "@/components/ui/primitives";
 import { DataTable, Td } from "@/components/ui/table";
 import { formatDay, seasonOf, TERMINAL, useRun, type Run } from "@/lib/research";
 
-const KNOWN_AGENTS = new Set(["season", "trend", "marketplace"]);
+const KNOWN_AGENTS = new Set(["season", "trend", "marketplace", "supplier"]);
 
 /** One run: live status and steps, spend against the cap, then the season results. */
 export function RunProgress({ runId }: { runId: string }) {

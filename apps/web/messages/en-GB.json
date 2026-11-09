@@ -340,7 +340,15 @@
     "disabled": "Off",
     "needsAction": "Stripe needs: {items}",
     "account": "Account",
-    "testMode": "Test mode: no real money moves."
+    "testMode": "Test mode: no real money moves.",
+    "avasam": "Avasam (UK dropship supplier)",
+    "avasamHelp": "Connect your own Avasam seller account so research can match products you have sourced on Avasam. Your keys are stored encrypted and never shown again.",
+    "consumerKey": "Consumer key",
+    "secretKey": "Secret key",
+    "avasamConnect": "Connect Avasam",
+    "avasamDisconnect": "Disconnect",
+    "avasamManageOnly": "Only Owners and Admins can connect Avasam.",
+    "avasamMock": "Mock mode: keys are stored but not checked with Avasam."
   },
   "mockStripe": {
     "onboardTitle": "Mock Stripe onboarding",
@@ -558,7 +566,8 @@
     "agents": {
       "season": "Season and retail calendar",
       "trend": "Search trends",
-      "marketplace": "Competition"
+      "marketplace": "Competition",
+      "supplier": "UK suppliers"
     },
     "progress": "Progress",
     "spend": "Spent {spent} of {cap}",
@@ -585,7 +594,7 @@
     "holidaysNone": "None in this window.",
     "notAvailable": "Not available",
     "source": "Source: {provider}, fetched {when}",
-    "reportSoon": "Supplier matching, scoring and the Top 10 report are being added next. This run shows the season, rising searches and competition.",
+    "reportSoon": "Scoring, compliance checks and the Top 10 report are being added next. This run shows the season, rising searches, competition and UK suppliers.",
     "demand": {
       "title": "Rising searches",
       "intro": "UK Google searches for the moments in your window, ranked by how fast interest is growing.",
@@ -605,8 +614,37 @@
       "mock": "Mock data: these numbers are made up for testing. Live market data is switched on once the providers confirm their terms.",
       "unavailable": "Search trends were not available for this run.",
       "unmeasured": "{count, plural, one {# more search had} other {# more searches had}} too little data to measure.",
-      "method": "Growth compares the last 3 weeks with the 6 weeks before. \"Crowded\" means interest is already near its 12-month high. Competition is checked for the fastest-growing searches and scored 0–100 (lower is better), from Google ads, shopping sellers and price spread. Prices are what shoppers see on Google, not supplier costs.",
-      "notChecked": "Not checked"
+      "method": "Growth compares the last 3 weeks with the 6 weeks before. \"Crowded\" means interest is already near its 12-month high. Competition is checked for the fastest-growing searches and scored 0–100 (lower is better), from Google ads, shopping sellers and price spread. Prices are what shoppers see on Google, not supplier costs. Suppliers are matched for the fastest-growing searches: only UK-warehouse stock from a supplier that passes the Verified UK supplier rule counts. The margin uses the middle price seen on Google as an estimated selling price.",
+      "notChecked": "Not checked",
+      "supplier": "Supplier (UK stock)",
+      "sup": {
+        "matched": "Verified supplier",
+        "no_verified_supplier": "No verified supplier",
+        "no_supplier": "No supplier",
+        "not_checked": "Not checked",
+        "not_available": "Not available",
+        "tooLate": "Arrives too late",
+        "landed": "{cost} landed",
+        "delivery": "{days} days",
+        "noDelivery": "Delivery time not available",
+        "warehouse": "{country} warehouse",
+        "margin": "Est. margin {pct}",
+        "marginNotChecked": "Margin not checked",
+        "fx": "Converted at {rate} ({date})",
+        "why": "Why: {checks}",
+        "reasons": {
+          "dropship_no_moq": "dropshipping",
+          "auto_stock_cost": "stock and cost updates",
+          "tracked_uk": "tracked UK delivery",
+          "uk_returns": "UK returns",
+          "margin": "25% margin",
+          "no_uk_stock": "no UK stock",
+          "no_match": "no matching product",
+          "provider_error": "supplier not responding",
+          "supplier_not_connected": "supplier not connected"
+        },
+        "notConnected": "Connect your Avasam account on the Integrations page to match suppliers."
+      }
     }
   },
   "audience": {
@@ -640,6 +678,7 @@
     "passed": "Passed",
     "assumed": "Act-by dates assume {days}-day delivery plus 21 days to sell.",
     "start": "Start seasonal research",
-    "empty": "No upcoming retail moments."
+    "empty": "No upcoming retail moments.",
+    "supplier": "Act-by dates use your matched suppliers' delivery time ({days} days) plus 21 days to sell."
   }
 }

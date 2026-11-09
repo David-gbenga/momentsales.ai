@@ -26,7 +26,7 @@ from momentsales.tenancy.permissions import Action
 router = APIRouter(tags=["suppliers"])
 
 
-class SupplierOut(BaseModel):
+class SupplierRefOut(BaseModel):
     provider: str
     name: str
     warehouse_countries: list[str]
@@ -68,10 +68,10 @@ class AvasamStatusOut(BaseModel):
 AdminDep = Annotated[Principal, Depends(require_platform_admin)]
 
 
-@router.get("/admin/suppliers", response_model=list[SupplierOut])
-async def admin_suppliers(session: DbSession, _: AdminDep) -> list[SupplierOut]:
+@router.get("/admin/suppliers", response_model=list[SupplierRefOut])
+async def admin_suppliers(session: DbSession, _: AdminDep) -> list[SupplierRefOut]:
     return [
-        SupplierOut.model_validate(s, from_attributes=True)
+        SupplierRefOut.model_validate(s, from_attributes=True)
         for s in await service.list_suppliers(session)
     ]
 

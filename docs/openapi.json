@@ -387,6 +387,83 @@
         "title": "AudienceOut",
         "type": "object"
       },
+      "AvasamConnectIn": {
+        "properties": {
+          "consumer_key": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Consumer Key",
+            "type": "string"
+          },
+          "secret_key": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Secret Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "consumer_key",
+          "secret_key"
+        ],
+        "title": "AvasamConnectIn",
+        "type": "object"
+      },
+      "AvasamStatusOut": {
+        "properties": {
+          "connected": {
+            "title": "Connected",
+            "type": "boolean"
+          },
+          "connected_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connected At"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "mock",
+                  "live"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "active",
+                  "disconnected"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "required": [
+          "connected"
+        ],
+        "title": "AvasamStatusOut",
+        "type": "object"
+      },
       "BillingInterval": {
         "enum": [
           "month",
@@ -615,6 +692,16 @@
             ],
             "title": "Source",
             "type": "string"
+          },
+          "supplier": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupplierResultOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "trend": {
             "anyOf": [
@@ -856,6 +943,22 @@
             "title": "Stopped At Cap",
             "type": "boolean"
           },
+          "supplier_available": {
+            "default": false,
+            "title": "Supplier Available",
+            "type": "boolean"
+          },
+          "supplier_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supplier Provider"
+          },
           "trend_available": {
             "title": "Trend Available",
             "type": "boolean"
@@ -876,6 +979,30 @@
           "market_available"
         ],
         "title": "DemandOut",
+        "type": "object"
+      },
+      "EvidenceOut": {
+        "properties": {
+          "evidence_url": {
+            "title": "Evidence Url",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "verified_at": {
+            "format": "date-time",
+            "title": "Verified At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "passed",
+          "evidence_url",
+          "verified_at"
+        ],
+        "title": "EvidenceOut",
         "type": "object"
       },
       "ExportFileOut": {
@@ -1026,6 +1153,46 @@
           "flags"
         ],
         "title": "FlagsOut",
+        "type": "object"
+      },
+      "FxOut": {
+        "properties": {
+          "base": {
+            "title": "Base",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "quote": {
+            "title": "Quote",
+            "type": "string"
+          },
+          "rate": {
+            "title": "Rate",
+            "type": "string"
+          },
+          "rate_date": {
+            "format": "date",
+            "title": "Rate Date",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "format": "uuid",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "base",
+          "quote",
+          "rate",
+          "rate_date",
+          "provider",
+          "snapshot_id"
+        ],
+        "title": "FxOut",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -1441,6 +1608,145 @@
         "title": "MagicLinkIn",
         "type": "object"
       },
+      "MarginOut": {
+        "properties": {
+          "currency": {
+            "const": "GBP",
+            "title": "Currency",
+            "type": "string"
+          },
+          "floor_bps": {
+            "title": "Floor Bps",
+            "type": "integer"
+          },
+          "margin_bps": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Margin Bps"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "net_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Minor"
+          },
+          "platform_fee_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform Fee Minor"
+          },
+          "result": {
+            "enum": [
+              "passed",
+              "failed",
+              "not_checked"
+            ],
+            "title": "Result",
+            "type": "string"
+          },
+          "returns_allowance_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returns Allowance Minor"
+          },
+          "sell_price_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sell Price Minor"
+          },
+          "sell_price_source": {
+            "const": "market_median_estimate",
+            "title": "Sell Price Source",
+            "type": "string"
+          },
+          "shipping_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Minor"
+          },
+          "stripe_fee_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stripe Fee Minor"
+          },
+          "unit_cost_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Cost Minor"
+          }
+        },
+        "required": [
+          "result",
+          "sell_price_minor",
+          "sell_price_source",
+          "unit_cost_minor",
+          "shipping_minor",
+          "stripe_fee_minor",
+          "platform_fee_minor",
+          "returns_allowance_minor",
+          "net_minor",
+          "margin_bps",
+          "floor_bps",
+          "missing",
+          "currency"
+        ],
+        "title": "MarginOut",
+        "type": "object"
+      },
       "MarketOut": {
         "properties": {
           "competition_missing": {
@@ -1756,6 +2062,38 @@
           "category_hints"
         ],
         "title": "MomentOut",
+        "type": "object"
+      },
+      "MoneyOut": {
+        "properties": {
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          }
+        },
+        "required": [
+          "amount_minor",
+          "currency"
+        ],
+        "title": "MoneyOut",
         "type": "object"
       },
       "MyWorkspaceOut": {
@@ -3410,6 +3748,52 @@
         "title": "SessionOut",
         "type": "object"
       },
+      "ShippingOut": {
+        "properties": {
+          "amount_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount Minor"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "api",
+              "published"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "amount_minor",
+          "currency",
+          "source"
+        ],
+        "title": "ShippingOut",
+        "type": "object"
+      },
       "SignupIn": {
         "properties": {
           "consent": {
@@ -4013,6 +4397,352 @@
           "status"
         ],
         "title": "SubscriptionOut",
+        "type": "object"
+      },
+      "SupplierMatchOut": {
+        "properties": {
+          "arrives_too_late": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrives Too Late"
+          },
+          "checks": {
+            "additionalProperties": {
+              "enum": [
+                "passed",
+                "failed",
+                "not_checked"
+              ],
+              "type": "string"
+            },
+            "title": "Checks",
+            "type": "object"
+          },
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "delivery_max_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Max Days"
+          },
+          "delivery_min_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delivery Min Days"
+          },
+          "evidence": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/EvidenceOut"
+            },
+            "title": "Evidence",
+            "type": "object"
+          },
+          "external_id": {
+            "title": "External Id",
+            "type": "string"
+          },
+          "fetched_at": {
+            "format": "date-time",
+            "title": "Fetched At",
+            "type": "string"
+          },
+          "freight_snapshot_id": {
+            "format": "uuid",
+            "title": "Freight Snapshot Id",
+            "type": "string"
+          },
+          "fx": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FxOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "image_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Url"
+          },
+          "landed_cost_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Landed Cost Minor"
+          },
+          "margin": {
+            "$ref": "#/components/schemas/MarginOut"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "search_snapshot_id": {
+            "format": "uuid",
+            "title": "Search Snapshot Id",
+            "type": "string"
+          },
+          "shipping": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShippingOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "shipping_gbp_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shipping Gbp Minor"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "uk_stock": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uk Stock"
+          },
+          "unit_cost": {
+            "$ref": "#/components/schemas/MoneyOut"
+          },
+          "unit_cost_gbp_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit Cost Gbp Minor"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "variant_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Variant Id"
+          },
+          "verified": {
+            "title": "Verified",
+            "type": "boolean"
+          },
+          "warehouse_country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warehouse Country"
+          }
+        },
+        "required": [
+          "provider",
+          "external_id",
+          "variant_id",
+          "title",
+          "url",
+          "image_url",
+          "confidence",
+          "unit_cost",
+          "unit_cost_gbp_minor",
+          "shipping",
+          "shipping_gbp_minor",
+          "landed_cost_minor",
+          "fx",
+          "delivery_min_days",
+          "delivery_max_days",
+          "warehouse_country",
+          "uk_stock",
+          "checks",
+          "evidence",
+          "margin",
+          "verified",
+          "arrives_too_late",
+          "search_snapshot_id",
+          "freight_snapshot_id",
+          "fetched_at"
+        ],
+        "title": "SupplierMatchOut",
+        "type": "object"
+      },
+      "SupplierRefOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "returns_policy_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Returns Policy Url"
+          },
+          "warehouse_countries": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warehouse Countries",
+            "type": "array"
+          }
+        },
+        "required": [
+          "provider",
+          "name",
+          "warehouse_countries",
+          "returns_policy_url"
+        ],
+        "title": "SupplierRefOut",
+        "type": "object"
+      },
+      "SupplierResultOut": {
+        "description": "Supplier matching (FR-11, ADR-0020) for one candidate.",
+        "properties": {
+          "arrives_too_late": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrives Too Late"
+          },
+          "deadline": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deadline"
+          },
+          "match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SupplierMatchOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "snapshot_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Snapshot Ids",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "matched",
+              "no_verified_supplier",
+              "no_supplier",
+              "not_checked",
+              "not_available"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "match",
+          "reasons",
+          "arrives_too_late",
+          "deadline",
+          "snapshot_ids"
+        ],
+        "title": "SupplierResultOut",
         "type": "object"
       },
       "TenantOut": {
@@ -4691,6 +5421,137 @@
         "title": "ValidationError",
         "type": "object"
       },
+      "VerificationCheck": {
+        "description": "Checks 1-4 of the Verified UK supplier rule (FR-11). Check 5 (margin) is computed\nper product during research.",
+        "enum": [
+          "dropship_no_moq",
+          "auto_stock_cost",
+          "tracked_uk",
+          "uk_returns"
+        ],
+        "title": "VerificationCheck",
+        "type": "string"
+      },
+      "VerificationIn": {
+        "properties": {
+          "check": {
+            "$ref": "#/components/schemas/VerificationCheck"
+          },
+          "evidence_note": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Note"
+          },
+          "evidence_url": {
+            "format": "uri",
+            "maxLength": 2083,
+            "minLength": 1,
+            "title": "Evidence Url",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "provider": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          }
+        },
+        "required": [
+          "provider",
+          "check",
+          "passed",
+          "evidence_url"
+        ],
+        "title": "VerificationIn",
+        "type": "object"
+      },
+      "VerificationOut": {
+        "properties": {
+          "check": {
+            "$ref": "#/components/schemas/VerificationCheck"
+          },
+          "evidence_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evidence Note"
+          },
+          "evidence_url": {
+            "title": "Evidence Url",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "verified_at": {
+            "format": "date-time",
+            "title": "Verified At",
+            "type": "string"
+          },
+          "verified_by": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified By"
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "check",
+          "passed",
+          "evidence_url",
+          "evidence_note",
+          "verified_at",
+          "verified_by"
+        ],
+        "title": "VerificationOut",
+        "type": "object"
+      },
       "VoidIn": {
         "properties": {
           "reason": {
@@ -5057,6 +5918,186 @@
         "summary": "List Providers",
         "tags": [
           "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/supplier-verifications": {
+      "get": {
+        "operationId": "admin_verifications_api_v1_admin_supplier_verifications_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "provider",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provider"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/VerificationOut"
+                  },
+                  "title": "Response Admin Verifications Api V1 Admin Supplier Verifications Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admin Verifications",
+        "tags": [
+          "suppliers"
+        ]
+      },
+      "post": {
+        "description": "Record evidence for one check of the Verified UK supplier rule (append-only).",
+        "operationId": "admin_record_verification_api_v1_admin_supplier_verifications_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerificationIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admin Record Verification",
+        "tags": [
+          "suppliers"
+        ]
+      }
+    },
+    "/api/v1/admin/suppliers": {
+      "get": {
+        "operationId": "admin_suppliers_api_v1_admin_suppliers_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SupplierRefOut"
+                  },
+                  "title": "Response Admin Suppliers Api V1 Admin Suppliers Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admin Suppliers",
+        "tags": [
+          "suppliers"
         ]
       }
     },
@@ -7224,6 +8265,203 @@
         "summary": "Confirm Import",
         "tags": [
           "imports"
+        ]
+      }
+    },
+    "/api/v1/integrations/avasam": {
+      "delete": {
+        "operationId": "avasam_disconnect_api_v1_integrations_avasam_delete",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-workspace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Avasam Disconnect",
+        "tags": [
+          "suppliers"
+        ]
+      },
+      "get": {
+        "operationId": "avasam_status_api_v1_integrations_avasam_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-workspace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvasamStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Avasam Status",
+        "tags": [
+          "suppliers"
+        ]
+      }
+    },
+    "/api/v1/integrations/avasam/connect": {
+      "post": {
+        "description": "Connect the workspace's own Avasam seller account (Owner or Admin).",
+        "operationId": "avasam_connect_api_v1_integrations_avasam_connect_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-workspace-id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Workspace-Id"
+            }
+          },
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AvasamConnectIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvasamStatusOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Avasam Connect",
+        "tags": [
+          "suppliers"
         ]
       }
     },

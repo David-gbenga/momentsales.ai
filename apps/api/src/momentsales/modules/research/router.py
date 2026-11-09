@@ -204,7 +204,7 @@ class SupplierMatchOut(BaseModel):
     fetched_at: datetime
 
 
-class SupplierOut(BaseModel):
+class SupplierResultOut(BaseModel):
     """Supplier matching (FR-11, ADR-0020) for one candidate."""
 
     status: Literal[
@@ -228,7 +228,7 @@ class CandidateOut(BaseModel):
     breakout: bool = False
     trend: TrendOut | None  # None: not available
     market: MarketOut | None = None  # None: not checked or not available
-    supplier: SupplierOut | None = None  # None: runs from before Phase 2c
+    supplier: SupplierResultOut | None = None  # None: runs from before Phase 2c
 
 
 class DemandOut(BaseModel):

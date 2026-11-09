@@ -59,6 +59,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/supplier-verifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin Verifications */
+        get: operations["admin_verifications_api_v1_admin_supplier_verifications_get"];
+        put?: never;
+        /**
+         * Admin Record Verification
+         * @description Record evidence for one check of the Verified UK supplier rule (append-only).
+         */
+        post: operations["admin_record_verification_api_v1_admin_supplier_verifications_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/suppliers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Admin Suppliers */
+        get: operations["admin_suppliers_api_v1_admin_suppliers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/tenants": {
         parameters: {
             query?: never;
@@ -651,6 +689,44 @@ export interface paths {
         put?: never;
         /** Confirm Import */
         post: operations["confirm_import_api_v1_imports__import_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/avasam": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Avasam Status */
+        get: operations["avasam_status_api_v1_integrations_avasam_get"];
+        put?: never;
+        post?: never;
+        /** Avasam Disconnect */
+        delete: operations["avasam_disconnect_api_v1_integrations_avasam_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/avasam/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Avasam Connect
+         * @description Connect the workspace's own Avasam seller account (Owner or Admin).
+         */
+        post: operations["avasam_connect_api_v1_integrations_avasam_connect_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1481,6 +1557,24 @@ export interface components {
             /** Updated At */
             updated_at?: string | null;
         };
+        /** AvasamConnectIn */
+        AvasamConnectIn: {
+            /** Consumer Key */
+            consumer_key: string;
+            /** Secret Key */
+            secret_key: string;
+        };
+        /** AvasamStatusOut */
+        AvasamStatusOut: {
+            /** Connected */
+            connected: boolean;
+            /** Connected At */
+            connected_at?: string | null;
+            /** Mode */
+            mode?: ("mock" | "live") | null;
+            /** Status */
+            status?: ("active" | "disconnected") | null;
+        };
         /**
          * BillingInterval
          * @enum {string}
@@ -1564,6 +1658,7 @@ export interface components {
              * @enum {string}
              */
             source: "seed" | "rising" | "category" | "audience";
+            supplier?: components["schemas"]["SupplierResultOut"] | null;
             trend: components["schemas"]["TrendOut"] | null;
         };
         /** CatalogOut */
@@ -1665,6 +1760,13 @@ export interface components {
             mock: boolean;
             /** Stopped At Cap */
             stopped_at_cap: boolean;
+            /**
+             * Supplier Available
+             * @default false
+             */
+            supplier_available: boolean;
+            /** Supplier Provider */
+            supplier_provider?: string | null;
             /** Trend Available */
             trend_available: boolean;
             /**
@@ -1672,6 +1774,18 @@ export interface components {
              * Format: date
              */
             window_end: string;
+        };
+        /** EvidenceOut */
+        EvidenceOut: {
+            /** Evidence Url */
+            evidence_url: string;
+            /** Passed */
+            passed: boolean;
+            /**
+             * Verified At
+             * Format: date-time
+             */
+            verified_at: string;
         };
         /** ExportFileOut */
         ExportFileOut: {
@@ -1735,6 +1849,27 @@ export interface components {
             flags: {
                 [key: string]: boolean;
             };
+        };
+        /** FxOut */
+        FxOut: {
+            /** Base */
+            base: string;
+            /** Provider */
+            provider: string;
+            /** Quote */
+            quote: string;
+            /** Rate */
+            rate: string;
+            /**
+             * Rate Date
+             * Format: date
+             */
+            rate_date: string;
+            /**
+             * Snapshot Id
+             * Format: uuid
+             */
+            snapshot_id: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1896,6 +2031,44 @@ export interface components {
              */
             email: string;
         };
+        /** MarginOut */
+        MarginOut: {
+            /**
+             * Currency
+             * @constant
+             */
+            currency: "GBP";
+            /** Floor Bps */
+            floor_bps: number;
+            /** Margin Bps */
+            margin_bps: number | null;
+            /** Missing */
+            missing: string[];
+            /** Net Minor */
+            net_minor: number | null;
+            /** Platform Fee Minor */
+            platform_fee_minor: number | null;
+            /**
+             * Result
+             * @enum {string}
+             */
+            result: "passed" | "failed" | "not_checked";
+            /** Returns Allowance Minor */
+            returns_allowance_minor: number | null;
+            /** Sell Price Minor */
+            sell_price_minor: number | null;
+            /**
+             * Sell Price Source
+             * @constant
+             */
+            sell_price_source: "market_median_estimate";
+            /** Shipping Minor */
+            shipping_minor: number | null;
+            /** Stripe Fee Minor */
+            stripe_fee_minor: number | null;
+            /** Unit Cost Minor */
+            unit_cost_minor: number | null;
+        };
         /** MarketOut */
         MarketOut: {
             /** Competition Missing */
@@ -2025,6 +2198,13 @@ export interface components {
             key: string;
             /** Name */
             name: string;
+        };
+        /** MoneyOut */
+        MoneyOut: {
+            /** Amount Minor */
+            amount_minor: number | null;
+            /** Currency */
+            currency: string | null;
         };
         /** MyWorkspaceOut */
         MyWorkspaceOut: {
@@ -2603,6 +2783,20 @@ export interface components {
             token_type: "bearer";
             user: components["schemas"]["UserOut"];
         };
+        /** ShippingOut */
+        ShippingOut: {
+            /** Amount Minor */
+            amount_minor: number | null;
+            /** Currency */
+            currency: string | null;
+            /** Name */
+            name: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "api" | "published";
+        };
         /** SignupIn */
         SignupIn: {
             /** Consent */
@@ -2818,6 +3012,99 @@ export interface components {
              * @default false
              */
             trial_used: boolean;
+        };
+        /** SupplierMatchOut */
+        SupplierMatchOut: {
+            /** Arrives Too Late */
+            arrives_too_late: boolean | null;
+            /** Checks */
+            checks: {
+                [key: string]: "passed" | "failed" | "not_checked";
+            };
+            /** Confidence */
+            confidence: number;
+            /** Delivery Max Days */
+            delivery_max_days: number | null;
+            /** Delivery Min Days */
+            delivery_min_days: number | null;
+            /** Evidence */
+            evidence: {
+                [key: string]: components["schemas"]["EvidenceOut"];
+            };
+            /** External Id */
+            external_id: string;
+            /**
+             * Fetched At
+             * Format: date-time
+             */
+            fetched_at: string;
+            /**
+             * Freight Snapshot Id
+             * Format: uuid
+             */
+            freight_snapshot_id: string;
+            fx: components["schemas"]["FxOut"] | null;
+            /** Image Url */
+            image_url: string | null;
+            /** Landed Cost Minor */
+            landed_cost_minor: number | null;
+            margin: components["schemas"]["MarginOut"];
+            /** Provider */
+            provider: string;
+            /**
+             * Search Snapshot Id
+             * Format: uuid
+             */
+            search_snapshot_id: string;
+            shipping: components["schemas"]["ShippingOut"] | null;
+            /** Shipping Gbp Minor */
+            shipping_gbp_minor: number | null;
+            /** Title */
+            title: string;
+            /** Uk Stock */
+            uk_stock: number | null;
+            unit_cost: components["schemas"]["MoneyOut"];
+            /** Unit Cost Gbp Minor */
+            unit_cost_gbp_minor: number | null;
+            /** Url */
+            url: string | null;
+            /** Variant Id */
+            variant_id: string | null;
+            /** Verified */
+            verified: boolean;
+            /** Warehouse Country */
+            warehouse_country: string | null;
+        };
+        /** SupplierRefOut */
+        SupplierRefOut: {
+            /** Name */
+            name: string;
+            /** Provider */
+            provider: string;
+            /** Returns Policy Url */
+            returns_policy_url: string | null;
+            /** Warehouse Countries */
+            warehouse_countries: string[];
+        };
+        /**
+         * SupplierResultOut
+         * @description Supplier matching (FR-11, ADR-0020) for one candidate.
+         */
+        SupplierResultOut: {
+            /** Arrives Too Late */
+            arrives_too_late: boolean | null;
+            /** Deadline */
+            deadline: string | null;
+            match: components["schemas"]["SupplierMatchOut"] | null;
+            /** Reasons */
+            reasons: string[];
+            /** Snapshot Ids */
+            snapshot_ids: string[];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "matched" | "no_verified_supplier" | "no_supplier" | "not_checked" | "not_available";
         };
         /** TenantOut */
         TenantOut: {
@@ -3048,6 +3335,54 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /**
+         * VerificationCheck
+         * @description Checks 1-4 of the Verified UK supplier rule (FR-11). Check 5 (margin) is computed
+         *     per product during research.
+         * @enum {string}
+         */
+        VerificationCheck: "dropship_no_moq" | "auto_stock_cost" | "tracked_uk" | "uk_returns";
+        /** VerificationIn */
+        VerificationIn: {
+            check: components["schemas"]["VerificationCheck"];
+            /** Evidence Note */
+            evidence_note?: string | null;
+            /**
+             * Evidence Url
+             * Format: uri
+             */
+            evidence_url: string;
+            /** Passed */
+            passed: boolean;
+            /** Provider */
+            provider: string;
+            /** Verified At */
+            verified_at?: string | null;
+        };
+        /** VerificationOut */
+        VerificationOut: {
+            check: components["schemas"]["VerificationCheck"];
+            /** Evidence Note */
+            evidence_note: string | null;
+            /** Evidence Url */
+            evidence_url: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Passed */
+            passed: boolean;
+            /** Provider */
+            provider: string;
+            /**
+             * Verified At
+             * Format: date-time
+             */
+            verified_at: string;
+            /** Verified By */
+            verified_by: string | null;
+        };
         /** VoidIn */
         VoidIn: {
             /** Reason */
@@ -3210,6 +3545,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProviderOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_verifications_api_v1_admin_supplier_verifications_get: {
+        parameters: {
+            query?: {
+                provider?: string | null;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_record_verification_api_v1_admin_supplier_verifications_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerificationIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VerificationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_suppliers_api_v1_admin_suppliers_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierRefOut"][];
                 };
             };
             /** @description Validation Error */
@@ -4344,6 +4778,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    avasam_status_api_v1_integrations_avasam_get: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvasamStatusOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    avasam_disconnect_api_v1_integrations_avasam_delete: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    avasam_connect_api_v1_integrations_avasam_connect_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "x-workspace-id"?: string | null;
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AvasamConnectIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvasamStatusOut"];
                 };
             };
             /** @description Validation Error */

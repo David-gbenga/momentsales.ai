@@ -5,7 +5,19 @@ import { useTranslations } from "next-intl";
 
 import { Badge, Notice } from "@/components/ui/primitives";
 import { DataTable, Td } from "@/components/ui/table";
-import { demandOf, formatDay, formatGrowth, isStale, measured, type Candidate, type Run } from "@/lib/research";
+import {
+  demandOf,
+  failedChecks,
+  formatBps,
+  formatDay,
+  formatDelivery,
+  formatGrowth,
+  isStale,
+  measured,
+  type Candidate,
+  type Run,
+  type SupplierResult,
+} from "@/lib/research";
 
 /** Rising searches (FR-12, ADR-0019): growth, "crowded" badge and competition score.
  * Every number comes from a stored provider response; missing data says "not available". */
@@ -24,12 +36,13 @@ export function DemandResults({ run }: { run: Run }) {
         <p className="text-sm text-muted-foreground">{t("intro")}</p>
       </div>
       {demand.mock ? <Notice>{t("mock")}</Notice> : null}
+      {notConnected(demand.candidates) ? <Notice>{t("sup.notConnected")}</Notice> : null}
       {!demand.trend_available ? (
         <Notice>{t("unavailable")}</Notice>
       ) : (
         <DataTable
           caption={t("caption")}
-          head={[t("search"), t("growth"), t("competition"), t("prices"), t("source")]}
+          head={[t("search"), t("growth"), t("competition"), t("prices"), t("supplier"), t("source")]}
         >
           {rows.map((c) => (
             <Row key={c.keyword} c={c} marketChecked={demand.market_available} />
@@ -91,6 +104,9 @@ function Row({ c, marketChecked }: { c: Candidate; marketChecked: boolean }) {
         )}
       </Td>
       <Td>
+        <SupplierCell supplier={c.supplier ?? null} />
+      </Td>
+      <Td>
         <span className="text-xs">
           {t("from", { provider: market?.provider ?? trend.provider, when: formatDay(fetched.slice(0, 10)) })}
         </span>
@@ -101,5 +117,59 @@ function Row({ c, marketChecked }: { c: Candidate; marketChecked: boolean }) {
         ) : null}
       </Td>
     </tr>
+  );
+}
+
+function notConnected(candidates: Candidate[]): boolean {
+  return candidates.some((c) => c.supplier?.reasons.includes("supplier_not_connected"));
+}
+
+/** Supplier matching (FR-11): landed cost, delivery and warehouse, or why there is none. */
+function SupplierCell({ supplier }: { supplier: SupplierResult | null }) {
+  const t = useTranslations("research.demand.sup");
+  if (!supplier) return <span>{t("not_checked")}</span>;
+  const m = supplier.match;
+  const failed = failedChecks(supplier);
+  const late = supplier.arrives_too_late === true;
+  const delivery = m ? formatDelivery(m.delivery_min_days, m.delivery_max_days) : null;
+  return (
+    <span className="grid gap-1" data-testid="supplier-cell" data-status={supplier.status}>
+      <span className="flex flex-wrap gap-1">
+        <Badge
+          data-testid={`badge-supplier-${supplier.status}`}
+          className={supplier.status === "matched" ? "border-emerald-600 text-emerald-800 dark:text-emerald-300" : undefined}
+        >
+          {t(supplier.status)}
+        </Badge>
+        {late ? (
+          <Badge className="border-amber-600 text-amber-800 dark:text-amber-300" data-testid="badge-too-late">
+            {t("tooLate")}
+          </Badge>
+        ) : null}
+      </span>
+      {m ? (
+        <span className="text-xs text-muted-foreground">
+          <span className="block font-medium text-foreground">
+            {m.provider.toUpperCase()}
+            {m.landed_cost_minor !== null ? ` · ${t("landed", { cost: formatMoney(m.landed_cost_minor, "GBP") })}` : ""}
+          </span>
+          <span className="block">
+            {delivery ? t("delivery", { days: delivery }) : t("noDelivery")}
+            {m.warehouse_country ? ` · ${t("warehouse", { country: m.warehouse_country })}` : ""}
+          </span>
+          <span className="block">
+            {m.margin.result === "not_checked"
+              ? t("marginNotChecked")
+              : t("margin", { pct: formatBps(m.margin.margin_bps) ?? "?" })}
+          </span>
+          {m.fx ? <span className="block">{t("fx", { rate: m.fx.rate, date: formatDay(m.fx.rate_date) })}</span> : null}
+        </span>
+      ) : null}
+      {failed.length && supplier.status !== "matched" ? (
+        <span className="text-xs text-muted-foreground">
+          {t("why", { checks: failed.map((f) => (t.has(`reasons.${f}`) ? t(`reasons.${f}`) : f)).join(", ") })}
+        </span>
+      ) : null}
+    </span>
   );
 }

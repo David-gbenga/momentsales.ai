@@ -26,6 +26,10 @@
   "integrations.payments.manage": [
     "owner"
   ],
+  "integrations.suppliers.manage": [
+    "admin",
+    "owner"
+  ],
   "ledger.export": [
     "accountant",
     "owner"

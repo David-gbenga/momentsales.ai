@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 
+import { AvasamCard } from "@/components/integrations/avasam-card";
 import { StripeCard } from "@/components/integrations/stripe-card";
 
 export default function IntegrationsPage() {
@@ -15,6 +16,7 @@ export default function IntegrationsPage() {
       <Suspense>
         <StripeCard />
       </Suspense>
+      <AvasamCard />
     </section>
   );
 }

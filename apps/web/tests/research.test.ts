@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   demandOf,
+  failedChecks,
+  formatBps,
   formatDay,
+  formatDelivery,
   formatGrowth,
   isStale,
   measured,
@@ -11,6 +14,7 @@ import {
   TERMINAL,
   type Demand,
   type Run,
+  type SupplierResult,
 } from "@/lib/research";
 
 describe("research helpers", () => {
@@ -57,5 +61,29 @@ describe("research helpers", () => {
     } as unknown as Demand;
     expect(measured(demand).map((c) => c.keyword)).toEqual(["a"]);
     expect(measured(null)).toEqual([]);
+  });
+});
+
+describe("supplier helpers", () => {
+  it("formats a delivery range", () => {
+    expect(formatDelivery(2, 4)).toBe("2–4");
+    expect(formatDelivery(3, 3)).toBe("3");
+    expect(formatDelivery(null, 5)).toBe("5");
+    expect(formatDelivery(2, null)).toBeNull();
+  });
+
+  it("formats basis points as a percentage", () => {
+    expect(formatBps(2500)).toBe("25%");
+    expect(formatBps(4649)).toBe("46%");
+    expect(formatBps(null)).toBeNull();
+  });
+
+  it("lists the failed checks once, without their result", () => {
+    const supplier = {
+      status: "no_verified_supplier",
+      reasons: ["margin:failed", "uk_returns:failed", "margin:not_checked", "no_uk_stock"],
+    } as unknown as SupplierResult;
+    expect(failedChecks(supplier)).toEqual(["margin", "uk_returns", "no_uk_stock"]);
+    expect(failedChecks(null)).toEqual([]);
   });
 });
